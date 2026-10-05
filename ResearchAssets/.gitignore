@@ -1,0 +1,10 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Office temp / lock files
+~$*
+
+# Large or generated data (uncomment if these should not be tracked)
+# Artefact/data/
+# Artefact/results/
