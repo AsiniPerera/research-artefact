@@ -1,0 +1,14 @@
+google-generativeai
+fastapi
+uvicorn[standard]
+asyncpg
+psycopg[binary]
+pydantic>=2
+pandas
+numpy
+scipy
+scikit-learn
+vaderSentiment
+shapely
+langdetect
+openpyxl

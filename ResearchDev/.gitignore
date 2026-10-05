@@ -1,0 +1,13 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+node_modules/
+dist/
+data/raw/
+data/interim/
+data/processed/
+pipeline/expert_weights.json
+evaluation/gold_set.csv
+docs/results/
