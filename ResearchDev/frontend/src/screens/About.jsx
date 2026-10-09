@@ -1,4 +1,23 @@
 import { CATEGORIES } from "../components/WeightLevels";
+import { IconArrow } from "../components/Icons";
+
+/* The framework as the page shows it: the seven weighted categories, taken
+   straight from the priority sliders so the two lists cannot disagree, plus
+   category 8. Overall Verdict is reported only — it carries weight 0 in
+   ref.framework_category and is absent from the sliders, because it summarises
+   the other seven rather than sitting beside them. The page still names it, so
+   someone reading the framework sees all eight things the extraction can
+   return.
+
+   Names and numbers are exactly those in ref.framework_category. The framework
+   is frozen: they change only if the database does. */
+const REPORTED_ONLY = {
+  no: 8,
+  name: "Overall Verdict",
+  tag: "A general verdict, reported but never weighted.",
+};
+const FRAMEWORK = [...CATEGORIES, REPORTED_ONLY];
+const GLOSS = Object.fromEntries(FRAMEWORK.map((c) => [c.no, c.tag]));
 
 /* Images are optional and matched by filename — drop one in and it appears,
    no code change. Same glob the landing page uses, so the two never disagree
@@ -28,9 +47,26 @@ const byName = Object.fromEntries(
    same 0.56 ratio as the file it replaces, so it sits in the same frame with
    no change to the crop. */
 const originImage = byName.about2 ?? byName.bridal ?? null;
+/* Trial: the poster treatment (photo, plum bar, a huge vertical word that is
+   outlined over the photo and gold-filled over the bar). about1 suits it: a
+   plain warm background. To go back, render the plain <figure> with
+   originImage again instead of <PosterImage>. */
+const posterImage = byName.about1 ?? null;
+
+function PosterImage({ src, word, side }) {
+  return (
+    <figure className="poster" aria-hidden="true">
+      <span className="poster-photo" style={{ backgroundImage: `url(${src})` }} />
+      <span className="poster-bar" />
+      <span className="poster-layer poster-layer--line"><b>{word}</b></span>
+      <span className="poster-layer poster-layer--fill"><b>{word}</b></span>
+      <span className="poster-side">{side}</span>
+    </figure>
+  );
+}
 const methodImage = byName.about3 ?? byName.skinbeauty ?? null;
 
-export function About() {
+export function About({ onExplore }) {
   return (
     <article className="about">
       {/* The page opens on type. The standfirst sits in the masthead rather
@@ -39,7 +75,10 @@ export function About() {
       <header className="about-hero">
         <div className="about-hero-copy">
           <p className="editorial-eyebrow">About</p>
-          <h1>Helping you find a salon you&apos;ll love</h1>
+          <h1>
+            <span>Helping you find</span>
+            <span className="about-accent">a salon you&apos;ll <em>love.</em></span>
+          </h1>
           <p className="about-lede">
             Amore Beauty ranks salons on what their clients actually wrote, not on a
             single star average. You decide which things matter to you, and the ranking
@@ -53,6 +92,7 @@ export function About() {
       {/* ── Why it exists ─────────────────────────────── */}
       <section className="about-split">
         <div className="about-split-copy">
+          <p className="about-kicker">Our story</p>
           <h2>Why it exists</h2>
           <p>
             Choosing a salon is a high-trust decision made with low-quality information. A
@@ -70,7 +110,9 @@ export function About() {
             blended star.
           </p>
         </div>
-        {originImage && (
+        {posterImage ? (
+          <PosterImage src={posterImage} word="Beauty" side="Amore" />
+        ) : originImage && (
           <figure className="about-split-media">
             <img src={originImage} alt="" loading="lazy" decoding="async" />
           </figure>
@@ -79,19 +121,23 @@ export function About() {
 
       {/* ── What gets measured ────────────────────────── */}
       <section className="about-section">
+        <p className="about-kicker">The framework</p>
         <h2>What gets measured</h2>
         <p className="about-note">
-          {CATEGORIES.length} categories. The vocabulary is fixed and closed — extraction
-          can only ever return one of these, which is what keeps scores comparable between
-          salons. You set how much each one counts; none of them is weighted for you.
+          {FRAMEWORK.length} categories, {CATEGORIES.length} of which you weight. The
+          vocabulary is fixed and closed — extraction can only ever return one of these,
+          which is what keeps scores comparable between salons. You set how much each of
+          the {CATEGORIES.length} counts; none of them is weighted for you. The last,
+          Overall Verdict, is reported rather than weighted: it is what a review says
+          about a salon in general, and weighting it would count the same opinion twice.
         </p>
         <ol className="about-cats">
-          {CATEGORIES.map(({ key, label, tag }, i) => (
-            <li key={key}>
-              <span className="about-cat-no">{String(i + 1).padStart(2, "0")}</span>
+          {FRAMEWORK.map(({ no, name }) => (
+            <li key={no} data-no={String(no).padStart(2, "0")}>
+              <span className="about-cat-no">{String(no).padStart(2, "0")}</span>
               <span className="about-cat-body">
-                <strong>{label}</strong>
-                <span>{tag}</span>
+                <strong>{name}</strong>
+                <span>{GLOSS[no]}</span>
               </span>
             </li>
           ))}
@@ -102,9 +148,10 @@ export function About() {
       {/* Four checks rather than three paragraphs. Same content, but a method
           is a list of things that had to pass — written as prose it reads as
           reassurance and nobody finishes it. Numbered in the same language as
-          the ten categories above, so the page has one grammar. */}
+          the categories above, so the page has one grammar. */}
       <section className="about-split about-split--flip">
         <div className="about-split-copy">
+          <p className="about-kicker">Our method</p>
           <h2>How we know it works</h2>
           <p className="about-note">
             A ranking is only worth as much as the checks behind it. Every part of the
@@ -161,6 +208,21 @@ export function About() {
           </figure>
         )}
       </section>
+
+      {/* ── Close: one way onward ─────────────────────── */}
+      {onExplore && (
+        <section className="about-cta">
+          <p className="about-kicker">Begin here</p>
+          <h2>Your salon is already <em>waiting.</em></h2>
+          <p>Tell us what matters to you, and we&apos;ll show you the salons that fit.</p>
+          <button type="button" className="btn-hero" onClick={onExplore}>
+            Find Your Salon
+            <span className="btn-hero-disc" aria-hidden="true">
+              <IconArrow size={16} />
+            </span>
+          </button>
+        </section>
+      )}
     </article>
   );
 }

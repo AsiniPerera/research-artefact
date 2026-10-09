@@ -1,35 +1,53 @@
 /* ============================================================
-   Salon Service Taxonomy v4 — Sri Lanka
-   5 domains → 17 groups → 65 variants.
+   Salon Service Taxonomy v9 — Sri Lanka
+   5 categories → 17 services → 51 sub-services.
 
-   `id`     — v4 code (HR, HR.CUT), the join key with extraction output.
-   `value`  — wire slug sent to the API. Domain slugs are unchanged from
-              v1 because they match `salons.service_family` in the database.
-   `gender` — the CLIENT FACET: F female · M male · U unisex · K kids.
+   SOURCE OF TRUTH: backend/salon_db/02_reference_data.sql
+   ("taxonomy v9", framework "final-38 (frozen 2026-10-04)"). Every `id` and
+   `label` below is copied verbatim from ref.service_category / ref.service /
+   ref.sub_service. This file is a mirror, not a second opinion — if the two
+   ever disagree, the SQL wins and this file is wrong. The taxonomy is frozen
+   per projectInfo.md, so nothing here is to be added, renamed or merged.
 
-   THE RULE that shapes this file: a service exists as exactly ONE node, and
-   gender is a facet on it — never a second node. A man booking a haircut is
-   booking HR.CUT/haircut_trim with gender U, not a parallel "men's haircut".
-   That is why MG holds only what is genuinely men-specific (beard work and
-   groom dressing) and why the men's picture is assembled by MENS_LEAVES
-   below rather than by reading MG on its own.
+   `id`      — the v9 code (HR, HR.CUT, HR.CUT.01), the join key with the
+               database and with extraction output.
+   `label`   — verbatim ref.sub_service.name.
+   `value`   — readable wire slug sent to the API.
+   `aliases` — the v4 slugs this v9 node absorbs.
+
+   WHY `aliases` EXISTS. Leaf slugs travel as `sub_services` and are matched
+   against `salons.service_tags` by apply_soft_priority
+   (backend/services/filter_service.py), which only sets a
+   `matched_sub_service` flag used for ordering — it never excludes. Those
+   stored tags are still v4 spellings. So each node also carries the v4 slugs
+   it replaces, and the ranking call sends slug + aliases together: the UI
+   moves to v9 while the match badge and the priority boost keep working
+   against the data that is actually in the table. All 65 v4 slugs are
+   accounted for below, so no stored tag is orphaned.
+
+   Three v9 nodes have no v4 ancestor and so cannot match a stored tag yet —
+   see NEW_IN_V9, which is derived rather than hand-listed.
+
+   NOTE ON GENDER. v4 carried a gender facet (F/M/U/K) on every leaf. v9
+   carries no gender data, and the apparatus was unreachable anyway:
+   ServicesNav calls groupsFor() with one argument, so the facet parameter was
+   always undefined and every group came back unfiltered. Rather than invent
+   facets for 51 sub-services, the facet system is gone. `GENDERS` below
+   survives because it still backs the `gender` field sent to /rank — that is
+   a filter value, not taxonomy.
    ============================================================ */
 
+/* Category `value` slugs are a HARD filter: backend/main.py runs
+   `WHERE s.service_family = $1` against them. They keep their v1 spellings
+   because that is what is stored in salons.service_family — renaming one
+   returns zero candidates. Only the labels move to v9. */
 export const DOMAINS = [
   { id: "HR", value: "hair",            label: "Hair" },
   { id: "SK", value: "skin_beauty",     label: "Skin & Beauty" },
-  { id: "BO", value: "makeup_bridal",   label: "Bridal & Occasion" },
-  { id: "NL", value: "nails",           label: "Nails" },
-  { id: "MG", value: "barber_grooming", label: "Men's Grooming" },
+  { id: "NL", value: "nails",           label: "Nail Care" },
+  { id: "BO", value: "makeup_bridal",   label: "Wedding, Events & Occasions" },
+  { id: "MG", value: "barber_grooming", label: "Gents' Grooming" },
 ];
-
-/* The four facet codes, and what each one is called in the interface. */
-export const GENDER_FACETS = {
-  F: "Women",
-  M: "Men",
-  U: "Unisex",
-  K: "Kids",
-};
 
 export const GROUPS = {
   hair: [
@@ -37,51 +55,48 @@ export const GROUPS = {
       id: "HR.CUT",
       label: "Haircuts",
       leaves: [
-        { value: "haircut_trim",      label: "Haircut / Trim", gender: "U" },
-        { value: "layered_style_cut", label: "Style Cut",      gender: "U" },
-        { value: "kids_haircut",      label: "Kids Haircut",   gender: "K" },
+        { id: "HR.CUT.01", value: "haircut_trim",        label: "Haircut & Trim",        aliases: ["haircut_trim", "kids_haircut"] },
+        { id: "HR.CUT.02", value: "style_cut_restyling", label: "Style Cut & Restyling", aliases: ["layered_style_cut"] },
       ],
     },
     {
       id: "HR.COL",
       label: "Hair Colour",
       leaves: [
-        { value: "global_colour",              label: "Global Colour",                  gender: "U" },
-        { value: "grey_coverage_root_touchup", label: "Grey Coverage / Root Touch-up",  gender: "U" },
-        { value: "highlights_balayage",        label: "Highlights & Balayage",          gender: "F" },
-        { value: "bleach_fashion_colour",      label: "Bleach & Fashion Colour",        gender: "U" },
+        { id: "HR.COL.01", value: "global_colour_root_touchup", label: "Global Colour & Root Touch-up", aliases: ["global_colour", "grey_coverage_root_touchup"] },
+        { id: "HR.COL.02", value: "highlights_balayage_ombre",  label: "Highlights, Balayage & Ombre",  aliases: ["highlights_balayage"] },
+        { id: "HR.COL.03", value: "bleach_fashion_colour",      label: "Bleach & Fashion Colour",       aliases: ["bleach_fashion_colour"] },
       ],
     },
     {
+      /* Three nodes, not two. "Rebonding, Keratin & Smoothening, Perming &
+         Texturizing" reads as two items in prose, but v9 splits rebonding
+         from keratin — HR.CHEM.01-03. */
       id: "HR.CHEM",
       label: "Chemical Hair Treatments",
       leaves: [
-        { value: "rebonding",           label: "Rebonding / Permanent Straightening", gender: "F" },
-        { value: "keratin_smoothening", label: "Keratin / Smoothening",               gender: "F" },
-        { value: "perm",                label: "Perm",                                gender: "F" },
+        { id: "HR.CHEM.01", value: "rebonding",             label: "Rebonding",             aliases: ["rebonding"] },
+        { id: "HR.CHEM.02", value: "keratin_smoothening",   label: "Keratin & Smoothening", aliases: ["keratin_smoothening"] },
+        { id: "HR.CHEM.03", value: "perming_texturizing",   label: "Perming & Texturizing", aliases: ["perm"] },
       ],
     },
     {
       id: "HR.TRT",
       label: "Hair & Scalp Treatments",
       leaves: [
-        { value: "hair_spa",                   label: "Hair Spa",                              gender: "U" },
-        { value: "scalp_dandruff_treatment",   label: "Scalp & Dandruff Treatment",            gender: "U" },
-        { value: "hair_fall_treatment",        label: "Hair Fall Treatment",                   gender: "U" },
-        { value: "ayurvedic_oil_head_massage", label: "Ayurvedic Oil Treatment & Head Massage", gender: "U" },
+        { id: "HR.TRT.01", value: "hair_spa_deep_conditioning",  label: "Hair Spa & Deep Conditioning",      aliases: ["hair_spa"] },
+        { id: "HR.TRT.02", value: "scalp_care_dandruff_hairfall", label: "Scalp Care (Dandruff & Hair Fall)", aliases: ["scalp_dandruff_treatment", "hair_fall_treatment"] },
+        { id: "HR.TRT.03", value: "protein_botox_oil_treatments", label: "Protein, Botox & Oil Treatments",   aliases: ["ayurvedic_oil_head_massage"] },
       ],
     },
     {
       id: "HR.STY",
       label: "Hair Styling",
       leaves: [
-        { value: "wash_blow_dry",                 label: "Wash & Blow Dry",                        gender: "F" },
-        { value: "temporary_straightening_curls", label: "Temporary Straightening / Curl Styling", gender: "F" },
-        { value: "party_hairstyle",               label: "Party Hairstyle",                        gender: "F" },
-        { value: "hair_extensions_wigs",          label: "Hair Extensions & Wigs",                 gender: "F" },
-        /* Lives in HR, not MG: it is a hair system fitted by the hair team.
-           The facet is what makes it a men's service, not its position. */
-        { value: "hair_patch_system",             label: "Hair Patch / Hair System",               gender: "M" },
+        { id: "HR.STY.01", value: "wash_blow_dry",                  label: "Wash & Blow Dry",                   aliases: ["wash_blow_dry"] },
+        { id: "HR.STY.02", value: "temporary_straightening_curling", label: "Temporary Straightening / Curling", aliases: ["temporary_straightening_curls"] },
+        { id: "HR.STY.03", value: "event_party_hairstyle",           label: "Event & Party Hairstyle",           aliases: ["party_hairstyle"] },
+        { id: "HR.STY.04", value: "hair_extensions_wigs_systems",    label: "Hair Extensions, Wigs & Systems",   aliases: ["hair_extensions_wigs", "hair_patch_system"] },
       ],
     },
   ],
@@ -91,77 +106,47 @@ export const GROUPS = {
       id: "SK.FAC",
       label: "Facials",
       leaves: [
-        { value: "basic_facial_cleanup",  label: "Basic Facial / Clean-up",            gender: "U" },
-        { value: "deep_cleansing_facial", label: "Deep Cleansing Facial",              gender: "U" },
-        { value: "brightening_facial",    label: "Brightening Facial (Gold / Diamond)", gender: "U" },
-        { value: "detan_facial",          label: "De-Tan Facial",                      gender: "U" },
-        { value: "anti_aging_facial",     label: "Anti-Aging Facial",                  gender: "U" },
+        { id: "SK.FAC.01", value: "basic_cleanup_express_facial",    label: "Basic Clean-up & Express Facial",    aliases: ["basic_facial_cleanup"] },
+        { id: "SK.FAC.02", value: "deep_cleansing_antiaging_facial", label: "Deep Cleansing & Anti-Aging Facial", aliases: ["deep_cleansing_facial", "anti_aging_facial"] },
+        { id: "SK.FAC.03", value: "brightening_detan_facial",        label: "Brightening & De-Tan Facial",        aliases: ["brightening_facial", "detan_facial"] },
+        // New in v9: machine-assisted facials had no v4 node.
+        { id: "SK.FAC.04", value: "advanced_hydra_oxygen_facial",    label: "Advanced Hydra & Oxygen Facial",     aliases: [] },
       ],
     },
     {
       id: "SK.TRT",
       label: "Skin Treatments",
       leaves: [
-        { value: "acne_treatment",         label: "Acne Treatment",         gender: "U" },
-        { value: "pigmentation_treatment", label: "Pigmentation Treatment", gender: "U" },
-        { value: "detan_treatment",        label: "De-Tan Treatment",       gender: "U" },
-        { value: "chemical_peel",          label: "Chemical Peel",          gender: "U" },
+        { id: "SK.TRT.01", value: "acne_pigmentation_care", label: "Targeted Acne & Pigmentation Care", aliases: ["acne_treatment", "pigmentation_treatment"] },
+        { id: "SK.TRT.02", value: "detan_body_face_care",   label: "De-Tan Body & Face Care",           aliases: ["detan_treatment"] },
+        { id: "SK.TRT.03", value: "chemical_peels",         label: "Chemical Peels",                    aliases: ["chemical_peel"] },
       ],
     },
     {
       id: "SK.BL",
       label: "Brows & Lashes",
       leaves: [
-        { value: "eyebrow_threading_shaping", label: "Eyebrow Threading & Shaping", gender: "U" },
-        { value: "eyelash_extensions",        label: "Eyelash Extensions",          gender: "F" },
-        { value: "lash_lift",                 label: "Lash Lift",                   gender: "F" },
+        { id: "SK.BL.01", value: "eyebrow_threading_lamination_tint", label: "Eyebrow Threading, Lamination & Tint", aliases: ["eyebrow_threading_shaping"] },
+        { id: "SK.BL.02", value: "eyelash_extensions_lash_lift",      label: "Eyelash Extensions & Lash Lift",       aliases: ["eyelash_extensions", "lash_lift"] },
+        // New in v9: cosmetic brow pigmentation had no v4 node.
+        { id: "SK.BL.03", value: "microblading_micropigmentation",    label: "Microblading & Micro-pigmentation",    aliases: [] },
       ],
     },
     {
       id: "SK.HX",
-      label: "Hair Removal",
+      label: "Hair Removal & Lightening",
       /* Procedurally unrelated to facials and peels — exclude from
          sibling-variance statistics within SK or the estimate is meaningless.
          Kept as data so it survives the next group added to SK. */
       excludeFromSiblingStats: true,
       leaves: [
-        { value: "face_threading",         label: "Face Threading",            gender: "F" },
-        { value: "waxing_arms_legs",       label: "Waxing – Arms & Legs",      gender: "U" },
-        { value: "waxing_underarm_bikini", label: "Waxing – Underarm & Bikini", gender: "F" },
-        { value: "full_body_waxing",       label: "Full Body Waxing",          gender: "U" },
-        { value: "face_body_bleach",       label: "Face & Body Bleach",        gender: "U" },
-      ],
-    },
-  ],
-
-  makeup_bridal: [
-    {
-      id: "BO.BRIDAL",
-      label: "Bridal",
-      leaves: [
-        { value: "bridal_trial",                 label: "Bridal Trial",                  gender: "F" },
-        { value: "wedding_day_bridal",           label: "Wedding Day Bridal",            gender: "F" },
-        { value: "homecoming_makeup",            label: "Homecoming Makeup",             gender: "F" },
-        { value: "engagement_makeup",            label: "Engagement Makeup",             gender: "F" },
-        { value: "bridal_party_mother_of_bride", label: "Bridal Party / Mother of Bride", gender: "F" },
-      ],
-    },
-    {
-      id: "BO.DRAPE",
-      label: "Draping",
-      leaves: [
-        { value: "osariya_draping", label: "Osariya (Kandyan) Draping", gender: "F" },
-        { value: "saree_draping",   label: "Saree Draping",             gender: "F" },
-      ],
-    },
-    {
-      id: "BO.OCC",
-      label: "Occasion",
-      leaves: [
-        { value: "party_birthday_makeup", label: "Party / Birthday Makeup", gender: "F" },
-        { value: "graduation_makeup",     label: "Graduation Makeup",       gender: "F" },
-        { value: "photoshoot_hd_makeup",  label: "Photoshoot / HD Makeup",  gender: "U" },
-        { value: "mehendi",               label: "Mehendi (Henna)",         gender: "F" },
+        { id: "SK.HX.01", value: "facial_threading_waxing",      label: "Facial Threading & Waxing",      aliases: ["face_threading"] },
+        /* waxing_underarm_bikini is aliased here, not onto SK.HX.03: v9 names
+           the underarm explicitly in this node, and a tag that matched two
+           siblings would make the match badge ambiguous. */
+        { id: "SK.HX.02", value: "arms_legs_underarm_waxing",    label: "Arms, Legs & Underarm Waxing",   aliases: ["waxing_arms_legs", "waxing_underarm_bikini"] },
+        { id: "SK.HX.03", value: "full_body_waxing_bikini_care", label: "Full Body Waxing & Bikini Care", aliases: ["full_body_waxing"] },
+        { id: "SK.HX.04", value: "face_body_bleaching",          label: "Face & Body Bleaching",          aliases: ["face_body_bleach"] },
       ],
     },
   ],
@@ -171,55 +156,83 @@ export const GROUPS = {
       id: "NL.CARE",
       label: "Nail Care",
       leaves: [
-        { value: "manicure",            label: "Manicure",              gender: "U" },
-        { value: "pedicure",            label: "Pedicure",              gender: "U" },
-        { value: "foot_spa",            label: "Foot Spa",              gender: "U" },
-        { value: "nail_repair_removal", label: "Nail Repair & Removal", gender: "F" },
+        { id: "NL.CARE.01", value: "manicure_pedicure",  label: "Manicure & Pedicure",            aliases: ["manicure", "pedicure"] },
+        { id: "NL.CARE.02", value: "foot_spa_heel_care", label: "Foot Spa & Intensive Heel Care", aliases: ["foot_spa"] },
       ],
     },
     {
       id: "NL.POL",
       label: "Nail Polish",
       leaves: [
-        { value: "regular_polish", label: "Regular Polish", gender: "F" },
-        { value: "gel_polish",     label: "Gel Polish",     gender: "F" },
+        { id: "NL.POL.01", value: "classic_gel_polish_application", label: "Classic & Gel Nail Polish Application", aliases: ["regular_polish", "gel_polish"] },
+        { id: "NL.POL.02", value: "gel_acrylic_polish_removal",     label: "Gel / Acrylic Polish Removal",          aliases: ["nail_repair_removal"] },
       ],
     },
     {
       id: "NL.EXT",
       label: "Extensions & Nail Art",
       leaves: [
-        { value: "acrylic_extensions", label: "Acrylic Extensions", gender: "F" },
-        { value: "gel_extensions",     label: "Gel Extensions",     gender: "F" },
-        { value: "refill",             label: "Refill",             gender: "F" },
-        { value: "nail_art",           label: "Nail Art",           gender: "F" },
+        { id: "NL.EXT.01", value: "acrylic_gel_nail_extensions", label: "Acrylic & Gel Nail Extensions",      aliases: ["acrylic_extensions", "gel_extensions"] },
+        { id: "NL.EXT.02", value: "refill_custom_nail_art",      label: "Extension Refill & Custom Nail Art", aliases: ["refill", "nail_art"] },
       ],
     },
   ],
 
-  /* Only what is genuinely men-specific. Men's facials, de-tans and haircuts
-     are NOT here — they are SK and HR nodes carrying gender U, reached
-     through MENS_LEAVES. Duplicating them would put the same service under
-     two codes and split its reviews between them. */
+  makeup_bridal: [
+    {
+      id: "BO.BRIDAL",
+      label: "Bridal Services",
+      leaves: [
+        { id: "BO.BRIDAL.01", value: "bridal_trial_consultation",   label: "Bridal Trial & Consultation",      aliases: ["bridal_trial"] },
+        { id: "BO.BRIDAL.02", value: "wedding_day_bridal_makeup",   label: "Wedding Day Bridal Makeup & Hair", aliases: ["wedding_day_bridal"] },
+        { id: "BO.BRIDAL.03", value: "homecoming_engagement_makeup", label: "Homecoming & Engagement Makeup",  aliases: ["homecoming_makeup", "engagement_makeup"] },
+        { id: "BO.BRIDAL.04", value: "bridal_party_photoshoot",     label: "Bridal Party & Photoshoot Makeup", aliases: ["bridal_party_mother_of_bride"] },
+      ],
+    },
+    {
+      /* v9 keeps groom work here rather than under Gents' Grooming: a wedding
+         is one booking, so the couple's dressing sits in one category. MG is
+         beard and shave work only. The four v4 MG.GROOM slugs are aliased
+         onto these three nodes, so nothing stored is orphaned by the move. */
+      id: "BO.GROOM",
+      label: "Groom Services",
+      leaves: [
+        { id: "BO.GROOM.01", value: "wedding_day_groom_dressing", label: "Wedding Day Groom Dressing & Hair",    aliases: ["wedding_day_groom_dressing", "groom_hair_makeup"] },
+        { id: "BO.GROOM.02", value: "nilame_kandyan_dressing",    label: "Nilame & Traditional Kandyan Dressing", aliases: ["nilame_kandyan_groom_dressing"] },
+        { id: "BO.GROOM.03", value: "homecoming_groom_styling",   label: "Homecoming Groom Styling",             aliases: ["homecoming_groom"] },
+      ],
+    },
+    {
+      id: "BO.DRAPE",
+      label: "Draping & Dressing",
+      leaves: [
+        { id: "BO.DRAPE.01", value: "saree_osariya_draping", label: "Saree & Kandyan Osariya Draping", aliases: ["saree_draping", "osariya_draping"] },
+        // New in v9: ornament setting had no v4 node.
+        { id: "BO.DRAPE.02", value: "jewellery_ornament_setting", label: "Jewellery & Ornament Setting", aliases: [] },
+      ],
+    },
+    {
+      id: "BO.OCC",
+      label: "Events & Occasion Services",
+      leaves: [
+        // graduation_makeup folds in here: v9 has no separate graduation node.
+        { id: "BO.OCC.01", value: "party_birthday_event_makeup", label: "Party, Birthday & Event Makeup",    aliases: ["party_birthday_makeup", "graduation_makeup"] },
+        { id: "BO.OCC.02", value: "hd_commercial_photoshoot",    label: "HD & Commercial Photoshoot Makeup", aliases: ["photoshoot_hd_makeup"] },
+        { id: "BO.OCC.03", value: "mehendi_henna",               label: "Mehendi / Henna Application",       aliases: ["mehendi"] },
+      ],
+    },
+  ],
+
+  /* One group in v9. Groom dressing is BO.GROOM — see the note there. */
   barber_grooming: [
     {
       id: "MG.BEARD",
       label: "Beard & Shave",
       leaves: [
-        { value: "beard_trim_styling", label: "Beard Trim & Styling", gender: "M" },
-        { value: "clean_shave",        label: "Clean Shave",          gender: "M" },
-        { value: "hot_towel_shave",    label: "Hot Towel Shave",      gender: "M" },
-        { value: "beard_colour",       label: "Beard Colour",         gender: "M" },
-      ],
-    },
-    {
-      id: "MG.GROOM",
-      label: "Groom & Wedding",
-      leaves: [
-        { value: "wedding_day_groom_dressing",   label: "Wedding Day Groom Dressing",     gender: "M" },
-        { value: "nilame_kandyan_groom_dressing", label: "Nilame / Kandyan Groom Dressing", gender: "M" },
-        { value: "groom_hair_makeup",            label: "Groom Hair & Makeup",            gender: "M" },
-        { value: "homecoming_groom",             label: "Homecoming Groom",               gender: "M" },
+        { id: "MG.BEARD.01", value: "beard_trim_line_up", label: "Beard Trim & Line Up", aliases: ["beard_trim_styling"] },
+        { id: "MG.BEARD.02", value: "clean_shave",        label: "Clean Shave",          aliases: ["clean_shave"] },
+        { id: "MG.BEARD.03", value: "hot_towel_shave",    label: "Hot Towel Shave",      aliases: ["hot_towel_shave"] },
+        { id: "MG.BEARD.04", value: "beard_colouring",    label: "Beard Colouring",      aliases: ["beard_colour"] },
       ],
     },
   ],
@@ -227,7 +240,7 @@ export const GROUPS = {
 
 // ── Derived lookups ───────────────────────────────────────────
 
-/** Every leaf of a domain, flattened. */
+/** Every leaf of a category, flattened. */
 export const LEAVES_BY_DOMAIN = Object.fromEntries(
   Object.entries(GROUPS).map(([domain, groups]) => [
     domain,
@@ -237,7 +250,7 @@ export const LEAVES_BY_DOMAIN = Object.fromEntries(
 
 export const ALL_LEAVES = Object.values(GROUPS).flat().flatMap((g) => g.leaves);
 
-/** group code (HR.COL) → the group, for expanding a group pick into leaves. */
+/** service code (HR.COL) → the group, for expanding a group pick into leaves. */
 export const GROUP_BY_ID = Object.fromEntries(
   Object.values(GROUPS).flat().map((g) => [g.id, g])
 );
@@ -247,10 +260,34 @@ export const LEAF_LABELS = Object.fromEntries(
   ALL_LEAVES.map(({ value, label }) => [value, label])
 );
 
-/** leaf slug → facet, so a caller holding only a slug can still filter. */
-export const LEAF_GENDER = Object.fromEntries(
-  ALL_LEAVES.map(({ value, gender }) => [value, gender])
+/** v9 code (HR.CUT.01) → leaf, for reading a code back from the database. */
+export const LEAF_BY_CODE = Object.fromEntries(ALL_LEAVES.map((l) => [l.id, l]));
+
+/* Every stored tag spelling → the v9 label to show for it. Covers the v4
+   aliases as well as the v9 slugs, so a `service_tags` value that came out of
+   the database renders as a readable v9 name instead of a raw slug. */
+export const TAG_LABELS = Object.fromEntries(
+  ALL_LEAVES.flatMap((l) => [l.value, ...l.aliases].map((t) => [t, l.label]))
 );
+
+export const LEAF_BY_VALUE = Object.fromEntries(ALL_LEAVES.map((l) => [l.value, l]));
+
+/* De-duplicated: where a v9 slug is spelled exactly like the v4 tag it
+   absorbs (rebonding, clean_shave, wash_blow_dry ...) the naive concatenation
+   repeats it. Harmless to the API, which only asks whether any tag matches,
+   but it makes the request body misleading to read in a network log. */
+const uniq = (tags) => [...new Set(tags)];
+
+/** Every tag that should count as a match for one leaf: its slug + aliases. */
+export const tagsForLeaf = (value) => {
+  const leaf = LEAF_BY_VALUE[value];
+  if (!leaf) return value ? [value] : [];
+  return uniq([leaf.value, ...leaf.aliases]);
+};
+
+/** The same, for a whole service group - match any sub-service under it. */
+export const tagsForGroup = (groupId) =>
+  uniq((GROUP_BY_ID[groupId]?.leaves ?? []).flatMap((l) => [l.value, ...l.aliases]));
 
 export const COUNTS = {
   domains: DOMAINS.length,
@@ -265,58 +302,22 @@ export const SERVICE_FAMILIES = DOMAINS.map(({ value, label }) => ({ value, labe
     without a change — the shape is the same {value,label}[] keyed by domain. */
 export const SUB_SERVICES = LEAVES_BY_DOMAIN;
 
-// ── Gender facet ──────────────────────────────────────────────
-
-/* The filter control speaks in wire values; the taxonomy speaks in facet
-   codes. One map between them, so neither side has to know the other's
-   spelling. Kids is a facet but not a filter option — nobody browses "kids"
-   as a client type, they book a kids haircut. */
-export const FACET_BY_GENDER = { female: "F", male: "M", unisex: "U" };
-
-/** Is this leaf offered to someone browsing as `facet`? U is offered to
-    everyone, so it always joins; K only ever matches K. */
-export const isOpenTo = (leaf, facet) =>
-  leaf.gender === facet || leaf.gender === "U";
-
-/** Every leaf open to a facet, across the domains given (all by default). */
-export const leavesOpenTo = (facet, domains = Object.keys(GROUPS)) =>
-  domains.flatMap((d) => (LEAVES_BY_DOMAIN[d] ?? []).filter((l) => isOpenTo(l, facet)));
-
-/* The men's picture is MG ∪ (HR, SK, NL filtered to M or U) — never MG on
-   its own. MG alone is eight nodes of beard and groom work, which would tell
-   a man this app has no haircut, no facial and no pedicure for him. BO is
-   left out deliberately: groom dressing already has its own home in
-   MG.GROOM, so pulling BO in would only add bridal nodes.
-
-   Order matters: MG leads, because the men-specific work is what someone
-   arriving at "Men's Grooming" came for; the shared nodes follow. */
-export const MENS_LEAVES = [
-  ...LEAVES_BY_DOMAIN.barber_grooming,
-  ...leavesOpenTo("M", ["hair", "skin_beauty", "nails"]),
-];
+/* v9 nodes with no v4 ancestor, so no stored service_tags value can match
+   them yet. They still rank — the sub-service filter is soft — but cannot earn
+   the matched_sub_service boost until extraction tags them. Derived, so it
+   cannot drift from the table above. */
+export const NEW_IN_V9 = ALL_LEAVES.filter((l) => l.aliases.length === 0).map((l) => l.value);
 
 /**
- * The groups to SHOW for a domain, given who is browsing.
+ * The groups to show for a category.
  *
- * A domain always shows ITS OWN groups — Men's Grooming is its two groups
- * and eight variants, not a widened view. The men's picture from MENS_LEAVES
- * is a FACET concern, not a domain one: with "Men" selected, Hair shows its
- * ten M/U nodes, Skin its thirteen, Nails its three and MG its eight, and the
- * union a man can reach across the five domains is exactly MENS_LEAVES. He
- * never meets MG alone, because the other four domains stay open to him.
- *
- * Empty is never shown. If a facet would filter every leaf out of a domain
- * — Women against Men's Grooming, whose nodes are all M — the domain falls
- * back to unfiltered rather than opening a panel with nothing in it. The
- * domain the user just clicked is the stronger signal of intent.
+ * v9 carries no gender data, so this is now a plain lookup — it kept a second
+ * `facet` parameter through v4, but ServicesNav only ever passed one argument,
+ * which made the filtering branch unreachable. Returning the category's own
+ * groups is what the interface has always actually rendered.
  */
-export function groupsFor(domainValue, facet) {
-  const groups = GROUPS[domainValue] ?? [];
-  if (!facet || facet === "U") return groups;
-  const filtered = groups
-    .map((g) => ({ ...g, leaves: g.leaves.filter((l) => isOpenTo(l, facet)) }))
-    .filter((g) => g.leaves.length > 0);
-  return filtered.length ? filtered : groups;
+export function groupsFor(domainValue) {
+  return GROUPS[domainValue] ?? [];
 }
 
 // ── Non-taxonomy filter vocabulary ────────────────────────────
@@ -329,6 +330,8 @@ export const PRICE_TIERS = [
   { value: "premium",  label: "Premium",  level: 3 },
 ];
 
+/* Not taxonomy: this is the `gender` field on the ranking request, which the
+   backend uses to drop salons that serve only the other client type. */
 export const GENDERS = [
   { value: "unisex", label: "Unisex" },
   { value: "female", label: "Women" },

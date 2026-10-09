@@ -128,7 +128,7 @@ const PROMOS = [
     note: "25% off highlights, balayage and keratin smoothing.",
     code: "HAIR25",
     family: "hair",
-    image: "hair",
+    image: "about1",
   },
   {
     tag: "Midweek glow",
@@ -209,40 +209,70 @@ const familyImage = (family) =>
 /* modernsalon: a 736x1104 portrait. That aspect suits the banner now that
    the picture holds the RIGHT of the frame instead of stretching across all
    of it — it is shown at roughly half width, so it is barely upscaled. */
-/* The slats. Not the five service photographs on purpose: those run again
-   in the fan a screen below, and the same five pictures twice reads as a
-   shortage rather than a motif. Anything missing simply drops out — the
-   stagger is by position, so four or three still fan correctly. */
-/* images/landing/L1..L5, one per slat, in order.
+/* The banner picture: a mosaic of eight rounded tiles in three columns,
+   after a reference the client chose. SVG units: a 300 x 386 frame, a 9-unit
+   gap, columns 94 wide and rows 89.75 tall; a tall tile spans two rows.
 
-   A slat is far narrower than any of these sources, so `cover` matches on
-   height and crops the width — which means the horizontal position decides
-   what you actually see, and the subjects are not in the same place in each
-   picture. Centring all five would cut the woman out of L4 entirely: that
-   one is a vanity SCENE, and she is in its left half. */
-const SLAT_CROP = {
-  /* Hair portrait; face and parting sit left of centre. */
-  l1: { backgroundPosition: "38% 50%" },
-  /* Carries baked-in text — "Sophisticated BUN HAIR TREND" across the lower
-     third. Cover shows the full height here, so no horizontal position can
-     lose it; the vertical zoom is what does. At 165% only the top 61% is in
-     frame, which stops just above the lettering. */
-  l2: { backgroundSize: "auto 165%", backgroundPosition: "40% 0%" },
-  /* Nails, filling the frame — the one composition with no face to frame
-     to, so it is the only one left centred. */
-  l3: { backgroundPosition: "50% 45%" },
-  /* A scene rather than a portrait: she is in the left half, the mirror and
-     the product in the right. Centred, the slat would be all mirror. */
-  l4: { backgroundPosition: "30% 45%" },
-  /* Profile, head left of centre; also keeps the corner logo out of frame. */
-  l5: { backgroundPosition: "42% 40%" },
-};
+   Keys are bare filenames (see byName), so `nails` and `hair` are avoided:
+   those exist in BOTH offers/ and services/ and the flat map keeps only one.
+   Each photograph covers its tile and is shifted so its subject (fx, fy:
+   fractions of the photo) lands at (tx, ty) within the tile.
+     r  the photo's height / width */
+const MOSAIC = (() => {
+  const g = 9, cw = (300 - 2 * g) / 3, rh = (386 - 3 * g) / 4;
+  const X = (c) => c * (cw + g), Y = (r) => r * (rh + g);
+  const W = (n) => n * cw + (n - 1) * g, H = (n) => n * rh + (n - 1) * g;
+  return [
+    /* Seven tiles, no gaps: two tall tiles down each outer column, and the
+       middle column small - tall - small, so the grid is symmetric and the
+       hair portrait sits at its centre. */
+    { key: "l2",         box: [X(0), Y(0), W(1), H(2)], fx: 0.32, fy: 0.22, r: 2.650 },  // colour
+    { key: "grooming",   box: [X(0), Y(2), W(1), H(2)], fx: 0.57, fy: 0.16, r: 1.500 },  // men
+    { key: "skinbeauty", box: [X(1), Y(0), W(1), H(1)], fx: 0.57, fy: 0.30, r: 1.499 },  // skin
+    { key: "l1",         box: [X(1), Y(1), W(1), H(2)], fx: 0.42, fy: 0.24, r: 1.250 },  // hair
+    { key: "l3",         box: [X(1), Y(3), W(1), H(1) + 36], fx: 0.55, fy: 0.68, r: 1.778 },  // nails
+    { key: "bridal",     box: [X(2), Y(0), W(1), H(2)], fx: 0.55, fy: 0.20, r: 1.333 },  // bridal
+    { key: "l4",         box: [X(2), Y(2), W(1), H(2)], fx: 0.45, fy: 0.28, r: 1.250 },  // the vanity
+  ];
+})();
+const MOSAIC_R = 17;   // tile corner radius
 
-/* Anything missing simply drops out. The stagger is keyed by position, so
-   four still fan correctly — they just take the first four heights. */
-const SLATS = ["l1", "l2", "l3", "l4", "l5"]
-  .filter((key) => byName[key])
-  .map((key) => ({ src: byName[key], crop: SLAT_CROP[key] }));
+function placeImage({ box: [bx, by, bw, bh], fx, fy, r, tx = 0.5, ty = 0.5, zoom = 1 }) {
+  const W = zoom * Math.max(bw, bh / r);
+  const H = W * r;
+  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+  return {
+    x: clamp(bx + tx * bw - fx * W, bx + bw - W, bx),
+    y: clamp(by + ty * bh - fy * H, by + bh - H, by),
+    width: W,
+    height: H,
+  };
+}
+
+function HeroMosaic() {
+  const tiles = MOSAIC.filter((t) => byName[t.key]);
+  return (
+    <figure className="hero-mosaic" aria-hidden="true">
+      <svg viewBox="0 0 300 422" role="presentation">
+        <defs>
+          {tiles.map(({ key, box: [x, y, w, h] }) => (
+            <clipPath id={`hero-tile-${key}`} key={key}>
+              <rect x={x} y={y} width={w} height={h} rx={MOSAIC_R} />
+            </clipPath>
+          ))}
+        </defs>
+        {tiles.map((tile) => (
+          <g key={tile.key}>
+            <image href={byName[tile.key]} preserveAspectRatio="none"
+                   clipPath={`url(#hero-tile-${tile.key})`} {...placeImage(tile)} />
+            <rect className="hero-tile-edge" x={tile.box[0] + 0.5} y={tile.box[1] + 0.5}
+                  width={tile.box[2] - 1} height={tile.box[3] - 1} rx={MOSAIC_R - 0.5} />
+          </g>
+        ))}
+      </svg>
+    </figure>
+  );
+}
 
 /* The five domains, straight from the taxonomy — so the hero can never
    list a service the app does not actually rank. */
@@ -292,6 +322,42 @@ const POSTER_CROP = {
   nails: { backgroundSize: "200%", backgroundPosition: "85% 55%" },
 };
 
+/* Exact crops that centre a point of interest (a face, the hands) in a box.
+     fx, fy  the point, as fractions of the image's width and height
+     zoom    how far past "just covers the box" to go in
+     r       the image's height / width
+     box     the box's height / width
+   Returns the background-size and background-position that put that point at
+   the centre of the box, clamped so no edge of the image ever shows. */
+function focus({ fx, fy, zoom, r }, box) {
+  const S = zoom * Math.max(1, box / r);          // image width, in box widths
+  const Sy = (S * r) / box;                       // image height, in box heights
+  const pos = (f, k) => (k <= 1 ? 50 : Math.min(100, Math.max(0, ((0.5 - f * k) / (1 - k)) * 100)));
+  return { backgroundSize: `${S * 100}% auto`, backgroundPosition: `${pos(fx, S)}% ${pos(fy, Sy)}%` };
+}
+
+/* The open offer shows its picture in a 4:5 frame, cropped to the people or
+   hands and clear of the posters' own text and studio names. */
+const OFFER_FRAME = 1.25;
+const PROMO_FOCUS = {
+  "1stoffer":  { fx: 0.48, fy: 0.58, zoom: 2.2, r: 1.499 },   // the couple at the vanity
+  makeup:      { fx: 0.70, fy: 0.32, zoom: 2.0, r: 1.25 },    // the model's face
+  about1:      { fx: 0.50, fy: 0.45, zoom: 1.25, r: 1.785 },  // balayage, face and lengths
+  skinbeauty:  { fx: 0.55, fy: 0.40, zoom: 1.4, r: 1.499 },   // eyes closed, hand to cheek
+  offerunisex: { fx: 0.77, fy: 0.45, zoom: 2.1, r: 1.335 },   // the two models
+  nails:       { fx: 0.80, fy: 0.55, zoom: 2.3, r: 1.414 },   // the hands
+};
+
+/* Reviewer photos are full-length portraits; each avatar zooms to the face. */
+const AVATAR_FOCUS = [
+  { fx: 0.48, fy: 0.425, zoom: 3.2, r: 1.5 },
+  { fx: 0.40, fy: 0.31, zoom: 3.3, r: 1.601 },
+  { fx: 0.70, fy: 0.345, zoom: 3.6, r: 1.5 },
+  { fx: 0.52, fy: 0.33, zoom: 2.3, r: 1.503 },
+  { fx: 0.50, fy: 0.26, zoom: 2.3, r: 1.503 },
+  { fx: 0.47, fy: 0.19, zoom: 2.5, r: 1.503 },
+];
+
 /* Reviewer avatars map by position: review #1 → profile1, #2 → profile2, …
    Missing files simply fall back to the initials monogram, so dropping in
    profile4…profile10 later needs no code change. */
@@ -339,11 +405,11 @@ export function Landing({
           <div className="hero-copy">
             <p className="hero-kicker">Thousands of real reviews, read for you</p>
 
-            {/* Two weights, two faces: the setup in the text face, the
-                promise in the display one. */}
+            {/* One face, two voices: the setup upright, the promise in
+                italic champagne. */}
             <h1 className="landing-title">
-              <span className="lt-thin">Find the salon that</span>
-              <span className="lt-accent">suits you.</span>
+              <span className="lt-thin">Find the salon</span>
+              <span className="lt-accent">that suits <em>you.</em></span>
             </h1>
 
             <p className="landing-lede">
@@ -361,23 +427,26 @@ export function Landing({
                   <IconArrow size={16} />
                 </span>
               </button>
+              <button type="button" className="hero-link" onClick={() => onExplore("how")}>
+                How it works
+              </button>
             </div>
+
+            {/* Counts from the loaded research data (raw.provider, raw.review,
+                ref.sub_service) in Colombo District. */}
+            <dl className="hero-stats">
+              <div><dt>Salons</dt><dd>549</dd></div>
+              <div><dt>Reviews read</dt><dd>27,122</dd></div>
+              <div><dt>Services</dt><dd>51</dd></div>
+            </dl>
 
           </div>
 
           {/* Decorative. The service buttons below are the way in; a second
               silent set of controls here would be a keyboard stop with no
               label to announce. */}
-          <div className="hero-slats" aria-hidden="true">
-            <span className="hero-ghost">BEAUTY</span>
-            {SLATS.map(({ src, crop }) => (
-              <span
-                key={src}
-                className="hero-slat"
-                style={{ backgroundImage: `url(${src})`, ...crop }}
-              />
-            ))}
-          </div>
+          {/* Eight photographs in a mosaic of rounded tiles. */}
+          <HeroMosaic />
 
         </div>
 
@@ -391,6 +460,7 @@ export function Landing({
       {/* ── Statement — one sentence, given room ─────────── */}
       <section className="statement">
         <div className="statement-inner">
+          <span className="statement-ornament" aria-hidden="true"><i />✦<i /></span>
           <p className="eyebrow">The Amore Standard</p>
           <h2 className="statement-text">
             The right salon isn't the most talked-about — it's the one that fits
@@ -402,7 +472,10 @@ export function Landing({
       {/* ── Services ───────────────────────────────────── */}
       <section className="services-section" ref={servicesRef}>
         <div className="section-bar">
-          <p className="eyebrow">Our Services</p>
+          <div className="section-head">
+            <p className="eyebrow">Our Services</p>
+            <h2 className="section-title">Explore by <em>service</em></h2>
+          </div>
           <button type="button" className="link-arrow" onClick={() => onExplore()}>
             View All Services
             <IconArrow size={14} />
@@ -446,7 +519,10 @@ export function Landing({
       {/* ── Offers — an expanding rack ───────────────────── */}
       <section className="promos-section" ref={offersRef}>
         <div className="section-bar">
-          <p className="eyebrow">Offers &amp; Promotions</p>
+          <div className="section-head">
+            <p className="eyebrow">Offers &amp; Promotions</p>
+            <h2 className="section-title">This season&apos;s <em>offers</em></h2>
+          </div>
           <button type="button" className="link-arrow" onClick={() => onExplore()}>
             Browse Salons
             <IconArrow size={14} />
@@ -464,18 +540,6 @@ export function Landing({
               >
                 {isOpen ? (
                   <>
-                    {img && (
-                      <span
-                        className="offer-photo"
-                        aria-hidden="true"
-                        style={{
-                          backgroundImage: `url(${img})`,
-                          ...POSTER_CROP[image],
-                        }}
-                      />
-                    )}
-                    <span className="offer-scrim" aria-hidden="true" />
-
                     <div className="offer-full">
                       <span className="promo-tag">{tag}</span>
                       <h3 className="promo-title">{title}</h3>
@@ -497,6 +561,20 @@ export function Landing({
                         </button>
                       </span>
                     </div>
+
+                    {img && (
+                      <span className="offer-frame" aria-hidden="true">
+                        <span
+                          className="offer-photo"
+                          style={{
+                            backgroundImage: `url(${img})`,
+                            ...(PROMO_FOCUS[image]
+                              ? focus(PROMO_FOCUS[image], OFFER_FRAME)
+                              : POSTER_CROP[image]),
+                          }}
+                        />
+                      </span>
+                    )}
                   </>
                 ) : (
                   /* The whole folded strip IS the control — a separate hit
@@ -520,7 +598,10 @@ export function Landing({
       {/* ── Reviews — what clients say about Amore ───────── */}
       <section className="testimonials">
         <div className="section-bar">
-          <p className="eyebrow">Loved by Clients</p>
+          <div className="section-head">
+            <p className="eyebrow">Reviews</p>
+            <h2 className="section-title">Loved by <em>our clients</em></h2>
+          </div>
         </div>
 
         {/* Six reviews, laid out and still. */}
@@ -534,7 +615,10 @@ export function Landing({
                   {avatar ? (
                     <span
                       className="tm-avatar tm-avatar--photo"
-                      style={{ backgroundImage: `url(${avatar})` }}
+                      style={{
+                        backgroundImage: `url(${avatar})`,
+                        ...(AVATAR_FOCUS[i] ? focus(AVATAR_FOCUS[i], 1) : {}),
+                      }}
                       role="img"
                       aria-label={review.name}
                     />

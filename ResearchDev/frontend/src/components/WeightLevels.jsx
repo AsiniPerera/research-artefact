@@ -1,25 +1,40 @@
 import { useState } from "react";
 
-// Keys are the backend contract — only the plain-language labels and the
-// short identifiers beside them change. The `tag` is deliberately two or
-// three words: it has to sit on the same line as the label without pushing
-// the row to two.
+// `label` is the category's name and `tag` a one-line plain-language gloss
+// shown under it; both are display only.
 //
-// All ten are weighted. Customer Trust & Recommendation was held out as
-// validation-only and shown without a slider; it ranks like the rest now, so
-// there is no exception left in this list.
+// `no` is the backend contract: ref.framework_category.category_no. The API
+// takes the seven weights as a list in category_no order; toWeightList builds
+// that list from `no`, never from position. Labels are the framework's own
+// category names (frozen, as in the database), shown in framework order.
+//
+// Framework v4 has EIGHT categories, but category 8 — Overall Verdict — is
+// reported only: it carries weight 0 in ref.framework_category, summarises the
+// other seven, and would double-count if someone could weight it too. It is
+// deliberately absent from this list, which is the weighting control. The
+// verdict itself is still shown on a salon's card, from the API's own category
+// scores.
 export const CATEGORIES = [
-  { key: "service_fulfillment_quality", label: "Service Fulfillment Quality", tag: "did the work deliver" },
-  { key: "service_quality_trend",       label: "Quality Trend & Consistency", tag: "same standard each visit" },
-  { key: "consultation_aftercare",      label: "Consultation & Aftercare",    tag: "advice before & after" },
-  { key: "service_durability",          label: "Service Durability",          tag: "how long it lasts" },
-  { key: "external_service_recovery",   label: "Service Recovery & Repair", tag: "fixing others' work" },
-  { key: "staff_customer_experience",   label: "Staff & Customer Experience", tag: "the people" },
-  { key: "owner_responsiveness",        label: "Owner Responsiveness",        tag: "listens & improves" },
-  { key: "customer_trust_recommendation", label: "Customer Trust & Recommendation", tag: "repeat & referral" },
-  { key: "perceived_value_for_money",   label: "Perceived Value for Money",   tag: "what it costs" },
-  { key: "hygiene_safety",              label: "Hygiene & Safety",            tag: "clean & safe" },
+  { no: 1, key: "quality_of_work",         label: "Quality of Work",                                    tag: "Good work, and it lasts." },
+  { no: 2, key: "consultation_aftercare",  label: "Consultation, Care & Aftercare",                     tag: "They check first and advise after." },
+  { no: 3, key: "owner_responsiveness",    label: "Management Responsiveness & Continuous Improvement", tag: "The owner answers and improves." },
+  { no: 4, key: "customer_trust",          label: "Customer Trust & Recommendation",                    tag: "Customers recommend and return." },
+  { no: 5, key: "staff_customer_service",  label: "Staff & Customer Service",                           tag: "Friendly, gentle, on time." },
+  { no: 6, key: "value_price_honesty",     label: "Value & Price Honesty",                              tag: "Fair price, no surprises." },
+  { no: 7, key: "safety_hygiene",          label: "Safety, Hygiene & Facilities",                       tag: "Clean, safe, well equipped." },
 ];
+
+/** How many weights the API expects — the seven weighted categories. Kept as a
+    constant rather than read off CATEGORIES.length at the call site so the
+    contract is named where it is relied on. */
+export const WEIGHT_COUNT = 7;
+
+/** { key: weight } → seven weights in category_no order, as the API expects. */
+export function toWeightList(weights) {
+  const list = Array(WEIGHT_COUNT).fill(1);
+  for (const { no, key } of CATEGORIES) list[no - 1] = weights[key] ?? 1;
+  return list;
+}
 
 /* Four levels that double. Doubling is what makes the scale mean something:
    each step is worth exactly two of the one below, so "Very high" counts
@@ -29,46 +44,38 @@ export const CATEGORIES = [
    distances while the weights behind them double, which is why a plain
    min/max range over 1–8 would bunch the first three stops together. */
 export const LEVELS = [
-  { value: 1, label: "Low" },
-  { value: 2, label: "Medium" },
-  { value: 4, label: "High" },
-  { value: 8, label: "Very high" },
+  { value: 1, label: "Poor",      lvl: "poor"      },
+  { value: 2, label: "Fair",      lvl: "fair"      },
+  { value: 4, label: "Good",      lvl: "good"      },
+  { value: 8, label: "Excellent", lvl: "excellent" },
 ];
 
-/* Exported so the About page can describe the real ten rather than keeping
+/* Exported so the About page can describe the real seven rather than keeping
    its own copy — it had drifted to a stale six, which is exactly what a
    second hand-maintained list does. */
 
-/** Every key that carries a weight — all ten. Kept as its own export so a
+/** Every key that carries a weight — all seven. Kept as its own export so a
     caller never has to derive it from CATEGORIES, and so reintroducing an
     exception later is a change in one place. */
 export const WEIGHTED_KEYS = CATEGORIES.map((c) => c.key);
 
-/* Four, then the rest. Ten categories in a 340px rail is a column of
+/* Four, then the rest. Seven categories in a 340px rail is still a column of
    sliders taller than the viewport, and the first thing the page asks of
    someone becomes a scroll. Four is enough to show what the control IS —
    a label, a track, a named level — and to make clear there are more. */
 const PREVIEW_COUNT = 4;
 
 const DEFAULT_LEVEL = 2;
-const LAST = LEVELS.length - 1;
 
 const indexOf = (value) => {
   const i = LEVELS.findIndex((l) => l.value === value);
   return i === -1 ? LEVELS.findIndex((l) => l.value === DEFAULT_LEVEL) : i;
 };
 
-/** How far along the track the thumb sits, 0–1. A native range fills nothing
-    by default and reports no progress to CSS, so the stylesheet paints the
-    fill from this. The colours are the row's, set per level in CSS. */
-function trackPos(idx) {
-  return { "--pos": String(idx / LAST) };
-}
-
 export function WeightLevels({ weights, onChange }) {
   const [showAll, setShowAll] = useState(false);
   /* Collapsed rows are UNMOUNTED, not hidden. The weights live in the page
-     above, so nothing set is lost by folding them away — and six range
+     above, so nothing set is lost by folding them away — and three range
      inputs left in the tree would keep taking tab stops from a control the
      visitor has put away. */
   const shown = showAll ? CATEGORIES : CATEGORIES.slice(0, PREVIEW_COUNT);
@@ -78,7 +85,6 @@ export function WeightLevels({ weights, onChange }) {
       <ul className="weight-list">
         {shown.map(({ key, label, tag }) => {
           const idx = indexOf(weights[key] ?? DEFAULT_LEVEL);
-          const level = LEVELS[idx];
           const id = `w-${key}`;
 
           return (
@@ -86,33 +92,30 @@ export function WeightLevels({ weights, onChange }) {
                stylesheet rather than as hex strings passed from here. */
             <li className="weight-row" key={key} data-level={idx + 1}>
               <div className="weight-head">
-                <label className="weight-label" htmlFor={id}>{label}</label>
+                <label id={`${id}-label`} className="weight-label">{label}</label>
                 <span className="weight-tag">{tag}</span>
               </div>
 
-              <div className="lvl">
-                <input
-                  id={id}
-                  type="range"
-                  min={0}
-                  max={LAST}
-                  step={1}
-                  value={idx}
-                  style={trackPos(idx)}
-                  aria-valuetext={`${level.label} — counts ${level.value}× a Low`}
-                  onChange={(e) =>
-                    onChange({ ...weights, [key]: LEVELS[Number(e.target.value)].value })
-                  }
-                />
-
-                {/* The scale names itself, so there is no read-out to put at
-                    the end of the row. aria-hidden because the input already
-                    announces the same thing through aria-valuetext. */}
-                <span className="lvl-scale" aria-hidden="true">
-                  {LEVELS.map((l, i) => (
-                    <i key={l.value} className={i === idx ? "is-on" : ""}>{l.label}</i>
-                  ))}
-                </span>
+              {/* Four buttons, not a drag — there are exactly four levels and
+                  no value between them, so a continuous slider was asking for
+                  a gesture the control could never actually use. A radio
+                  group names its own stops and needs no reading of a ramp or
+                  a thumb position; picking Low or Very high is one press
+                  either way, nothing to drag past the others to reach. */}
+              <div className="lvl-group" role="radiogroup" aria-labelledby={`${id}-label`}>
+                {LEVELS.map((l, i) => (
+                  <button
+                    key={l.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={i === idx}
+                    className={`lvl-opt ${i === idx ? "is-on" : ""}`}
+                    data-lvl={l.lvl}
+                    onClick={() => onChange({ ...weights, [key]: l.value })}
+                  >
+                    {l.label}
+                  </button>
+                ))}
               </div>
             </li>
           );

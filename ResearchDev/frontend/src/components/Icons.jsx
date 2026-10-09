@@ -213,3 +213,24 @@ export function IconSliders({ size = 20 }) {
     </svg>
   );
 }
+
+/* Information, not an error — a plain lower-case i in a ring. */
+export function IconInfo({ size = 16 }) {
+  return (
+    <svg {...base(size)}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 11v5M12 8h0" />
+    </svg>
+  );
+}
+
+/* A warning triangle — only shown when a salon carries a caution, so it is
+   the exception that catches the eye, not decoration on every card. */
+export function IconAlert({ size = 16 }) {
+  return (
+    <svg {...base(size)}>
+      <path d="M12 3 2.5 20h19L12 3Z" />
+      <path d="M12 10v4M12 17h0" />
+    </svg>
+  );
+}

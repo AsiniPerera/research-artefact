@@ -1,29 +1,47 @@
-import { useState, useCallback } from "react";
-import { API } from "../constants/api";
+import { useEffect, useState } from "react";
+import { getRankings } from "../api/client";
 
-export function useRanking() {
+/**
+ * Ranking for one sub-service, re-fetched whenever the code, weights or city
+ * change. The order is the API's (score.rank_providers) and is shown as-is.
+ *
+ * A short debounce so dragging a slider across three stops sends one request,
+ * and an abort so a slow earlier answer can never overwrite a newer one.
+ */
+export function useRanking(code, weights, city, status) {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const key = weights.join(",");
 
-  const rank = useCallback(async (request) => {
+  useEffect(() => {
+    if (!code) {
+      setResults(null);
+      setError(null);
+      setLoading(false);
+      return undefined;
+    }
+    const ctrl = new AbortController();
     setLoading(true);
     setError(null);
-    try {
-      const res = await fetch(`${API}/rank`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(request),
-      });
-      if (!res.ok) throw new Error(`API error ${res.status}`);
-      const data = await res.json();
-      setResults(data);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    const t = setTimeout(() => {
+      getRankings(code, key.split(",").map(Number), city, status, { signal: ctrl.signal })
+        .then((data) => {
+          console.group("[ranking] results for weights:", key);
+          (data.ranked ?? []).forEach((r, i) =>
+            console.log(`  #${i + 1}`, r.provider_name, "→ score:", Number(r.personal_score).toFixed(4))
+          );
+          console.groupEnd();
+          setResults(data); setLoading(false);
+        })
+        .catch((e) => {
+          if (e.name === "AbortError") return;
+          setError(e.message);
+          setLoading(false);
+        });
+    }, 250);
+    return () => { clearTimeout(t); ctrl.abort(); };
+  }, [code, key, city, status]);
 
-  return { results, loading, error, rank };
+  return { results, loading, error };
 }
