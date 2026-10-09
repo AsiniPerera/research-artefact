@@ -2,84 +2,74 @@
 // The ranking normalises proportionally, so these are relative importance —
 // not a fixed budget.
 //
-// TEN keys each, matching WEIGHTED_KEYS in WeightLevels.
+// SEVEN keys each, matching WEIGHTED_KEYS in WeightLevels. Framework v4's
+// eighth category, Overall Verdict, is reported only: it carries no weight, so
+// it has no key here and no preset can tilt towards it.
 
 export const PRESETS = {
   balanced: {
-    service_fulfillment_quality: 2,
-    service_quality_trend:       2,
-    consultation_aftercare:      2,
-    service_durability:          2,
-    external_service_recovery:   2,
-    staff_customer_experience:   2,
-    owner_responsiveness:        2,
-    customer_trust_recommendation: 2,
-    perceived_value_for_money:   2,
-    hygiene_safety:              2,
+    quality_of_work:        2,
+    consultation_aftercare: 2,
+    owner_responsiveness:   2,
+    customer_trust:         2,
+    staff_customer_service: 2,
+    value_price_honesty:    2,
+    safety_hygiene:         2,
   },
 
-  /* Best work: the result, whether it holds up, and whether it holds up
-     EVERY time. Consistency sits high deliberately — one excellent visit
-     followed by a poor one is not what someone asking for quality means. */
+  /* Best work: the result itself, and whether it lasts. Consultation sits above
+     the middle deliberately — in chemical and colour work, the salon that
+     checks your hair first is the one that gets the result right, so it is
+     part of quality rather than a courtesy beside it. */
   quality: {
-    service_fulfillment_quality: 8,
-    service_quality_trend:       4,
-    consultation_aftercare:      2,
-    service_durability:          4,
-    external_service_recovery:   2,
-    staff_customer_experience:   2,
-    owner_responsiveness:        1,
-    customer_trust_recommendation: 2,
-    perceived_value_for_money:   1,
-    hygiene_safety:              2,
+    quality_of_work:        8,
+    consultation_aftercare: 4,
+    owner_responsiveness:   1,
+    customer_trust:         2,
+    staff_customer_service: 2,
+    value_price_honesty:    1,
+    safety_hygiene:         2,
   },
 
-  /* Best value: price against what you actually get. Durability is High,
-     not Low — work that has to be redone in a fortnight is the expensive
-     kind of cheap, and value that ignores it is not value. */
+  /* Best value: price against what you actually get. Quality of Work is High,
+     not Low — work that has to be redone in a fortnight is the expensive kind
+     of cheap, and value that ignores durability is not value. Price honesty
+     carries the preset, because a quote that moves is the way a cheap salon
+     stops being cheap. */
   budget: {
-    service_fulfillment_quality: 4,
-    service_quality_trend:       2,
-    consultation_aftercare:      1,
-    service_durability:          4,
-    external_service_recovery:   1,
-    staff_customer_experience:   2,
-    owner_responsiveness:        1,
-    customer_trust_recommendation: 1,
-    perceived_value_for_money:   8,
-    hygiene_safety:              2,
+    quality_of_work:        4,
+    consultation_aftercare: 1,
+    owner_responsiveness:   1,
+    customer_trust:         1,
+    staff_customer_service: 2,
+    value_price_honesty:    8,
+    safety_hygiene:         2,
   },
 
-  /* Clean & safe. This replaces the old "convenience" preset, which anchored
-     on a convenience/accessibility category the ten-category taxonomy does
-     not have. */
+  /* Clean & safe. Safety, Hygiene & Facilities is one category in v4, so this
+     preset is a single clear tilt rather than the spread it needed before. */
   hygiene: {
-    service_fulfillment_quality: 2,
-    service_quality_trend:       2,
-    consultation_aftercare:      2,
-    service_durability:          1,
-    external_service_recovery:   1,
-    staff_customer_experience:   4,
-    owner_responsiveness:        2,
-    customer_trust_recommendation: 2,
-    perceived_value_for_money:   1,
-    hygiene_safety:              8,
+    quality_of_work:        2,
+    consultation_aftercare: 2,
+    owner_responsiveness:   2,
+    customer_trust:         2,
+    staff_customer_service: 4,
+    value_price_honesty:    1,
+    safety_hygiene:         8,
   },
 
-  /* Bridal: one appointment, no second chance. Durability matches the result
-     itself because it has to survive a whole day, and aftercare and recovery
-     both rise — this is the client most likely to need a fix, and least able
-     to absorb one going wrong. */
+  /* Bridal: one appointment, no second chance. Quality of Work is Very high
+     because the result has to survive a whole day, and consultation rises with
+     it — this is the client most likely to need a fix, and least able to
+     absorb one going wrong. Trust is High: a bride books on other brides'
+     word, not on a price list. */
   bridal: {
-    service_fulfillment_quality: 8,
-    service_quality_trend:       4,
-    consultation_aftercare:      4,
-    service_durability:          8,
-    external_service_recovery:   4,
-    staff_customer_experience:   2,
-    owner_responsiveness:        2,
-    customer_trust_recommendation: 4,
-    perceived_value_for_money:   1,
-    hygiene_safety:              2,
+    quality_of_work:        8,
+    consultation_aftercare: 4,
+    owner_responsiveness:   2,
+    customer_trust:         4,
+    staff_customer_service: 2,
+    value_price_honesty:    1,
+    safety_hygiene:         2,
   },
 };

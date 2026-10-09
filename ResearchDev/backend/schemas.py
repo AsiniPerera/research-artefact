@@ -2,6 +2,39 @@ from pydantic import BaseModel, Field, model_validator
 from typing import Optional, Literal
 
 
+# 7-category framework v4
+CATEGORIES = {
+    1: "Quality of Work",
+    2: "Safety & Hygiene",
+    3: "Customer Handling",
+    4: "Transparency & Ethics",
+    5: "Staff & Service Delivery",
+    6: "Environment & Facilities",
+    7: "Value & Accessibility",
+}
+
+CATEGORY_KEYS = [
+    "quality_of_work",
+    "safety_hygiene",
+    "customer_handling",
+    "transparency_ethics",
+    "staff_service_delivery",
+    "environment_facilities",
+    "value_accessibility",
+]
+
+# Map category_no to key for API usage
+CATEGORY_NO_TO_KEY = {
+    1: "quality_of_work",
+    2: "safety_hygiene",
+    3: "customer_handling",
+    4: "transparency_ethics",
+    5: "staff_service_delivery",
+    6: "environment_facilities",
+    7: "value_accessibility",
+}
+
+
 class RankingRequest(BaseModel):
     service_family: str
     gender: Literal["male", "female", "unisex"] = "unisex"
@@ -11,10 +44,9 @@ class RankingRequest(BaseModel):
     user_lat: float
     user_lng: float
     sub_service: Optional[str] = None
-    # A whole taxonomy group: match any of its leaves. Soft, like sub_service.
     sub_services: Optional[list[str]] = None
     price_tier: Optional[Literal["budget", "standard", "premium"]] = None
-    user_weights: dict[str, int]
+    user_weights: dict[str, int]  # keys: category keys like "quality_of_work"
     min_results: int = Field(default=3, ge=1)
 
     @model_validator(mode="after")
@@ -26,13 +58,22 @@ class RankingRequest(BaseModel):
         return self
 
 
+class SubPointScore(BaseModel):
+    code: str
+    score: float
+    n_opinions: int = 0
+    positive_count: int = 0
+    negative_count: int = 0
+
+
 class RankedSalon(BaseModel):
     rank: int
     salon_id: str
     name: str
     distance_km: float
     F_score: float
-    category_scores: dict[str, float]
+    category_scores: dict[str, float]       # 7 category scores
+    sub_point_scores: dict[str, float] = {}  # 25 sub-point scores
     reliability: dict[str, float]
     matched_sub_service: bool = False
     price_tier: Optional[str] = None

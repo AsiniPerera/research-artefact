@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import logoMark from "./assets/images/logo/logo-mark.png";
 import { AccountMenu } from "./components/AccountMenu";
 import { NotificationsMenu } from "./components/NotificationsMenu";
-import { IconHeart, IconSearch } from "./components/Icons";
+import { IconHeart, IconSearch, IconUserPlus } from "./components/Icons";
 import { useFavorites } from "./hooks/useFavorites";
 import { Dashboard } from "./screens/Dashboard";
 import { Favorites } from "./screens/Favorites";
@@ -14,6 +14,7 @@ import { HowItWorks } from "./screens/HowItWorks";
 import { About } from "./screens/About";
 import { Auth } from "./screens/Auth";
 import { Contact } from "./screens/Contact";
+import { DOMAINS } from "./constants/taxonomy";
 
 const NAV = [
   { key: "home",        label: "Home" },
@@ -278,6 +279,17 @@ export default function App() {
             </button>
           </nav>
 
+          {/* Both halves of the account menu, which is hidden at this width.
+              The bar offers Sign in and Sign up; the drawer used to carry only
+              Sign in, so on a phone there was no way to create an account at
+              all. */}
+          <p className="nav-drawer-label">Account</p>
+          <nav className="nav-drawer-account">
+            <button onClick={() => openAuth("signup")} tabIndex={menuOpen ? 0 : -1}>
+              <IconUserPlus size={15} /> Sign up
+            </button>
+          </nav>
+
           <button
             className="btn-hero nav-drawer-cta"
             onClick={() => openAuth("signin")}
@@ -288,9 +300,29 @@ export default function App() {
         </aside>
 
         <main className={`page ${isLanding || isAuth || isServices ? "page--flush" : ""}`}>
+          {/* Rankings stays mounted under a salon's profile rather than
+              being swapped out for it. selectedSalon used to sit as the
+              OUTERMOST branch of this chain, so opening a salon unmounted
+              Rankings entirely — its filters, priorities and the ranked list
+              itself all lived in its own useState, and Back remounted a
+              blank instance instead of returning to what was there. `hidden`
+              keeps the component alive and off-screen instead; reappearing
+              costs nothing because nothing was thrown away. */}
+          {route === "services" && (
+            <div hidden={!!selectedSalon}>
+              <Rankings
+                key={`${family ?? "all"}-${sub ?? ""}`}
+                initialFamily={family}
+                initialSubService={sub}
+                onSelectSalon={setSelectedSalon}
+              />
+            </div>
+          )}
+
           {selectedSalon ? (
             <SalonDetail salonId={selectedSalon} onBack={() => setSelectedSalon(null)} />
-          ) : route === "auth" ? (
+          ) : route === "services" ? null
+          : route === "auth" ? (
             <Auth mode={authMode} onSwitch={openAuth} onHome={() => go("home")} />
           ) : route === "contact" ? (
             <Contact />
@@ -299,14 +331,6 @@ export default function App() {
               onExplore={explore}
               scrollToOffers={route === "offers"}
               scrollToServices={route === "ourservices"}
-            />
-          ) : route === "services" ? (
-            /* Remount on family change so a card's choice seeds the filters. */
-            <Rankings
-              key={`${family ?? "all"}-${sub ?? ""}`}
-              initialFamily={family}
-              initialSubService={sub}
-              onSelectSalon={setSelectedSalon}
             />
           ) : route === "favorites" ? (
             <Favorites
@@ -319,11 +343,11 @@ export default function App() {
                auth lands and it works as-is. */
             <Dashboard onExplore={() => openAuth("signin")} />
           ) : route === "search" ? (
-            <Lookup query={submittedQuery} />
+            <Lookup query={submittedQuery} onSelectSalon={setSelectedSalon} />
           ) : route === "how" ? (
             <HowItWorks />
           ) : (
-            <About />
+            <About onExplore={() => go("services")} />
           )}
         </main>
       </div>
@@ -353,11 +377,10 @@ export default function App() {
           <div className="footer-col">
             <h4>Services</h4>
             <ul>
-              <li><button onClick={() => go("services", "hair")}>Hair</button></li>
-              <li><button onClick={() => go("services", "makeup_bridal")}>Bridal &amp; Makeup</button></li>
-              <li><button onClick={() => go("services", "nails")}>Nails</button></li>
-              <li><button onClick={() => go("services", "skin_beauty")}>Skin &amp; Beauty</button></li>
-              <li><button onClick={() => go("services", "barber_grooming")}>Barber &amp; Grooming</button></li>
+              {/* The same five categories, names and order as the Explore page. */}
+              {DOMAINS.map(({ value, label }) => (
+                <li key={value}><button onClick={() => go("services", value)}>{label}</button></li>
+              ))}
             </ul>
           </div>
         </div>

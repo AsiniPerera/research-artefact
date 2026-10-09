@@ -1,4 +1,5 @@
 """FastAPI backend — /filter and /rank endpoints.
+Updated for 7-category Salon Quality Framework v4 with 25 sub-points.
 The backend reads precomputed scores from PostgreSQL and computes
 distance live. It NEVER calls the LLM.
 """
@@ -10,12 +11,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from asyncpg import Pool
 
 from backend.db import get_pool, close_pool
-from backend.schemas import RankingRequest, RankingResponse, RankedSalon
+from backend.schemas import (
+    RankingRequest, RankingResponse, RankedSalon,
+    CATEGORIES, CATEGORY_KEYS, CATEGORY_NO_TO_KEY,
+)
 from core.ranking import rank as apply_ranking, SalonCandidate, haversine
 from core.explain import build_card
-from core.taxonomy import CATEGORIES
 
-# SQL queries
+# ---------------------------------------------------------------------------
+# SQL queries — updated for 7-category framework
+# ---------------------------------------------------------------------------
+
 _CANDIDATES = """
     SELECT s.id, s.name, s.service_family, s.gender_served, s.lat, s.lng, s.hours,
            json_object_agg(cs.category, cs.category_score) AS category_scores,
@@ -38,13 +44,18 @@ _GLOBAL_MEANS = """
 _SALON_DETAIL = """
     SELECT s.*,
            json_object_agg(cs.category, cs.category_score) AS category_scores,
-           json_object_agg(cs.category, cs.reliability_r)  AS reliability,
-           json_object_agg(ps.parameter, ps.score)         AS parameter_scores
+           json_object_agg(cs.category, cs.reliability_r)  AS reliability
     FROM salons s
-    LEFT JOIN salon_category_scores cs   ON s.id = cs.salon_id
-    LEFT JOIN salon_parameter_scores ps  ON s.id = ps.salon_id
+    LEFT JOIN salon_category_scores cs ON s.id = cs.salon_id
     WHERE s.id = $1
     GROUP BY s.id
+"""
+
+_SALON_SUBPOINTS = """
+    SELECT sp.sub_point_code, sp.score, sp.n_opinions,
+           sp.positive_count, sp.negative_count
+    FROM salon_subpoint_scores sp
+    WHERE sp.salon_id = $1
 """
 
 _SEARCH = """
@@ -52,6 +63,16 @@ _SEARCH = """
     FROM salons
     WHERE name ILIKE $1
     ORDER BY name LIMIT 100
+"""
+
+# Framework metadata endpoint
+_FRAMEWORK = """
+    SELECT fc.category_no, fc.name AS category_name, fc.weight,
+           sp.code AS sub_point_code, sp.customer_question
+    FROM framework_categories fc
+    LEFT JOIN sub_points sp ON fc.category_no = sp.category_no
+    WHERE fc.category_no <= 7
+    ORDER BY fc.category_no, sp.code
 """
 
 
@@ -62,13 +83,38 @@ async def lifespan(app: FastAPI):
     await close_pool()
 
 
-app = FastAPI(title="SalonSure API", lifespan=lifespan)
+app = FastAPI(title="SalonSure API v2", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.get("/framework")
+async def get_framework(pool: Pool = Depends(get_pool)):
+    """Return the 7-category framework with sub-points."""
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(_FRAMEWORK)
+
+    categories = {}
+    for r in rows:
+        cat_no = r["category_no"]
+        if cat_no not in categories:
+            categories[cat_no] = {
+                "category_no": cat_no,
+                "name": r["category_name"],
+                "weight": float(r["weight"]),
+                "sub_points": [],
+            }
+        if r["sub_point_code"]:
+            categories[cat_no]["sub_points"].append({
+                "code": r["sub_point_code"],
+                "question": r["customer_question"],
+            })
+
+    return {"categories": list(categories.values())}
 
 
 @app.post("/rank", response_model=RankingResponse)
@@ -86,7 +132,6 @@ async def rank_salons(req: RankingRequest, pool: Pool = Depends(get_pool)):
         salons_raw, req.max_distance_km, req.gender,
         req.open_now, req.open_at, req.user_lat, req.user_lng, req.min_results,
     )
-    # A group selection arrives as every leaf it holds; a single service as one.
     wanted = req.sub_services or ([req.sub_service] if req.sub_service else None)
     candidates_raw = apply_soft_priority(candidates_raw, wanted, req.price_tier)
 
@@ -125,7 +170,7 @@ async def rank_salons(req: RankingRequest, pool: Pool = Depends(get_pool)):
             rank=pos, salon_id=salon.salon_id,
             category_scores=salon.category_scores,
             reliability=salon.reliability,
-            review_counts={c: salon.review_count for c in CATEGORIES},
+            review_counts={c: salon.review_count for c in CATEGORY_KEYS},
             user_weights=req.user_weights,
             top_scores=top_cat,
         )
@@ -149,11 +194,24 @@ async def rank_salons(req: RankingRequest, pool: Pool = Depends(get_pool)):
 
 @app.get("/salons/{salon_id}")
 async def get_salon(salon_id: str, pool: Pool = Depends(get_pool)):
+    """Get salon detail with category scores and sub-point scores."""
     async with pool.acquire() as conn:
         row = await conn.fetchrow(_SALON_DETAIL, salon_id)
-    if not row:
-        raise HTTPException(status_code=404, detail="Salon not found")
-    return dict(row)
+        if not row:
+            raise HTTPException(status_code=404, detail="Salon not found")
+        subpoints = await conn.fetch(_SALON_SUBPOINTS, salon_id)
+
+    result = dict(row)
+    result["sub_point_scores"] = {
+        r["sub_point_code"]: {
+            "score": float(r["score"]),
+            "n_opinions": r["n_opinions"],
+            "positive_count": r["positive_count"],
+            "negative_count": r["negative_count"],
+        }
+        for r in subpoints
+    }
+    return result
 
 
 @app.get("/salons")

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { IconChevron } from "./Icons";
 
 /**
@@ -17,8 +17,9 @@ import { IconChevron } from "./Icons";
  *
  *   options  [{ value, label }]
  *   display  what the closed button reads; defaults to the chosen label
+ *   icon     optional decorative glyph shown before the label
  */
-export function SelectMenu({ label, value, options, onChange, display }) {
+export function SelectMenu({ label, value, options, onChange, display, icon }) {
   const [open, setOpen] = useState(false);
   const idx = Math.max(0, options.findIndex((o) => o.value === value));
   const [active, setActive] = useState(idx);
@@ -83,6 +84,7 @@ export function SelectMenu({ label, value, options, onChange, display }) {
 
   return (
     <div className="qf-field qf-select" ref={rootRef}>
+      {icon && <span className="qf-field-icon" aria-hidden="true">{icon}</span>}
       <span className="qf-field-label" id={`${id}-label`}>{label}</span>
 
       <button
@@ -113,19 +115,27 @@ export function SelectMenu({ label, value, options, onChange, display }) {
           aria-labelledby={`${id}-label`}
         >
           {options.map((o, i) => (
-            <li
-              key={o.value}
-              id={`${id}-opt-${i}`}
-              role="option"
-              aria-selected={o.value === value}
-              className={`qf-opt ${o.value === value ? "is-on" : ""} ${
-                i === active ? "is-active" : ""
-              }`}
-              onClick={() => choose(i)}
-              onMouseEnter={() => setActive(i)}
-            >
-              {o.label}
-            </li>
+            /* An option carrying a `group` different from the one before it
+               opens a new section. The heading is role="presentation" and is
+               NOT an option, so `active` still indexes `options` directly and
+               arrow keys skip the headings rather than landing on them. */
+            <Fragment key={o.value}>
+              {o.group && o.group !== options[i - 1]?.group && (
+                <li className="qf-optgroup" role="presentation">{o.group}</li>
+              )}
+              <li
+                id={`${id}-opt-${i}`}
+                role="option"
+                aria-selected={o.value === value}
+                className={`qf-opt ${o.value === value ? "is-on" : ""} ${
+                  i === active ? "is-active" : ""
+                }`}
+                onClick={() => choose(i)}
+                onMouseEnter={() => setActive(i)}
+              >
+                {o.label}
+              </li>
+            </Fragment>
           ))}
         </ul>
       )}

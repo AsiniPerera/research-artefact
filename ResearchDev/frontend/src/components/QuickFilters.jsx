@@ -1,42 +1,43 @@
 import { SelectMenu } from "./SelectMenu";
-import { DISTANCE_STEPS } from "../constants/taxonomy";
+import { IconClock, IconPin } from "./Icons";
+import { CITIES } from "../constants/cities";
 
-/* Three states, not a switch. A toggle can only say "open now" or "not
-   filtering"; it has no way to ask for the opposite, and people looking for
-   somewhere to book tomorrow do want the opposite. Any is the middle, and the
-   default, because a filter that hides most of the results before you have
-   asked for anything is the wrong first impression. */
+/* Google's business status: no opening hours are held, so "Open" means
+   operating and "Closed" means listed as permanently or temporarily closed —
+   not open or closed at this hour. Open is the default: a closed salon is
+   rarely what anyone is looking for. */
 const AVAILABILITY = [
+  { value: "open",   label: "Open" },
+  { value: "closed", label: "Closed" },
   { value: "any",    label: "Any" },
-  { value: "open",   label: "Open Now" },
-  { value: "closed", label: "Closed Now" },
 ];
 
-const DISTANCE_OPTIONS = DISTANCE_STEPS.map((km) => ({
-  value: km,
-  label: `within ${km} km`,
-}));
-
 /**
- * The three constraints you change most while reading results — who it is
- * for, how far, and whether they are open — sitting directly above them
- * rather than down the rail. All three are hard filters: they decide who is
- * eligible at all.
- *
- * Order runs widest to narrowest: client focus rules most salons out, the
- * radius fewer, availability fewest and most transiently.
+ * The constraints you re-try while reading results, sitting directly above
+ * them rather than down the rail. Both narrow who is listed and never change
+ * how anyone scores or ranks.
  */
-export function QuickFilters({ filters, onChange, onReset, isDefault = true }) {
+export function QuickFilters({
+  filters,
+  onChange,
+  onReset,
+  isDefault = true,
+  includeNearby = false,
+  onIncludeNearbyChange,
+}) {
+  const options = [
+    { value: "", label: "All cities" },
+    ...CITIES.map((c) => ({ value: c, label: c })),
+  ];
+  /* Nearby means "just outside the chosen city", so it only has meaning once
+     a city is chosen — "All cities" already shows everyone. */
+  const nearbyReady = Boolean(filters.city);
+
   return (
     <div className="quick-filters">
-      {/* Above the pills, on its own line. It is not a filter, so standing in
-          the row with them made it read as a fourth one — and mounting only
-          when something was non-default pushed every pill sideways the first
-          time you touched a gender.
-
-          Still always rendered, hidden rather than absent: the line keeps its
-          height so nothing below it moves, and the control leaves the tab
-          order and the accessibility tree while there is nothing to clear. */}
+      {/* Always rendered, hidden rather than absent: the line keeps its height
+          so nothing below it moves, and the control leaves the tab order and
+          the accessibility tree while there is nothing to clear. */}
       {onReset && (
         <button
           type="button"
@@ -51,17 +52,41 @@ export function QuickFilters({ filters, onChange, onReset, isDefault = true }) {
 
       <div className="qf-row">
         <SelectMenu
-          label="Distance"
-          value={filters.maxDistance}
-          options={DISTANCE_OPTIONS}
-          onChange={(km) => onChange({ ...filters, maxDistance: km })}
+          label="City"
+          icon={<IconPin size={14} />}
+          value={filters.city}
+          options={options}
+          onChange={(city) => onChange({ ...filters, city })}
         />
+
+        {/* Sits beside the city it depends on. Inert until a city is picked —
+            there is no "outside" of "All cities" to be near. */}
+        <label
+          className="qf-field qf-toggle qf-toggle--nearby"
+          aria-disabled={!nearbyReady}
+          title={nearbyReady
+            ? "Also show salons just outside this city, nearest first"
+            : "Pick a city first to see what's nearby"}
+        >
+          <span className="filter-toggle-icon" aria-hidden="true"><IconPin size={14} /></span>
+          <span className="qf-field-label">Nearby areas</span>
+          <span className="toggle">
+            <input
+              type="checkbox"
+              checked={nearbyReady && includeNearby}
+              disabled={!nearbyReady}
+              onChange={(e) => onIncludeNearbyChange?.(e.target.checked)}
+            />
+            <span className="toggle-track" />
+          </span>
+        </label>
 
         <SelectMenu
           label="Availability"
+          icon={<IconClock size={14} />}
           value={filters.availability}
           options={AVAILABILITY}
-          onChange={(v) => onChange({ ...filters, availability: v })}
+          onChange={(availability) => onChange({ ...filters, availability })}
         />
       </div>
     </div>

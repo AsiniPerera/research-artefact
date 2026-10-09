@@ -1,27 +1,26 @@
 import { useEffect, useState } from "react";
-import { API } from "../constants/api";
+import { searchProviders } from "../api/client";
 
-export function Lookup({ query }) {
+export function Lookup({ query, onSelectSalon }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!query) return;
-    let cancelled = false;
+    if (!query) return undefined;
+    const ctrl = new AbortController();
 
     setLoading(true);
     setError(null);
-    fetch(`${API}/salons?name=${encodeURIComponent(query)}`)
-      .then((r) => {
-        if (!r.ok) throw new Error(`Search failed (${r.status})`);
-        return r.json();
-      })
-      .then((data) => { if (!cancelled) setResults(data); })
-      .catch((e) => { if (!cancelled) setError(e.message); })
-      .finally(() => { if (!cancelled) setLoading(false); });
+    searchProviders(query, { signal: ctrl.signal })
+      .then((data) => { setResults(Array.isArray(data) ? data : data.providers ?? []); setLoading(false); })
+      .catch((e) => {
+        if (e.name === "AbortError") return;
+        setError(e.message);
+        setLoading(false);
+      });
 
-    return () => { cancelled = true; };
+    return () => ctrl.abort();
   }, [query]);
 
   return (
@@ -48,15 +47,19 @@ export function Lookup({ query }) {
       {results.length > 0 && (
         <ul className="lookup-results">
           {results.map((s) => (
-            <li key={s.id}>
+            <li key={s.place_id}>
               <div className="lookup-row">
-                <span className="lookup-name">{s.name}</span>
-                {s.division && <span className="lookup-division">{s.division}</span>}
+                <button type="button" className="lookup-name" onClick={() => onSelectSalon?.(s.place_id)}>
+                  {s.name ?? s.provider_name}
+                </button>
+                {s.city && <span className="lookup-division">{s.city}</span>}
               </div>
-              <span className="lookup-rating">
-                <span className="star" aria-hidden="true">★</span> {s.rating}
-                <span className="lookup-count">({s.review_count})</span>
-              </span>
+              {s.google_rating != null && (
+                <span className="lookup-rating">
+                  <span className="star" aria-hidden="true">★</span> {s.google_rating}
+                  <span className="lookup-count">({s.google_review_count})</span>
+                </span>
+              )}
             </li>
           ))}
         </ul>

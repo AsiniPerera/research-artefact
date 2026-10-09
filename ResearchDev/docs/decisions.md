@@ -87,6 +87,37 @@ _This is the file examiners mine: "why did you do it that way?" Keep it honest._
   declared limitation rather than a hidden claim.
 - Gave up: the cleaner, caveat-free defence of the 3-division version. [REVISIT before submission]
 
+## D11 · Framework v4: ten categories collapsed to seven, plus a reported-only verdict
+- Decided: replace the ten-category / 38-sub-point framework with seven weighted
+  categories and 25 sub-points, plus an eighth category, Overall Verdict, holding the
+  single sub-point `overall`. Overall Verdict carries `weight = 0` and `is_score =
+  false`: it is scored, stored and shown, but excluded from `base_score`, from the
+  user's weights, and from the precision range.
+- Options: (a) keep ten; (b) seven weighted plus Overall Verdict weighted as an eighth;
+  (c) seven weighted plus Overall Verdict reported only; (d) seven, discarding the
+  generic-verdict evidence altogether.
+- Why: ten categories asked too much of the reviews. Four of them — Consistency &
+  Performance Trend, Service Durability, Recovery & Repair, and the split between
+  Staff Experience and Customer Trust — were each carried by a handful of evidence
+  rows (5.1/5.2/5.3 together held 29 of 61,133), so they contributed a 0.5 prior
+  dressed up as a measurement, and ten sliders asked a visitor to express preferences
+  the data could not honour. Seven categories each have real evidence behind them.
+  Overall Verdict had to exist because a generic "great salon" verdict is the commonest
+  thing a review says — 10,296 of 44,526 rows — and discarding it (option d) would
+  throw away a quarter of the evidence. But it summarises the other seven, so
+  weighting it (option b) counts the same opinion twice and lets a visitor
+  unknowingly re-weight everything at once. Reported only is the honest placement:
+  visible, never double-counted.
+- Gave up: Consistency & Performance Trend as a named category, and with it the
+  review-level dispersion and tail-risk computation that fed it — the one part of the
+  scoring that measured *variance* rather than level. It was the most methodologically
+  distinctive element of v3 and nothing in v4 replaces it. Also gave up the gate and
+  veto rules: v4 marks no sub-point as either, so no provider is penalised −0.15 and
+  none is removed from the ranking on evidence alone. The machinery is retained and
+  driven off `is_gate` / `is_veto`, so reinstating a gate is a reference-data change,
+  not a code change. [REVISIT: whether consistency should return as a sub-point of
+  Quality of Work before submission]
+
 ## [Dn] · [next decision]
 - Decided: …
 - Options: …
