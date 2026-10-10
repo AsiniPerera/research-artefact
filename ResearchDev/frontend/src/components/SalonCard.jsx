@@ -63,8 +63,6 @@ export function SalonCard({ salon, onSelect, ratedFor }) {
                 {" "}· {salon.distance_km} km away
               </span>
             )}
-            {" "}· {salon.evidence_reviews}{" "}
-            {salon.evidence_reviews === 1 ? "review" : "reviews"} as evidence
           </p>
         </div>
       </div>

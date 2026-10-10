@@ -4006,6 +4006,81 @@ details p { font-size: 0.72rem; color: var(--muted); margin-top: 0.3rem; }
   background: var(--champagne, var(--gold));
 }
 
+/* Filter pills — visible against page background */
+.page-body--explore .qf-field,
+.page-body--explore .qf-field:not(:focus-within) {
+  background: #2a1535 !important;
+  border-color: rgba(123, 51, 126, .55);
+  box-shadow: 0 2px 12px -4px rgba(0, 0, 0, .50);
+}
+
+/* ── Priority panel & sidebar: brand palette on explore page ── */
+.page-body--explore .priority-panel,
+.page-body--explore .sidebar {
+  background: #420D4B;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-color: rgba(123, 51, 126, .40);
+  box-shadow: 0 16px 40px -20px rgba(0, 0, 0, .70);
+}
+
+/* Divider lines inside the panel */
+.page-body--explore .priority-panel-head,
+.page-body--explore .sidebar-head,
+.page-body--explore .sidebar-foot {
+  border-color: rgba(123, 51, 126, .35);
+}
+
+/* "Your priorities" heading + sub-text */
+.page-body--explore .priority-panel-head h3 { color: #F7EFEA; }
+.page-body--explore .priority-panel-head p   { color: rgba(247, 239, 234, .60); }
+
+/* Category label + tag */
+.page-body--explore .weight-label { color: #F7EFEA; }
+.page-body--explore .weight-tag   { color: rgba(247, 239, 234, .55); }
+
+/* Weight row dividers */
+.page-body--explore .weight-row {
+  border-top-color: rgba(123, 51, 126, .25);
+}
+.page-body--explore .weight-row:focus-within {
+  background: rgba(123, 51, 126, .18);
+}
+
+/* Level buttons (Poor / Fair / Good / Excellent) */
+.page-body--explore .lvl-opt {
+  border-color: rgba(247, 239, 234, .15);
+  color: rgba(247, 239, 234, .65);
+  background: rgba(33, 6, 53, .50);
+}
+.page-body--explore .lvl-opt:hover {
+  border-color: #C9A86C;
+  color: #F7EFEA;
+}
+/* Active / selected level — brand ramp: violet → deep purple → gold */
+.page-body--explore .weight-row[data-level="1"] { --lvl-ink: #7B337E; }
+.page-body--explore .weight-row[data-level="2"] { --lvl-ink: #9B4FA0; }
+.page-body--explore .weight-row[data-level="3"] { --lvl-ink: #C9A86C; }
+.page-body--explore .weight-row[data-level="4"] { --lvl-ink: #E8D4A8; }
+
+.page-body--explore .lvl-opt.is-on {
+  background: var(--lvl-ink);
+  border-color: transparent;
+  color: #210635;
+  font-weight: 700;
+}
+
+/* Reset button */
+.page-body--explore .btn-text { color: rgba(247, 239, 234, .70); }
+.page-body--explore .btn-text:hover { color: #C9A86C; }
+.page-body--explore .qf-field:hover {
+  border-color: rgba(255, 255, 255, .18);
+}
+.page-body--explore .qf-field:focus-within {
+  border-color: var(--champagne);
+  box-shadow: 0 0 0 3px rgba(201, 168, 108, .14);
+}
+
 /* ── Nearby salons — the list from the next suburb over, shown when the
       "Nearby areas" toggle by the city filter is on ──────────────── */
 /* Slightly rounder corners on the rank badge and service-panel buttons in
@@ -7147,6 +7222,8 @@ select {
   max-width: 1600px;
   padding-top: clamp(1.65rem, 3vw, 2.8rem);
   padding-bottom: clamp(3rem, 6vw, 5rem);
+  background: var(--plum-950);
+  min-height: 100vh;
 }
 
 .page-body--explore .page-head--bar {
@@ -11430,10 +11507,10 @@ select {
    colours are the safer choice here as well as the better-looking one.
    The neutral is de-emphasis, not a third identity. */
 :root {
-  --sent-positive: #b68c44;
-  --sent-negative: #8a6cc0;
-  --sent-other:    #6f666c;
-  --donut-track:   rgba(232, 211, 171, .10);
+  --sent-positive: #C9A86C;
+  --sent-negative: #7B337E;
+  --sent-other:    #6B5278;
+  --donut-track:   rgba(123, 51, 126, .22);
 }
 
 /* Eight tiles, one row. They stay equal width so the rings sit on a single
@@ -12314,68 +12391,68 @@ select {
   transform: scale(1.04);
 }
 
-/* Poor — red */
+/* Poor — violet */
 .page-body--explore .priority-panel--rail .lvl-opt[data-lvl="poor"] {
-  color: #e05c5c;
-  border-color: rgba(224, 92, 92, .32);
+  color: #b07ab5;
+  border-color: rgba(123, 51, 126, .35);
 }
 .page-body--explore .priority-panel--rail .lvl-opt[data-lvl="poor"]:hover {
-  border-color: rgba(224, 92, 92, .55);
-  color: #f07878;
+  border-color: rgba(123, 51, 126, .65);
+  color: #d0a0d5;
 }
 .page-body--explore .priority-panel--rail .lvl-opt[data-lvl="poor"].is-on {
-  background: linear-gradient(135deg, #4a1515, #7a2828);
-  border-color: rgba(224, 92, 92, .55);
-  color: #ffcccc;
-  box-shadow: 0 4px 14px -6px rgba(200, 60, 60, .5);
+  background: #7B337E;
+  border-color: #9B4FA0;
+  color: #F7EFEA;
+  box-shadow: 0 4px 16px -4px rgba(123, 51, 126, .70);
 }
 
-/* Fair — neutral */
+/* Fair — mid purple */
 .page-body--explore .priority-panel--rail .lvl-opt[data-lvl="fair"] {
-  color: #9090a8;
-  border-color: rgba(180, 180, 210, .18);
+  color: #c090c5;
+  border-color: rgba(155, 79, 160, .35);
 }
 .page-body--explore .priority-panel--rail .lvl-opt[data-lvl="fair"]:hover {
-  border-color: rgba(180, 180, 210, .4);
-  color: #c0c0d8;
+  border-color: rgba(155, 79, 160, .65);
+  color: #d8b0dc;
 }
 .page-body--explore .priority-panel--rail .lvl-opt[data-lvl="fair"].is-on {
-  background: linear-gradient(135deg, #252335, #352f52);
-  border-color: rgba(160, 155, 210, .55);
-  color: #dcdaf5;
-  box-shadow: 0 4px 14px -6px rgba(80, 70, 160, .45);
+  background: #54255d;
+  border-color: #7B337E;
+  color: #F7EFEA;
+  box-shadow: 0 4px 16px -4px rgba(84, 37, 93, .70);
 }
 
-/* Good — blue */
+/* Good — gold */
 .page-body--explore .priority-panel--rail .lvl-opt[data-lvl="good"] {
-  color: #5b9bd5;
-  border-color: rgba(91, 155, 213, .3);
+  color: #C9A86C;
+  border-color: rgba(201, 168, 108, .35);
 }
 .page-body--explore .priority-panel--rail .lvl-opt[data-lvl="good"]:hover {
-  border-color: rgba(91, 155, 213, .55);
-  color: #7eb3e0;
+  border-color: rgba(201, 168, 108, .65);
+  color: #dfc090;
 }
 .page-body--explore .priority-panel--rail .lvl-opt[data-lvl="good"].is-on {
-  background: linear-gradient(135deg, #12274a, #1b3e72);
-  border-color: rgba(91, 155, 213, .6);
-  color: #aad0f5;
-  box-shadow: 0 4px 14px -6px rgba(50, 120, 210, .5);
+  background: #C9A86C;
+  border-color: rgba(201, 168, 108, .70);
+  color: #210635;
+  box-shadow: 0 4px 14px -6px rgba(201, 168, 108, .50);
 }
 
-/* Excellent — green */
+/* Excellent — light gold */
 .page-body--explore .priority-panel--rail .lvl-opt[data-lvl="excellent"] {
-  color: #56b85c;
-  border-color: rgba(86, 184, 92, .28);
+  color: #E8D4A8;
+  border-color: rgba(232, 212, 168, .35);
 }
 .page-body--explore .priority-panel--rail .lvl-opt[data-lvl="excellent"]:hover {
-  border-color: rgba(86, 184, 92, .55);
-  color: #78d07e;
+  border-color: rgba(232, 212, 168, .65);
+  color: #f0e0c0;
 }
 .page-body--explore .priority-panel--rail .lvl-opt[data-lvl="excellent"].is-on {
-  background: linear-gradient(135deg, #0e2e14, #1a5222);
-  border-color: rgba(86, 184, 92, .6);
-  color: #aaf0b0;
-  box-shadow: 0 4px 14px -6px rgba(60, 180, 70, .5);
+  background: #E8D4A8;
+  border-color: rgba(232, 212, 168, .70);
+  color: #210635;
+  box-shadow: 0 4px 14px -6px rgba(232, 212, 168, .45);
 }
 .page-body--explore .sidebar-foot {
   border-top-color: rgba(232, 211, 171, .12);

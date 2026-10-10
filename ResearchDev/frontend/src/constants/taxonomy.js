@@ -1,6 +1,7 @@
 /* ============================================================
    Salon Service Taxonomy v9 — Sri Lanka
-   5 categories → 17 services → 51 sub-services.
+   4 categories → 17 services → 51 sub-services.
+   Beard & Shave (MG.BEARD) moved under Hair; Gents' Grooming removed as a top-level category.
 
    SOURCE OF TRUTH: backend/salon_db/02_reference_data.sql
    ("taxonomy v9", framework "final-38 (frozen 2026-10-04)"). Every `id` and
@@ -42,11 +43,10 @@
    because that is what is stored in salons.service_family — renaming one
    returns zero candidates. Only the labels move to v9. */
 export const DOMAINS = [
-  { id: "HR", value: "hair",            label: "Hair" },
-  { id: "SK", value: "skin_beauty",     label: "Skin & Beauty" },
-  { id: "NL", value: "nails",           label: "Nail Care" },
-  { id: "BO", value: "makeup_bridal",   label: "Wedding, Events & Occasions" },
-  { id: "MG", value: "barber_grooming", label: "Gents' Grooming" },
+  { id: "HR", value: "hair",          label: "Hair" },
+  { id: "SK", value: "skin_beauty",   label: "Skin & Beauty" },
+  { id: "NL", value: "nails",         label: "Nail Care" },
+  { id: "BO", value: "makeup_bridal", label: "Wedding, Events & Occasions" },
 ];
 
 export const GROUPS = {
@@ -97,6 +97,16 @@ export const GROUPS = {
         { id: "HR.STY.02", value: "temporary_straightening_curling", label: "Temporary Straightening / Curling", aliases: ["temporary_straightening_curls"] },
         { id: "HR.STY.03", value: "event_party_hairstyle",           label: "Event & Party Hairstyle",           aliases: ["party_hairstyle"] },
         { id: "HR.STY.04", value: "hair_extensions_wigs_systems",    label: "Hair Extensions, Wigs & Systems",   aliases: ["hair_extensions_wigs", "hair_patch_system"] },
+      ],
+    },
+    {
+      id: "MG.BEARD",
+      label: "Beard & Shave",
+      leaves: [
+        { id: "MG.BEARD.01", value: "beard_trim_line_up", label: "Beard Trim & Line Up", aliases: ["beard_trim_styling"] },
+        { id: "MG.BEARD.02", value: "clean_shave",        label: "Clean Shave",          aliases: ["clean_shave"] },
+        { id: "MG.BEARD.03", value: "hot_towel_shave",    label: "Hot Towel Shave",      aliases: ["hot_towel_shave"] },
+        { id: "MG.BEARD.04", value: "beard_colouring",    label: "Beard Colouring",      aliases: ["beard_colour"] },
       ],
     },
   ],
@@ -223,19 +233,6 @@ export const GROUPS = {
     },
   ],
 
-  /* One group in v9. Groom dressing is BO.GROOM — see the note there. */
-  barber_grooming: [
-    {
-      id: "MG.BEARD",
-      label: "Beard & Shave",
-      leaves: [
-        { id: "MG.BEARD.01", value: "beard_trim_line_up", label: "Beard Trim & Line Up", aliases: ["beard_trim_styling"] },
-        { id: "MG.BEARD.02", value: "clean_shave",        label: "Clean Shave",          aliases: ["clean_shave"] },
-        { id: "MG.BEARD.03", value: "hot_towel_shave",    label: "Hot Towel Shave",      aliases: ["hot_towel_shave"] },
-        { id: "MG.BEARD.04", value: "beard_colouring",    label: "Beard Colouring",      aliases: ["beard_colour"] },
-      ],
-    },
-  ],
 };
 
 // ── Derived lookups ───────────────────────────────────────────

@@ -174,19 +174,22 @@ function DonutDefs() {
   return (
     <svg className="donut-defs" aria-hidden="true" focusable="false">
       <defs>
+        {/* Main arc: brand violet → deep purple */}
         <linearGradient id="sent-positive" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#b7a0e2" />
-          <stop offset="55%" stopColor="#9579cc" />
-          <stop offset="100%" stopColor="#6f55a3" />
+          <stop offset="0%"   stopColor="#C9A86C" />
+          <stop offset="55%"  stopColor="#9B4FA0" />
+          <stop offset="100%" stopColor="#7B337E" />
         </linearGradient>
+        {/* Inner negative arc: gold accent */}
         <linearGradient id="sent-negative" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#dcb765" />
-          <stop offset="55%" stopColor="#b98e33" />
-          <stop offset="100%" stopColor="#8d6b22" />
+          <stop offset="0%"   stopColor="#E8D4A8" />
+          <stop offset="55%"  stopColor="#C9A86C" />
+          <stop offset="100%" stopColor="#A07840" />
         </linearGradient>
+        {/* Mixed/mention: muted violet */}
         <linearGradient id="sent-other" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#8b8189" />
-          <stop offset="100%" stopColor="#5b5259" />
+          <stop offset="0%"   stopColor="#9B7EA8" />
+          <stop offset="100%" stopColor="#6B5278" />
         </linearGradient>
       </defs>
     </svg>
@@ -390,7 +393,7 @@ function sortByCertainty(groups) {
   });
 }
 
-/* Rows under their category heading — Hair, Nails, Gents' Grooming — in the
+/* Rows under their category heading — Hair, Nails, Skin & Beauty — in the
    order the API sent them. Grouping only; nothing is re-sorted, so the
    service order on screen stays the one the backend chose. */
 function byCategory(groups) {

@@ -145,7 +145,7 @@ const PROMOS = [
     title: "Men's grooming",
     note: "25% off cuts, beard work and grooming packages.",
     code: "SHARP25",
-    family: "barber_grooming",
+    family: "hair",
     image: "offerunisex",
   },
   {
@@ -194,11 +194,10 @@ const byName = Object.fromEntries(
 /* Nobody names a file `makeup_bridal.webp`, so accept the natural
    shorthands alongside the canonical taxonomy key. */
 const FAMILY_ALIASES = {
-  hair:             ["hair"],
-  makeup_bridal:    ["makeupbridal", "bridal", "makeup"],
-  nails:            ["nails"],
-  skin_beauty:      ["skinbeauty", "skin"],
-  barber_grooming:  ["barbergrooming", "grooming", "barber"],
+  hair:          ["hair"],
+  makeup_bridal: ["makeupbridal", "bridal", "makeup"],
+  nails:         ["nails"],
+  skin_beauty:   ["skinbeauty", "skin"],
 };
 
 const familyImage = (family) =>
@@ -368,11 +367,10 @@ const profileImage = (i) => byName[`profile${i + 1}`] ?? null;
 const CENTRE_CROP = new Set(["nails"]);
 
 const FAMILY_BLURB = {
-  hair: "Cuts, colour, treatments and styling from everyday to editorial.",
+  hair: "Cuts, colour, treatments, styling and beard & shave services.",
   makeup_bridal: "Bridal and occasion artistry, including saree and osari draping.",
   nails: "Manicures, pedicures, gel, acrylic, art and extensions.",
   skin_beauty: "Facials, skin treatments, threading, brows, lashes and waxing.",
-  barber_grooming: "Men's cuts, beard work, colour and full grooming packages.",
 };
 
 export function Landing({
