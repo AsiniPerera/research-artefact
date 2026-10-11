@@ -13,70 +13,126 @@ const EVIDENCE_PAGE = 20;
 /* One quoted review. Shared by the browser at the foot of the page and by the
    drawer that opens under a category score, so a review looks the same
    wherever it is read. */
-function EvidenceRows({ rows }) {
+/* One review can be read for several sub-points, so the raw rows carry the
+   same review text many times. Group by review so each review shows ONCE, with
+   its sub-points listed underneath — no duplicated quotes. Order of first
+   appearance is kept, so the backend's sort still holds. */
+function groupByReview(rows) {
+  const groups = [];
+  const byId = new Map();
+  for (const e of rows) {
+    const key = e.review_id ?? e.review_text ?? e.evidence_id;
+    let g = byId.get(key);
+    if (!g) {
+      g = {
+        key,
+        review_text: e.review_text ?? e.evidence_text,
+        overall_sentiment: e.overall_sentiment,
+        reply_text: e.reply_text,
+        reply_date: e.reply_date,
+        published_at: e.published_at,
+        stars: e.stars,
+        points: [],
+      };
+      byId.set(key, g);
+      groups.push(g);
+    }
+    g.points.push(e);
+  }
+  return groups;
+}
+
+/* The card's accent: the shared polarity if every sub-point agrees, else
+   "mixed". */
+function reviewPolarity(points) {
+  const set = new Set(points.map((p) => p.polarity));
+  return set.size === 1 ? [...set][0] : "mixed";
+}
+
+/* A staff name is only worth showing when it is genuinely in the review: it
+   must appear there as a whole word, and must not be part of the salon's own
+   name (so "Boss" from "Saloon Boss" is not read as a person). Returns the
+   distinct valid names found in this review. */
+function namedStaffIn(points, reviewText, salonName) {
+  const text = reviewText ?? "";
+  const salonWords = new Set(
+    (salonName ?? "").toLowerCase().split(/[^a-z0-9]+/).filter(Boolean),
+  );
+  const out = [];
+  const seen = new Set();
+  for (const p of points) {
+    const name = (p.staff_name ?? "").trim();
+    if (!name || name.length < 3) continue;
+    const lower = name.toLowerCase();
+    if (seen.has(lower)) continue;
+    // Skip names that are just a word of the salon's own name.
+    if (lower.split(/\s+/).some((w) => salonWords.has(w))) continue;
+    // Whole-word match in the review text.
+    const esc = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    if (new RegExp(`\\b${esc}\\b`, "i").test(text)) {
+      seen.add(lower);
+      out.push(name);
+    }
+  }
+  return out;
+}
+
+function EvidenceRows({ rows, salonName }) {
+  const groups = groupByReview(rows);
   return (
     <ul className="evidence-list">
-      {rows.map((e, i) => (
-        <li key={e.evidence_id ?? i} className={`evidence-item evidence-item--${e.polarity}`}>
-          {/* The polarity badge sits top right of the card, clear of the
-              quote. It led the meta row before. */}
-          <span className={`polarity-pill polarity-pill--${e.polarity} evidence-polarity`}>
-            {e.polarity}
-          </span>
-          {/* Who the review names, when extraction caught one. Sits beside
-              the polarity badge rather than buried in the meta line, since
-              "who did the work" is the thing a reader scans for first in a
-              review about staff. */}
-          {e.staff_name && (
-            <span className="evidence-staff" title={`Names ${e.staff_name}`}>
-              {e.staff_name}
+      {groups.map((g, i) => {
+        // The review-level sentiment is the correct badge; fall back to the
+        // sub-point polarities only when it's missing.
+        const polarity = g.overall_sentiment ?? reviewPolarity(g.points);
+        // staff_name is now resolved through staging.evidence_item, so the
+        // mapping is exact — every name genuinely appears in its review.
+        const staff = [...new Set(
+          g.points.flatMap((p) => (p.staff_name ?? "").split(",").map((s) => s.trim()).filter(Boolean)),
+        )];
+        return (
+          <li key={g.key ?? i} className={`evidence-item evidence-item--${polarity}`}>
+            {/* Polarity badge top-right. */}
+            <span className={`polarity-pill polarity-pill--${polarity} evidence-polarity`}>
+              {polarity}
             </span>
-          )}
-          <EvidenceQuote text={e.review_text ?? e.evidence_text} />
-          {/* What this review was read for, in the framework's own words.
- 
-              "4.1" alone is an internal code: it tells a reader nothing about
-              why the quote is here. The question it stands for — "Do people
-              recommend it?" — is the thing that makes the quote legible, so
-              it leads and the code follows it quietly for anyone tracing a
-              row back to the framework. */}
-          <p className="evidence-meta">
-            {/* The short label, with what the check looks for on hover. The
-                framework's own question is the fallback, so a sub-point this
-                map has not been told about still says something. */}
-            {(SUB_POINTS[e.sub_point_code]?.label ?? e.customer_question) && (
-              <span className="evidence-check" title={SUB_POINTS[e.sub_point_code]?.blurb ?? e.customer_question}>
-                {SUB_POINTS[e.sub_point_code]?.label ?? e.customer_question}
-              </span>
-            )}
-            <span className="evidence-meta-rest">
-              {[
-                e.sub_point_code,
-                e.sub_service_code ? LEAF_BY_CODE[e.sub_service_code]?.label ?? e.sub_service_code : null,
-                e.severity,
-                e.published_at ? String(e.published_at).slice(0, 10) : null,
-              ].filter(Boolean).join(" · ")}
-            </span>
-          </p>
+            <EvidenceQuote text={g.review_text} />
 
-          {/* The owner's answer, attached to the review it answers.
- 
-              Category 3 asks how an owner handles complaints, so a row that
-              showed the complaint and withheld the response was telling half
-              the story — and every one of those rows has a reply. Indented
-              and marked, so it reads as the salon speaking rather than more
-              of the customer. */}
-          {e.reply_text && (
-            <div className="evidence-reply">
-              <p className="evidence-reply-who">
-                Salon replied
-                {e.reply_date ? ` · ${String(e.reply_date).slice(0, 10)}` : ""}
+            {/* Every sub-point this review was read for, on one ash line,
+                separated by a bar — so the one review can say several things
+                without being printed twice. */}
+            <p className="evidence-points">
+              {g.points
+                .map((e) => SUB_POINTS[e.sub_point_code]?.label ?? e.customer_question)
+                .filter(Boolean)
+                .join("  |  ")}
+            </p>
+
+            {g.published_at && (
+              <p className="evidence-date">{String(g.published_at).slice(0, 10)}</p>
+            )}
+
+            {/* The owner's answer, shown once per review. */}
+            {g.reply_text && (
+              <div className="evidence-reply">
+                <p className="evidence-reply-who">
+                  Salon replied
+                  {g.reply_date ? ` · ${String(g.reply_date).slice(0, 10)}` : ""}
+                </p>
+                <EvidenceQuote text={g.reply_text} />
+              </div>
+            )}
+
+            {/* Named staff, one line, bottom-right. */}
+            {staff.length > 0 && (
+              <p className="evidence-staff-line" title={`This review names ${staff.join(", ")}`}>
+                <span className="evidence-staff-line-tag">Mentioned staff:</span>{" "}
+                <span className="evidence-staff-line-name">{staff.join(", ")}</span>
               </p>
-              <EvidenceQuote text={e.reply_text} />
-            </div>
-          )}
-        </li>
-      ))}
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -216,9 +272,9 @@ const CATEGORY_SHORT = {
 };
 
 const CATEGORY_DISPLAY = {
-  1: "Quality of Work",
+  1: "Quality of the Result",
   2: "Consultation & Aftercare",
-  3: "Owner Response to Reviews",
+  3: "Owner Response to Customer Feedbacks",
   4: "Trust & Recommendation",
   5: "Staff & Customer Service",
   6: "Value & Price Honesty",
@@ -230,9 +286,9 @@ const CATEGORY_DISPLAY = {
 const CATEGORY_BLURB = {
   1: "Good results that match what you asked for and last",
   2: "They look after you before and after",
-  3: "How the owner answers complaints",
+  3: "How the owner answers complaints and puts things right",
   4: "Customers recommend it and come back",
-  5: "How the staff treat you, including when something goes wrong",
+  5: "How the staff treat you",
   6: "Fair price, as agreed",
   7: "A clean, safe, comfortable place",
 };
@@ -499,7 +555,7 @@ function SubPointProofList({ categoryNo, subPointBy }) {
         return (
           <li key={c.code} className={total ? "" : "cat-check--empty"}>
             <div className="cat-check-text">
-              <span className="cat-check-label">{c.label}</span>
+              <span className="cat-check-label">{c.question ?? c.label}</span>
               <span className="cat-check-blurb">{c.blurb}</span>
             </div>
             {total > 0 ? (
@@ -507,10 +563,10 @@ function SubPointProofList({ categoryNo, subPointBy }) {
                 <span className="cat-check-meter" aria-hidden="true">
                   <span style={{ width: `${(pos / total) * 100}%` }} />
                 </span>
-                <span className="cat-check-n">{total} review{total === 1 ? "" : "s"}</span>
+                <span className="cat-check-n">{total} feedback{total === 1 ? "" : "s"}</span>
               </span>
             ) : (
-              <span className="cat-check-proof cat-check-proof--none">No reviews read for this yet</span>
+              <span className="cat-check-proof cat-check-proof--none">No customer feedbacks read for this yet</span>
             )}
           </li>
         );
@@ -561,7 +617,7 @@ function CategoryEvidence({ placeId, serviceCode, categoryCode, categoryNo, labe
     return () => ctrl.abort();
   }, [placeId, serviceCode, categoryCode, categoryNo, isTrait]);
 
-  if (loading) return <div className="cat-drawer"><p className="cat-drawer-head">Loading reviews for {label}</p></div>;
+  if (loading) return <div className="cat-drawer"><p className="cat-drawer-head">Loading customer feedbacks for {label}</p></div>;
   if (error) return <div className="cat-drawer"><p className="cat-drawer-head">{error}</p></div>;
 
   const extras = wide.length + other.length;
@@ -578,7 +634,7 @@ function CategoryEvidence({ placeId, serviceCode, categoryCode, categoryNo, labe
   if (!own.length && !extras) {
     return (
       <div className="cat-drawer">
-        <p className="cat-drawer-head">No reviews carry {label} for this salon yet.</p>
+        <p className="cat-drawer-head">No customer feedbacks carry {label} for this salon yet.</p>
       </div>
     );
   }
@@ -653,7 +709,7 @@ function CategoryEvidence({ placeId, serviceCode, categoryCode, categoryNo, labe
   );
 }
 
-const BLANK_FILTERS = { category: "", service_code: "", status: "", category_no: "", polarity: "", sort: "" };
+const BLANK_FILTERS = { category: "", service_code: "", status: "", category_no: "", polarity: "", named: false, sort: "" };
 
 /* A row of chips instead of a select.
  
@@ -679,11 +735,10 @@ function ChipRow({ caption, hint, value, options, onChange }) {
               /* disabled, not hidden: it keeps its place in the row and
                  still reads its count of zero to a screen reader. */
               disabled={o.disabled}
-              title={o.disabled ? `No ${o.label.toLowerCase()} reviews for this salon` : o.title}
+              title={o.disabled ? `No ${o.label.toLowerCase()} customer feedbacks for this salon` : o.title}
               onClick={() => onChange(on && o.value ? "" : o.value)}
             >
               {o.label}
-              {o.n != null && <span className="chip-n">{o.n}</span>}
             </button>
           );
         })}
@@ -725,12 +780,20 @@ function DetailFilters({ services, categories, sentimentTotals, filters, onChang
      unclickable rather than dropped. Hiding a chip raises the question of
      whether it exists at all; showing it at zero answers it. Same reasoning
      as the dimmed rings — "there is nothing here" is information. */
-  const sentimentChips = [
+  /* Polarity is single-select. The sentiment values come straight from the
+     DB (sentiment_totals, keyed by extract.review_assessment.overall_sentiment)
+     rather than a hard-coded list, so whatever sentiments the data holds are
+     the chips shown. A fixed order keeps the row stable. Mention is a SEPARATE
+     toggle — "names a staff member" — and combines with any polarity. */
+  const SENTIMENT_ORDER = { positive: 0, negative: 1, neutral: 2, mixed: 3 };
+  const polarityChips = [
     { value: "", label: "All" },
-    ...POLARITIES.slice(1).map((o) => {
-      const n = sentimentTotals?.[o.value] ?? 0;
-      return { ...o, n, disabled: n === 0 };
-    }),
+    ...Object.keys(sentimentTotals ?? {})
+      .sort((a, b) => (SENTIMENT_ORDER[a] ?? 99) - (SENTIMENT_ORDER[b] ?? 99))
+      .map((v) => {
+        const n = sentimentTotals[v] ?? 0;
+        return { value: v, label: v[0].toUpperCase() + v.slice(1), n, disabled: n === 0 };
+      }),
   ];
 
   return (
@@ -739,8 +802,32 @@ function DetailFilters({ services, categories, sentimentTotals, filters, onChang
                options={categoryChips} onChange={set("category")} />
       <ChipRow caption="What the review is about" hint="pick a topic"
                value={filters.category_no} options={topicChips} onChange={set("category_no")} />
-      <ChipRow caption="Said how" value={filters.polarity}
-               options={sentimentChips} onChange={set("polarity")} />
+
+      <div className="chip-row" role="group" aria-label="Said how">
+        <span className="chip-row-cap">Said how</span>
+        <div className="chip-row-items">
+          {polarityChips.map((o) => {
+            const on = filters.polarity === o.value;
+            return (
+              <button key={o.value || "all"} type="button"
+                className={`chip ${on ? "is-on" : ""} ${o.disabled ? "is-empty" : ""}`}
+                aria-pressed={on} disabled={o.disabled}
+                onClick={() => set("polarity")(on && o.value ? "" : o.value)}>
+                {o.label}
+              </button>
+            );
+          })}
+          {/* Independent toggle, offset by a divider. */}
+          <span className="chip-row-sep" aria-hidden="true" />
+          <button type="button"
+            className={`chip chip--toggle ${filters.named ? "is-on" : ""}`}
+            aria-pressed={filters.named}
+            title="Only customer feedbacks that name a staff member"
+            onClick={() => set("named")(!filters.named)}>
+            Mention
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -819,7 +906,7 @@ function ReplyAnalysis({ placeId }) {
             <span style={{ width: `${pctOf(d.complaints_replied, d.complaints)}%` }} />
           </span>
           <span className="reply-kpi-note">
-            {d.complaints_replied} of {d.complaints} negative or neutral reviews
+            {d.complaints_replied} of {d.complaints} negative or neutral customer feedbacks
           </span>
         </div>
 
@@ -1023,8 +1110,8 @@ function CategoryAnalysis({ categoryNo, categoryLabel, subPointBy, placeId }) {
               reader go looking for which one; this says it here. */}
           <span className="reply-kpi-note">
             {withoutEvidence.length === 0
-              ? "every check in this category has real reviews behind it"
-              : <>no reviews yet for{" "}
+              ? "every check in this category has real customer feedbacks behind it"
+              : <>no customer feedbacks yet for{" "}
                   {withoutEvidence.map((c, i) => (
                     <span key={c.code}>
                       {i > 0 && (i === withoutEvidence.length - 1 ? " or " : ", ")}
@@ -1050,8 +1137,8 @@ function CategoryAnalysis({ categoryNo, categoryLabel, subPointBy, placeId }) {
         <div className="staff-mentions">
           <p className="cat-drawer-head">
             {staff.length > 0
-              ? `Named in reviews — ${staff.length} staff member${staff.length === 1 ? "" : "s"}`
-              : "No staff member is named in this salon's reviews yet. Extraction catches names for about 1 salon in 5 — this may simply be one it has not reached."}
+              ? `Named in customer feedbacks — ${staff.length} staff member${staff.length === 1 ? "" : "s"}`
+              : "No staff member is named in this salon's customer feedbacks yet. Extraction catches names for about 1 salon in 5 — this may simply be one it has not reached."}
           </p>
           {staff.length > 0 && (
             <ul className="staff-mentions-list">
@@ -1165,13 +1252,6 @@ function ServiceScoreList({ services, categoryName, categoryTrait, sentimentBy, 
                   read as ragged on the left and flush on the right. Naming
                   the ends turns that into what it is: a lot of upper bounds
                   at the ceiling. */}
-              <div className="score-axis" aria-hidden="true">
-                <span />
-                <span className="score-axis-scale">
-                  <span>0</span><span>50</span><span>100</span>
-                </span>
-                <span />
-              </div>
               {rows.map((g) => (
                 <ServiceScores
                   key={g.key}
@@ -1195,8 +1275,95 @@ function ServiceScoreList({ services, categoryName, categoryTrait, sentimentBy, 
 }
 
 
+/* ── Vertical bar chart for category scores ────────────────────────────── */
+function BarChart({ rows }) {
+  if (!rows.length) return null;
+  const W = 320, H = 180;
+  const PAD = { top: 24, right: 8, bottom: 38, left: 8 };
+  const chartW = W - PAD.left - PAD.right;
+  const chartH = H - PAD.top - PAD.bottom;
+  const n = rows.length;
+  const gap = 6;
+  const barW = (chartW - gap * (n - 1)) / n;
+
+  // scores from DB are 0–1 floats
+  const scores = rows.map((r) => Math.max(0, Math.min(1, r.score ?? 0)));
+  const gridLines = [0, 25, 50, 75, 100];
+
+  return (
+    <svg className="bar-chart" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+      <defs>
+        <linearGradient id="bar-grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#C9A86C" stopOpacity="0.9" />
+          <stop offset="100%" stopColor="#7B337E" stopOpacity="0.7" />
+        </linearGradient>
+        <linearGradient id="bar-grad-sel" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#E8D4A8" stopOpacity="1" />
+          <stop offset="100%" stopColor="#9B4FAE" stopOpacity="0.9" />
+        </linearGradient>
+      </defs>
+
+      {/* horizontal grid lines */}
+      {gridLines.map((g) => {
+        const y = PAD.top + chartH - (g / 100) * chartH;
+        return (
+          <g key={g}>
+            <line
+              x1={PAD.left} y1={y} x2={W - PAD.right} y2={y}
+              stroke="rgba(201,168,108,0.12)" strokeWidth="1"
+              strokeDasharray={g === 0 ? "none" : "3,3"}
+            />
+            <text x={PAD.left - 2} y={y + 3} textAnchor="end" fontSize="6.5"
+              fill="rgba(201,168,108,0.35)" fontFamily="Poppins,sans-serif">
+              {g}
+            </text>
+          </g>
+        );
+      })}
+
+      {/* bars */}
+      {rows.map((r, i) => {
+        const x = PAD.left + i * (barW + gap);
+        const barH = scores[i] * chartH;
+        const y = PAD.top + chartH - barH;
+        const label = CATEGORY_SHORT[r.category_no] ?? r.name ?? "";
+        const scoreVal = Math.round(scores[i] * 100);
+
+        return (
+          <g key={r.category_no}>
+            {/* bar */}
+            <rect
+              x={x} y={y} width={barW} height={Math.max(barH, 2)}
+              rx="3" ry="3"
+              fill="url(#bar-grad)"
+              opacity={0.82}
+            />
+            {/* score on top of bar */}
+            <text
+              x={x + barW / 2} y={y - 4}
+              textAnchor="middle" fontSize="8"
+              fill="rgba(201,168,108,0.85)"
+              fontFamily="Poppins,sans-serif"
+            >
+              {scoreVal}
+            </text>
+            {/* label below */}
+            <text
+              x={x + barW / 2} y={PAD.top + chartH + 12}
+              textAnchor="middle" fontSize="7.5"
+              fill="rgba(247,239,234,0.6)"
+              fontFamily="Poppins,sans-serif"
+            >
+              {label.length > 7 ? label.slice(0, 6) + "…" : label}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
 function ServiceScores({ service, categoryName, categoryTrait, sentimentBy, subPointBy, displayName, members, placeId, filters }) {
-  const [openCat, setOpenCat] = useState(null);
   const rows = categoryScoreRows(service.category_scores)
     .slice()
     .sort((a, b) => a.category_no - b.category_no);
@@ -1215,22 +1382,6 @@ function ServiceScores({ service, categoryName, categoryTrait, sentimentBy, subP
         <span className="detail-service-name">
           {displayName ?? serviceName(service)}
         </span>
-        <RangeBar score={service.trust_score} low={service.range_low} high={service.range_high} />
-        {/* "82 ±13" rather than "82" over "67–93".
- 
-            Across one salon's services the score barely moves — a spread of a
-            single point here — while the margin swings from ±13 to ±30. The
-            number everyone reads was the one that does not distinguish them.
-            The margin is half the 80% range; the range itself is on hover. */}
-        <span className="detail-service-score">
-          <span className="detail-service-num">{pct(service.trust_score)}</span>
-          <span
-            className="detail-service-range"
-            title={`80% range ${pct(service.range_low)}–${pct(service.range_high)} — a wider margin means less evidence behind the score`}
-          >
-            ±{Math.round((pct(service.range_high) - pct(service.range_low)) / 2)}
-          </span>
-        </span>
       </summary>
       {members && members.length > 1 && (
         <p className="detail-service-covers">
@@ -1242,49 +1393,36 @@ function ServiceScores({ service, categoryName, categoryTrait, sentimentBy, subP
           {badges.map((b) => <span key={b} className="badge badge--muted">{b}</span>)}
         </div>
       )}
-      <div className="score-list">
-        {rows.map((r) => (
-          <ScoreRow
-            key={r.category_no}
-            label={CATEGORY_DISPLAY[r.category_no] ?? r.name ?? categoryName[r.category_no]
-                   ?? `Category ${r.category_no}`}
-            blurb={CATEGORY_BLURB[r.category_no]}
-            short={CATEGORY_SHORT[r.category_no]}
-            score={r.score}
-            count={r.evidence_count}
-            counts={catSentiment[r.category_no]}
-            /* Picking a topic above used to change nothing on this tab, which
-               made the chip look broken. The chosen one now holds its colour
-               and the rest recede — emphasis rather than removal, so the
-               reader keeps the comparison they were looking at. */
-            dimmed={topic != null && topic !== r.category_no}
-            open={openCat === r.category_no}
-            onToggle={() => setOpenCat(openCat === r.category_no ? null : r.category_no)}
-          />
-        ))}
-      </div>
+      <ul className="cat-score-list">
+        {rows.map((r) => {
+          const s = Math.round((r.score ?? 0) * 100);
+          const band = s >= 85 ? "Excellent" : s >= 75 ? "Very Good" : s >= 65 ? "Good" : s >= 55 ? "Average" : "Needs Improvement";
+          const bandCls = s >= 85 ? "excellent" : s >= 75 ? "verygood" : s >= 65 ? "good" : s >= 55 ? "average" : "poor";
+          return (
+            <li key={r.category_no} className="csl-row">
+              <div className="csl-top">
+                <span className="csl-no">{String(r.category_no).padStart(2,"0")}</span>
+                <span className="csl-name">{CATEGORY_DISPLAY[r.category_no] ?? r.name}</span>
+                <span className={`csl-band csl-band--${bandCls}`}>{band}</span>
+                <span className="csl-score">{s}</span>
+              </div>
+              <div className="csl-bar">
+                <span className="csl-bar-fill" style={{ width: `${s}%` }} />
+              </div>
+              <span className="csl-blurb">{CATEGORY_BLURB[r.category_no]}</span>
+            </li>
+          );
+        })}
+      </ul>
 
       {/* One drawer under the whole grid rather than one per tile: the grid is
           three columns wide, and a panel opening inside a column would be a
           slot of text with the other columns jumping around it. */}
-      {openCat !== null && (
-        <CategoryEvidence
-          placeId={placeId}
-          serviceCode={service.service_code}
-          categoryCode={service.category_code}
-          categoryNo={openCat}
-          label={rows.find((r) => r.category_no === openCat)?.name
-                 ?? categoryName[openCat] ?? `Category ${openCat}`}
-          serviceLabel={displayName ?? serviceName(service)}
-          isTrait={!!categoryTrait?.[openCat]}
-          subPointBy={subPointBy}
-        />
-      )}
     </details>
   );
 }
 
-function EvidenceList({ placeId, filters }) {
+function EvidenceList({ placeId, filters, salonName }) {
   const [rows, setRows] = useState([]);
   const [offset, setOffset] = useState(0);
   const [more, setMore] = useState(false);
@@ -1295,10 +1433,17 @@ function EvidenceList({ placeId, filters }) {
      Category and Status, which narrow the services above and mean nothing
      here — sending them would put unread params on the request and, worse,
      reload this list every time the Status select moved. */
-  const { service_code, category_no, polarity, sort } = filters;
+  const { service_code, category_no, polarity, named, sort } = filters;
   const query = useMemo(
-    () => ({ service_code, category_no, polarity, sort }),
-    [service_code, category_no, polarity, sort],
+    // polarity (single-select) and `named` (names a staff member) are
+    // independent, so both can be active. Neutral mention-polarity rows stay
+    // hidden unless the reader is after named reviews.
+    () => ({
+      service_code, category_no, polarity, sort,
+      only_named: named || undefined,
+      hide_mention: named ? undefined : true,
+    }),
+    [service_code, category_no, polarity, named, sort],
   );
 
   // A filter change starts the list over.
@@ -1340,7 +1485,7 @@ function EvidenceList({ placeId, filters }) {
           truncated sentence and calling it a customer's words. The full
           review is in raw.review and the API now returns it, so the quote is
           whole. */}
-      <EvidenceRows rows={rows} />
+      <EvidenceRows rows={rows} salonName={salonName} />
 
       {loading && <p className="loading-text">Loading evidence</p>}
       {more && !loading && (
@@ -1356,11 +1501,10 @@ export function SalonDetail({ salonId, onBack }) {
   const [provider, setProvider] = useState(null);
   const [categories, setCategories] = useState([]);
   const [sentiment, setSentiment] = useState([]);
-  // Salon-wide positive/negative per sub-point -- the receipts behind the
-  // short claims ("Friendly and caring") shown once per category.
   const [subPointProof, setSubPointProof] = useState([]);
-  // One filter set for the page; the bar and the merged section below share it.
+  const [replyQuality, setReplyQuality] = useState(null);
   const [filters, setFilters] = useState(BLANK_FILTERS);
+  const [tab, setTab] = useState("summary");
   const [error, setError] = useState(null);
   useEffect(() => {
     const ctrl = new AbortController();
@@ -1383,6 +1527,9 @@ export function SalonDetail({ salonId, onBack }) {
     getSubPointProof(salonId, { signal: ctrl.signal })
       .then(setSubPointProof)
       .catch(() => { /* proofs fall back to empty */ });
+    getReplyQuality(salonId, { signal: ctrl.signal })
+      .then(setReplyQuality)
+      .catch(() => { /* degrades gracefully */ });
     return () => ctrl.abort();
   }, [salonId]);
 
@@ -1393,7 +1540,15 @@ export function SalonDetail({ salonId, onBack }) {
   const name = p.name ?? p.provider_name;
   const safety = provider.safety ?? {};
   const gates = provider.gates_and_vetoes ?? [];
-  const services = provider.services ?? [];
+  /* Taxonomy v9 folded Beard & Shave into Hair and dropped the standalone
+     "Gents' Grooming" category, but the database still tags those services
+     under the old category. Remap on read so the detail filters match the
+     rest of the app — no "Gents' Grooming" chip. */
+  const services = (provider.services ?? []).map((s) =>
+    /gents|grooming|barber/i.test(s.category ?? "")
+      ? { ...s, category: "Hair" }
+      : s
+  );
   // The sub-services the evidence is actually filed under. Empty on a backend
   // that does not send it, which simply drops the Service filter.
   const evidenceServices = provider.evidence_services ?? [];
@@ -1452,117 +1607,405 @@ export function SalonDetail({ salonId, onBack }) {
           </div>
         </div>
 
-        <aside className="detail-hero-side">
-          {p.google_rating != null && (
-            <p className="detail-rating">
-              <span className="detail-rating-num">★ {p.google_rating}</span>
-              <span>{p.google_review_count} Google reviews</span>
-              <small>For reference only — never an input to the ranking.</small>
-            </p>
-          )}
-          {p.place_url && (
-            <a href={p.place_url} target="_blank" rel="noopener noreferrer" className="maps-link">
-              View on Google Maps →
-            </a>
-          )}
-        </aside>
       </header>
 
-      {(safety.reason || gates.length > 0) && (
+      <DonutDefs />
+
+      {/* ── Tab bar ─────────────────────────────────────────────── */}
+      <nav className="detail-tabs" aria-label="Salon sections">
+        {[
+          { id: "summary", label: "Summary" },
+          { id: "scores",  label: "Scores by Service" },
+          { id: "reviews", label: "Customer Feedbacks" },
+          { id: "info",    label: "Salon Info" },
+        ].map(({ id, label }) => (
+          <button
+            key={id}
+            type="button"
+            className={`detail-tab${tab === id ? " detail-tab--active" : ""}`}
+            onClick={() => setTab(id)}
+          >
+            {label}
+          </button>
+        ))}
+      </nav>
+
+      {/* ── Scores tab ──────────────────────────────────────────── */}
+      {tab === "scores" && (
         <section className="detail-panel">
-          <h2 className="detail-section">Safety, gates and vetoes</h2>
-          {safety.reason && <p className="detail-reason">{safety.reason}</p>}
-          {gates.length > 0 && (
-            <ul className="gate-list">
-              {gates.map((g) => (
-                <li key={`${g.sub_point_code}-${g.kind}`} className={`gate gate--${g.kind}`}>
-                  <strong>{g.kind} {g.sub_point_code}</strong>
-                  <span>{g.customer_question}</span>
-                  <small>
-                    {g.status}
-                    {g.report_count !== undefined ? ` · ${g.report_count} reports` : ""}
-                    {g.disputed_reports ? ` (${g.disputed_reports} disputed by the owner)` : ""}
-                    {g.expires_on ? ` · expires ${String(g.expires_on).slice(0, 10)}` : ""}
-                  </small>
-                </li>
-              ))}
-            </ul>
+          <ul className="donut-legend donut-legend--page">
+            <li>
+              <span className="donut-legend-swatch donut-legend-swatch--positive" aria-hidden="true" />
+              Outer ring: score out of 100
+            </li>
+            <li>
+              <span className="donut-legend-swatch donut-legend-swatch--negative" aria-hidden="true" />
+              Inner ring: share of negative reviews
+            </li>
+          </ul>
+          {services.length === 0 ? (
+            <p className="subtle">No service has review evidence for this salon yet.</p>
+          ) : (
+            <ServiceScoreList
+              services={services}
+              categoryName={categoryName}
+              categoryTrait={categoryTrait}
+              sentimentBy={sentimentBy}
+              subPointBy={subPointBy}
+              placeId={salonId}
+              filters={filters}
+            />
           )}
         </section>
       )}
 
-      {/* One section, not two tabs. Scores and the reviews they are built
-          from used to be a click apart; now they are one continuous read,
-          and the proof panel between them answers for both halves at once
-          instead of being locked inside whichever tab happened to be open. */}
-      <DonutDefs />
+      {/* ── Summary tab ─────────────────────────────────────────── */}
+      {tab === "summary" && (
+        <section className="detail-panel">
+          {/* Overall review sentiment totals */}
+          {provider.sentiment_totals && Object.keys(provider.sentiment_totals).length > 0 && (
+            <div className="summary-sentiments">
+              {Object.entries(provider.sentiment_totals).map(([pol, n]) => (
+                <div key={pol} className={`summary-sent-chip summary-sent-chip--${pol}`}>
+                  <span className="summary-sent-count">{n}</span>
+                  <span className="summary-sent-label">{pol} feedbacks</span>
+                </div>
+              ))}
+            </div>
+          )}
 
-      <section className="detail-panel">
-        <h2 className="detail-section">Scores &amp; reviews</h2>
-        <p className="detail-note">
-          0–100, where 50 is neutral and about 75 is strong. The bar shows the range the
-          evidence supports — wider means less certain.
-        </p>
+          {/* Smart category cards: what we check, findings, verdict */}
+          <div className="summary-cats">
+            {[1,2,3,4,5,6,7].map((no) => {
+              const label = CATEGORY_DISPLAY[no] ?? categoryName[no] ?? `Category ${no}`;
+              const checks = subPointsOf(no);
+              // aggregate pos/neg across all sub-points of this category
+              let totalPos = 0, totalNeg = 0;
+              for (const c of checks) {
+                const cnt = subPointBy?.[c.code];
+                totalPos += cnt?.positive ?? 0;
+                totalNeg += (cnt?.negative ?? 0) + (cnt?.mixed ?? 0);
+              }
+              const total = totalPos + totalNeg;
+              const posShare = total ? Math.round((totalPos / total) * 100) : null;
+              const verdict = posShare == null ? null
+                : posShare >= 85 ? { word: "Excellent", cls: "excellent" }
+                : posShare >= 70 ? { word: "Good", cls: "good" }
+                : posShare >= 55 ? { word: "Mixed", cls: "average" }
+                : { word: "Needs attention", cls: "poor" };
 
-        {/* How to read a ring, said once for the whole page instead of
-            repeating under every service that gets opened — the explanation
-            does not change from one service to the next, only the numbers
-            inside it do. */}
-        <ul className="donut-legend donut-legend--page">
-          <li>
-            <span className="donut-legend-swatch donut-legend-swatch--positive" aria-hidden="true" />
-            Outer ring: score out of 100
-          </li>
-          <li>
-            <span className="donut-legend-swatch donut-legend-swatch--negative" aria-hidden="true" />
-            Inner ring: share of reviews that were negative
-          </li>
-        </ul>
+              return (
+                <div key={no} className="sum-card">
+                  {/* header */}
+                  <div className="sum-card-head">
+                    <span className="sum-card-no">{String(no).padStart(2,"0")}</span>
+                    <div className="sum-card-title">
+                      <strong>{label}</strong>
+                      <span className="sum-card-sub">{CATEGORY_BLURB[no]}</span>
+                    </div>
+                    {verdict && (
+                      <span className={`sum-verdict sum-verdict--${verdict.cls}`}>{verdict.word}</span>
+                    )}
+                  </div>
 
-        <DetailFilters
-          services={services}
-          categories={categories}
-          sentimentTotals={provider.sentiment_totals ?? {}}
-          filters={filters}
-          onChange={setFilters}
-        />
+                  {/* overall finding bar — category 3 uses reply rate, others use pos% */}
+                  {no === 3 && replyQuality ? (() => {
+                    const rq = replyQuality;
+                    const replyRate = rq.reviews > 0 ? Math.round((rq.replied / rq.reviews) * 100) : null;
+                    if (replyRate == null) return null;
+                    return (
+                      <div className="sum-finding">
+                        <div className="sum-finding-bar">
+                          <span className="sum-finding-fill" style={{ width: `${replyRate}%` }} />
+                        </div>
+                        <span className="sum-finding-stat">
+                          Owner replied to <b>{replyRate}%</b> of customer feedbacks — {rq.replied} of {rq.reviews} total
+                        </span>
+                      </div>
+                    );
+                  })() : total > 0 && (
+                    <div className="sum-finding">
+                      <div className="sum-finding-bar">
+                        <span className="sum-finding-fill" style={{ width: `${posShare}%` }} />
+                      </div>
+                      <span className="sum-finding-stat">
+                        <b>{posShare}%</b> positive across {total} feedback{total !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+                  )}
 
-        {/* The summary for whatever is currently filtered, shared by the
-            scores below it and the reviews further down -- not gated behind
-            a "Reviews" tab any more, because it is proof for both. */}
-        {filters.category_no && (
-          String(filters.category_no) === "3" ? (
-            <ReplyAnalysis placeId={salonId} />
-          ) : (
-            <CategoryAnalysis
-              categoryNo={Number(filters.category_no)}
-              categoryLabel={CATEGORY_DISPLAY[Number(filters.category_no)]
-                ?? categoryName[Number(filters.category_no)] ?? `Category ${filters.category_no}`}
-              subPointBy={subPointBy}
-              placeId={salonId}
-            />
-          )
-        )}
+                  {/* sub-point breakdown */}
+                  <ul className="sum-checks">
+                    {checks.map((c) => {
+                      // 3.1: reply speed & coverage
+                      if (c.code === "3.1" && replyQuality) {
+                        const rq = replyQuality;
+                        const hasComplaints = rq.complaints > 0;
+                        const coverage = hasComplaints
+                          ? Math.round((rq.complaints_replied / rq.complaints) * 100)
+                          : rq.replied > 0 ? Math.round((rq.replied / rq.reviews) * 100) : null;
+                        const speedDays = rq.median_days == null ? null : Math.round(rq.median_days);
+                        const speedLabel = rq.median_days == null ? null
+                          : rq.median_days < 1 ? "same day"
+                          : speedDays === 1 ? "within 1 day" : `within ${speedDays} days`;
+                        const icon31 = coverage == null ? "—" : coverage >= 75 ? "✓" : coverage >= 50 ? "~" : "✗";
+                        const cls31 = coverage == null ? "neutral" : coverage >= 75 ? "pos" : coverage >= 50 ? "mix" : "neg";
+                        let summary31;
+                        if (coverage == null) {
+                          summary31 = <span className="sum-check-none">No owner replies recorded yet</span>;
+                        } else if (hasComplaints) {
+                          summary31 = <>
+                            Owner replied to <b>{coverage}%</b> of complaints
+                            {speedLabel && <> · usually <b>{speedLabel}</b></>}
+                            <br /><span className="sum-check-n">{rq.complaints_replied} of {rq.complaints} complaint{rq.complaints !== 1 ? "s" : ""} got a reply</span>
+                          </>;
+                        } else {
+                          summary31 = <>
+                            Owner replies to <b>{coverage}%</b> of all feedbacks
+                            {speedLabel && <> · usually <b>{speedLabel}</b></>}
+                            <br /><span className="sum-check-n">No negative feedbacks found — based on {rq.replied} of {rq.reviews} total</span>
+                          </>;
+                        }
+                        return (
+                          <li key={c.code} className="sum-check">
+                            <span className={`sum-check-icon sum-check-icon--${cls31}`}>{icon31}</span>
+                            <span className="sum-check-body">
+                              <span className="sum-check-label">{c.question ?? c.label}</span>
+                              <span className="sum-check-blurb">{c.blurb}</span>
+                            </span>
+                            <span className="sum-check-right">{summary31}</span>
+                          </li>
+                        );
+                      }
 
-        <h3 className="detail-subsection">Scores by service</h3>
-        {services.length === 0 ? (
-          <p className="subtle">No service has review evidence for this salon yet.</p>
-        ) : (
-          <ServiceScoreList
+                      // 3.2: personal vs copy-paste
+                      if (c.code === "3.2" && replyQuality) {
+                        const sp = replyQuality.specificity ?? {};
+                        const total32 = (sp.specific ?? 0) + (sp.partly ?? 0) + (sp.generic ?? 0);
+                        if (total32 === 0) {
+                          return (
+                            <li key={c.code} className="sum-check">
+                              <span className="sum-check-icon sum-check-icon--neutral">—</span>
+                              <span className="sum-check-body">
+                                <span className="sum-check-label">{c.question ?? c.label}</span>
+                                <span className="sum-check-blurb">{c.blurb}</span>
+                              </span>
+                              <span className="sum-check-right"><span className="sum-check-none">No owner replies to analyse yet</span></span>
+                            </li>
+                          );
+                        }
+                        const personal = (sp.specific ?? 0) + (sp.partly ?? 0);
+                        const pct32 = Math.round((personal / total32) * 100);
+                        const generic = sp.generic ?? 0;
+                        const icon32 = pct32 >= 75 ? "✓" : pct32 >= 50 ? "~" : "✗";
+                        const cls32 = pct32 >= 75 ? "pos" : pct32 >= 50 ? "mix" : "neg";
+                        const personalVerdict = pct32 >= 75 ? "Most replies are personal and specific"
+                          : pct32 >= 50 ? "Replies are a mix of personal and copy-paste"
+                          : "Most replies appear to be copy-paste templates";
+                        return (
+                          <li key={c.code} className="sum-check">
+                            <span className={`sum-check-icon sum-check-icon--${cls32}`}>{icon32}</span>
+                            <span className="sum-check-body">
+                              <span className="sum-check-label">{c.question ?? c.label}</span>
+                              <span className="sum-check-blurb">{c.blurb}</span>
+                            </span>
+                            <span className="sum-check-right">
+                              {personalVerdict}<br />
+                              <span className="sum-check-n">{sp.specific ?? 0} fully personal · {sp.partly ?? 0} partly · {generic} copy-paste (out of {total32})</span>
+                            </span>
+                          </li>
+                        );
+                      }
+
+                      // 3.3: takes responsibility
+                      if (c.code === "3.3" && replyQuality) {
+                        const rq = replyQuality;
+                        const st = rq.stance ?? {};
+                        const total33 = Object.values(st).reduce((a, b) => a + b, 0);
+                        const remedy = rq.remedy ?? 0;
+                        if (total33 === 0) {
+                          const hasReplies = rq.replied > 0;
+                          return (
+                            <li key={c.code} className="sum-check">
+                              <span className={`sum-check-icon sum-check-icon--${hasReplies ? "mix" : "neutral"}`}>{hasReplies ? "~" : "—"}</span>
+                              <span className="sum-check-body">
+                                <span className="sum-check-label">{c.question ?? c.label}</span>
+                                <span className="sum-check-blurb">{c.blurb}</span>
+                              </span>
+                              <span className="sum-check-right">
+                                {hasReplies ? (
+                                  <>
+                                    Owner has replied to <b>{rq.replied}</b> feedback{rq.replied !== 1 ? "s" : ""}
+                                    {remedy > 0 && <> · offered a fix in <b>{remedy}</b> case{remedy !== 1 ? "s" : ""}</>}
+                                    <br /><span className="sum-check-n">No complaints found — stance could not be assessed</span>
+                                  </>
+                                ) : (
+                                  <span className="sum-check-none">No owner replies recorded yet</span>
+                                )}
+                              </span>
+                            </li>
+                          );
+                        }
+                        const accepts = st.accepts ?? 0;
+                        const disputes = st.disputes ?? 0;
+                        const pct33 = Math.round((accepts / total33) * 100);
+                        const icon33 = pct33 >= 75 ? "✓" : pct33 >= 50 ? "~" : "✗";
+                        const cls33 = pct33 >= 75 ? "pos" : pct33 >= 50 ? "mix" : "neg";
+                        const stanceVerdict = pct33 >= 75 ? "Owner usually accepts responsibility"
+                          : pct33 >= 50 ? "Owner sometimes accepts, sometimes disputes"
+                          : "Owner tends to dispute or deflect complaints";
+                        return (
+                          <li key={c.code} className="sum-check">
+                            <span className={`sum-check-icon sum-check-icon--${cls33}`}>{icon33}</span>
+                            <span className="sum-check-body">
+                              <span className="sum-check-label">{c.question ?? c.label}</span>
+                              <span className="sum-check-blurb">{c.blurb}</span>
+                            </span>
+                            <span className="sum-check-right">
+                              {stanceVerdict}
+                              {remedy > 0 && <> · offered a fix in <b>{remedy}</b> case{remedy !== 1 ? "s" : ""}</>}
+                              <br /><span className="sum-check-n">{accepts} accepted · {disputes} disputed · {total33} complaint{total33 !== 1 ? "s" : ""} assessed</span>
+                            </span>
+                          </li>
+                        );
+                      }
+
+                      // 3.4: promise tracking
+                      if (c.code === "3.4" && replyQuality) {
+                        const rq = replyQuality;
+                        const made = rq.commitment ?? 0;
+                        const trend = rq.commitment_trend;
+                        let icon34 = "—", cls34 = "neutral", right34;
+                        if (made === 0) {
+                          right34 = <span className="sum-check-none">No specific promises found in replies yet</span>;
+                        } else if (!trend) {
+                          right34 = <>Owner made <b>{made}</b> promise{made !== 1 ? "s" : ""} to improve<br /><span className="sum-check-n">Not enough later feedbacks to check if they kept it</span></>;
+                          icon34 = "~"; cls34 = "mix";
+                        } else {
+                          const improved = trend.after < trend.before;
+                          const same = trend.after === trend.before;
+                          icon34 = improved ? "✓" : same ? "~" : "✗";
+                          cls34 = improved ? "pos" : same ? "mix" : "neg";
+                          const trendVerdict = improved
+                            ? "Complaints dropped after the promise — looks like they followed through"
+                            : same ? "Complaint rate stayed the same after the promise"
+                            : "Complaints actually increased after the promise";
+                          right34 = (
+                            <>
+                              {trendVerdict}<br />
+                              <span className="sum-check-n">
+                                {trend.promises} promise{trend.promises !== 1 ? "s" : ""} made · complaints before: {trend.before} → after: {trend.after}
+                              </span>
+                            </>
+                          );
+                        }
+                        return (
+                          <li key={c.code} className="sum-check">
+                            <span className={`sum-check-icon sum-check-icon--${cls34}`}>{icon34}</span>
+                            <span className="sum-check-body">
+                              <span className="sum-check-label">{c.question ?? c.label}</span>
+                              <span className="sum-check-blurb">{c.blurb}</span>
+                            </span>
+                            <span className="sum-check-right">{right34}</span>
+                          </li>
+                        );
+                      }
+
+                      const cnt = subPointBy?.[c.code];
+                      const pos = cnt?.positive ?? 0;
+                      const neg = (cnt?.negative ?? 0) + (cnt?.mixed ?? 0);
+                      const n = pos + neg;
+                      const pShare = n ? Math.round((pos / n) * 100) : null;
+                      const icon = pShare == null ? "—" : pShare >= 75 ? "✓" : pShare >= 50 ? "~" : "✗";
+                      const iconCls = pShare == null ? "neutral" : pShare >= 75 ? "pos" : pShare >= 50 ? "mix" : "neg";
+                      return (
+                        <li key={c.code} className="sum-check">
+                          <span className={`sum-check-icon sum-check-icon--${iconCls}`}>{icon}</span>
+                          <span className="sum-check-body">
+                            <span className="sum-check-label">{c.question ?? c.label}</span>
+                            <span className="sum-check-blurb">{c.blurb}</span>
+                          </span>
+                          <span className="sum-check-right">
+                            {pShare != null
+                              ? <><b>{pShare}%</b> <span className="sum-check-n">({n})</span></>
+                              : <span className="sum-check-none">No customer feedbacks yet</span>
+                            }
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* ── Reviews tab ─────────────────────────────────────────── */}
+      {tab === "reviews" && (
+        <section className="detail-panel">
+          <DetailFilters
             services={services}
-            categoryName={categoryName}
-            categoryTrait={categoryTrait}
-            sentimentBy={sentimentBy}
-            subPointBy={subPointBy}
-            placeId={salonId}
+            categories={categories}
+            sentimentTotals={provider.sentiment_totals ?? {}}
             filters={filters}
+            onChange={setFilters}
           />
-        )}
+          <SelectionSummary filters={filters} categories={categories} services={services} />
+          <EvidenceList placeId={salonId} filters={filters} salonName={name} />
+        </section>
+      )}
 
-        <h3 className="detail-subsection detail-subsection--reviews">Reviews</h3>
-        <SelectionSummary filters={filters} categories={categories} services={services} />
-        <EvidenceList placeId={salonId} filters={filters} />
-      </section>
+      {/* ── Info tab ────────────────────────────────────────────── */}
+      {tab === "info" && (
+        <section className="detail-panel">
+          {p.google_rating != null && (
+            <div className="info-block">
+              <p className="info-label">Google rating</p>
+              <p className="info-value">★ {p.google_rating} <span className="info-sub">({p.google_review_count} customer feedbacks — reference only)</span></p>
+            </div>
+          )}
+          {p.address && (
+            <div className="info-block">
+              <p className="info-label">Address</p>
+              <p className="info-value">{p.address}{p.city && !String(p.address).includes(p.city) ? `, ${p.city}` : ""}</p>
+            </div>
+          )}
+          {p.place_url && (
+            <div className="info-block">
+              <a href={p.place_url} target="_blank" rel="noopener noreferrer" className="maps-link">
+                View on Google Maps →
+              </a>
+            </div>
+          )}
+          {(safety.reason || gates.length > 0) && (
+            <div className="info-block">
+              <p className="info-label">Safety &amp; notices</p>
+              {safety.reason && <p className="detail-reason">{safety.reason}</p>}
+              {gates.length > 0 && (
+                <ul className="gate-list">
+                  {gates.map((g) => (
+                    <li key={`${g.sub_point_code}-${g.kind}`} className={`gate gate--${g.kind}`}>
+                      <strong>{g.kind} {g.sub_point_code}</strong>
+                      <span>{g.customer_question}</span>
+                      <small>
+                        {g.status}
+                        {g.report_count !== undefined ? ` · ${g.report_count} reports` : ""}
+                        {g.disputed_reports ? ` (${g.disputed_reports} disputed by the owner)` : ""}
+                        {g.expires_on ? ` · expires ${String(g.expires_on).slice(0, 10)}` : ""}
+                      </small>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+          {!safety.reason && gates.length === 0 && !p.google_rating && !p.address && (
+            <p className="subtle">No additional information available.</p>
+          )}
+        </section>
+      )}
 
     </article>
   );

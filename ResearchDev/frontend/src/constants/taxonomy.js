@@ -194,7 +194,7 @@ export const GROUPS = {
       label: "Bridal Services",
       leaves: [
         { id: "BO.BRIDAL.01", value: "bridal_trial_consultation",   label: "Bridal Trial & Consultation",      aliases: ["bridal_trial"] },
-        { id: "BO.BRIDAL.02", value: "wedding_day_bridal_makeup",   label: "Wedding Day Bridal Makeup & Hair", aliases: ["wedding_day_bridal"] },
+        { id: "BO.BRIDAL.02", value: "wedding_day_bridal_makeup",   label: "Bridal Makeup & Hair", aliases: ["wedding_day_bridal"] },
         { id: "BO.BRIDAL.03", value: "homecoming_engagement_makeup", label: "Homecoming & Engagement Makeup",  aliases: ["homecoming_makeup", "engagement_makeup"] },
         { id: "BO.BRIDAL.04", value: "bridal_party_photoshoot",     label: "Bridal Party & Photoshoot Makeup", aliases: ["bridal_party_mother_of_bride"] },
       ],
@@ -207,7 +207,7 @@ export const GROUPS = {
       id: "BO.GROOM",
       label: "Groom Services",
       leaves: [
-        { id: "BO.GROOM.01", value: "wedding_day_groom_dressing", label: "Wedding Day Groom Dressing & Hair",    aliases: ["wedding_day_groom_dressing", "groom_hair_makeup"] },
+        { id: "BO.GROOM.01", value: "wedding_day_groom_dressing", label: "Groom Dressing & Hair",    aliases: ["wedding_day_groom_dressing", "groom_hair_makeup"] },
         { id: "BO.GROOM.02", value: "nilame_kandyan_dressing",    label: "Nilame & Traditional Kandyan Dressing", aliases: ["nilame_kandyan_groom_dressing"] },
         { id: "BO.GROOM.03", value: "homecoming_groom_styling",   label: "Homecoming Groom Styling",             aliases: ["homecoming_groom"] },
       ],

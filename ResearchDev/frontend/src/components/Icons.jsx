@@ -183,11 +183,56 @@ export function IconInstagram({ size = 18 }) {
   );
 }
 
-/* Facebook. */
+/* Facebook — plain outline icon (used in nav/footer). */
 export function IconFacebook({ size = 18 }) {
   return (
     <svg {...base(size)}>
       <path d="M14 8.5h2.5V5.5H14A3 3 0 0 0 11 8.5V11H8.5v3H11v6h3v-6h2.3l.5-3H14V8.7Z" />
+    </svg>
+  );
+}
+
+/* Facebook — branded circle for auth buttons. */
+export function IconFacebookBrand({ size = 32 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <circle cx="16" cy="16" r="16" fill="#1877F2" />
+      <path fill="#fff" d="M21 16h-3v9h-4v-9h-2v-3.5h2v-2A3.5 3.5 0 0 1 17.5 7H21v3.5h-2a.9.9 0 0 0-1 1v1h3L21 16Z" />
+    </svg>
+  );
+}
+
+/* Google — coloured G for auth buttons. */
+export function IconGoogleBrand({ size = 32 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <circle cx="16" cy="16" r="16" fill="#fff" />
+      <path fill="#4285F4" d="M25.6 16.2c0-.6-.1-1.2-.2-1.8H16v3.4h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.1Z" />
+      <path fill="#34A853" d="M16 26c2.7 0 4.9-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1a6 6 0 0 1-5.6-4.1H7v2.6A10 10 0 0 0 16 26Z" />
+      <path fill="#FBBC05" d="M10.4 18a6 6 0 0 1 0-4V11.4H7a10 10 0 0 0 0 9.2L10.4 18Z" />
+      <path fill="#EA4335" d="M16 10a5.4 5.4 0 0 1 3.8 1.5l2.9-2.9A9.6 9.6 0 0 0 16 6a10 10 0 0 0-9 5.4L10.4 14A6 6 0 0 1 16 10Z" />
+    </svg>
+  );
+}
+
+/* Instagram — gradient icon for auth buttons. */
+export function IconInstagramBrand({ size = 32 }) {
+  const id = "ig-grad";
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <defs>
+        <radialGradient id={id} cx="30%" cy="107%" r="130%">
+          <stop offset="0%" stopColor="#fdf497" />
+          <stop offset="10%" stopColor="#fdf497" />
+          <stop offset="25%" stopColor="#fd5949" />
+          <stop offset="50%" stopColor="#d6249f" />
+          <stop offset="75%" stopColor="#285AEB" />
+        </radialGradient>
+      </defs>
+      <rect width="32" height="32" rx="8" fill={`url(#${id})`} />
+      <rect x="8" y="8" width="16" height="16" rx="4.5" stroke="#fff" strokeWidth="1.8" />
+      <circle cx="16" cy="16" r="4" stroke="#fff" strokeWidth="1.8" />
+      <circle cx="20.8" cy="11.2" r="1" fill="#fff" />
     </svg>
   );
 }

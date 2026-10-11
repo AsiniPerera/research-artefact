@@ -141,6 +141,74 @@ export const getEvidence = (placeId, filters = {}, opts) =>
 export const splitBadges = (badges) =>
   (badges ?? "").split(";").map((b) => b.trim()).filter(Boolean);
 
+// ── Auth helpers ──────────────────────────────────────────────────────────────
+
+const TIMEOUT_MS = 8000;
+
+function fetchWithTimeout(url, options) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  return fetch(url, { ...options, signal: controller.signal })
+    .finally(() => clearTimeout(id));
+}
+
+async function post(path, body, token) {
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  let res;
+  try {
+    res = await fetchWithTimeout(`${API}${path}`, { method: "POST", headers, body: JSON.stringify(body) });
+  } catch (e) {
+    if (e.name === "AbortError") throw new Error("Request timed out — is the backend running?");
+    throw new Error("Cannot reach the API. Is the backend running on port 8000?");
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || `API error ${res.status}`);
+  return data;
+}
+
+async function put(path, body, token) {
+  let res;
+  try {
+    res = await fetchWithTimeout(`${API}${path}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+      body: JSON.stringify(body),
+    });
+  } catch (e) {
+    if (e.name === "AbortError") throw new Error("Request timed out — is the backend running?");
+    throw new Error("Cannot reach the API. Is the backend running on port 8000?");
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || `API error ${res.status}`);
+  return data;
+}
+
+/** Sign up a new user. Returns { token, user }. */
+export const signUp = (name, email, password) =>
+  post("/auth/signup", { full_name: name, email, password });
+
+/** Sign in. Returns { token, user }. */
+export const signIn = (email, password) =>
+  post("/auth/signin", { email, password });
+
+/** Get the current user's profile (requires token). */
+export async function getMe(token) {
+  const res = await fetch(`${API}/auth/me`, {
+    headers: { "Authorization": `Bearer ${token}` },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || `API error ${res.status}`);
+  return data;
+}
+
+/** Update profile fields. */
+export const updateMe = (token, fields) => put("/auth/me", fields, token);
+
+/** Submit a contact inquiry. */
+export const submitInquiry = (form, token) =>
+  post("/contact/inquiries", form, token);
+
 /** A category_scores value may come back as a list of rows or as a
     { category_no: score } object; read both as [{ category_no, score, … }]. */
 export function categoryScoreRows(scores) {

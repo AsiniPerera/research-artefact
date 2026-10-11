@@ -181,9 +181,14 @@ app = FastAPI(title="Beauty Service Ranking API", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST", "PUT"],
     allow_headers=["*"],
 )
+
+from auth import router as auth_router
+from contact import router as contact_router
+app.include_router(auth_router)
+app.include_router(contact_router)
 
 _LATEST_RUN = "(select max(scoring_run_id) from score.scoring_run)"
 
@@ -740,12 +745,16 @@ def provider(place_id: str):
         # Sentiment across this salon's evidence, counted once per row. Not
         # the sum of the per-service figures: those deliberately overlap,
         # because one salon-wide review counts toward every service.
+        # Counted per REVIEW at review level (overall_sentiment), so the
+        # "Said how" chips match the badge each review card shows.
         cur.execute(
             """
-            select e.polarity, count(*) as n
-            from extract.evidence_item e
-            where e.place_id = %s and e.polarity is not null
-            group by e.polarity
+            select ra.overall_sentiment as polarity, count(distinct ra.review_id) as n
+            from extract.review_assessment ra
+            join (select distinct place_id, review_id from extract.evidence_item) e
+              using (review_id)
+            where e.place_id = %s and ra.overall_sentiment is not null
+            group by ra.overall_sentiment
             """,
             (place_id,),
         )
@@ -844,15 +853,19 @@ def staff_mentions(place_id: str):
     with cursor() as cur:
         cur.execute(
             """
+            -- Counted per REVIEW at review level (overall_sentiment), so a
+            -- staff member praised in a 5-star review is never shown as a
+            -- negative mention because one sub-point was mis-tagged.
             select sn.staff_name,
-                   count(*) as mentions,
-                   count(*) filter (where e.polarity = 'positive') as positive,
-                   count(*) filter (where e.polarity in ('negative', 'mixed')) as negative,
+                   count(distinct se.review_id) as mentions,
+                   count(distinct se.review_id) filter (where ra.overall_sentiment = 'positive') as positive,
+                   count(distinct se.review_id) filter (where ra.overall_sentiment = 'negative') as negative,
                    max(r.published_at) as last_mentioned
             from staging.staff_names sn
-            join extract.evidence_item e on e.evidence_id::text = sn.evidence_id
-            join raw.review r on r.review_id = e.review_id
-            where e.place_id = %s and sn.staff_name is not null
+            join staging.evidence_item se on se.evidence_id::text = sn.evidence_id::text
+            join raw.review r on r.review_id = se.review_id
+            left join extract.review_assessment ra on ra.review_id = se.review_id
+            where se.place_id = %s and sn.staff_name is not null
             group by sn.staff_name
             order by mentions desc
             """,
@@ -1087,7 +1100,18 @@ def evidence(
     # ask for them.
     exclude_service_code: str | None = None,
     category_no: int | None = Query(None, ge=1, le=8),
-    polarity: str | None = Query(None, pattern="^(positive|negative|mixed|mention)$"),
+    # Any review-level sentiment the data holds (extract.review_assessment
+    # .overall_sentiment). Kept as a word so a new value is accepted, not a
+    # fixed allow-list; the query simply matches it, and an unknown value finds
+    # nothing rather than erroring.
+    polarity: str | None = Query(None, pattern="^[a-z]+$", max_length=20),
+    # Neutral namecheck rows ("mention") are noise in the general list, so the
+    # review list asks to hide them unless the reader has chosen the Mention
+    # filter. Off by default so other callers (the score drawer) are unchanged.
+    hide_mention: bool = False,
+    # Only reviews that name a staff member (have a staff_name). Combines with
+    # any polarity, so "positive + named" is positive reviews that name staff.
+    only_named: bool = False,
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     sort: str = Query("recent", pattern="^(recent|longest)$"),
@@ -1115,20 +1139,31 @@ def evidence(
                    ss.name as sub_service, sp.category_no, e.sub_point_code, sp.customer_question,
                    e.polarity, e.severity, e.time_since_visit, e.confidence,
                    e.evidence_text, r.review_text, r.stars, r.published_at,
+                   -- The review-level sentiment, the correct one for the card's
+                   -- badge; per-sub-point polarity can disagree with it.
+                   ra.overall_sentiment,
                    -- The owner's answer, carried beside the review it answers.
                    -- Category 3 is about how an owner handles complaints, so a
                    -- row there without the reply shows the accusation and hides
                    -- the response: every one of those 5,414 rows has one.
                    o.reply_text, o.reply_date,
-                   -- Who the review names, when extraction caught a name.
-                   -- staging.staff_names sits apart from extract.evidence_item
-                   -- (its own staff_name column was never filled) -- joined in
-                   -- here rather than read from the column that is empty.
+                   -- Who the review names. staging.staff_names.evidence_id keys
+                   -- into staging.evidence_item (ids 1-9999), NOT
+                   -- extract.evidence_item, so it is resolved to a review_id
+                   -- through staging and attached per review (all names for the
+                   -- review, comma-joined). This mapping is exact: every name
+                   -- genuinely appears in its review text.
                    sn.staff_name
             from extract.evidence_item e
             join raw.review r on r.review_id = e.review_id
+            left join extract.review_assessment ra on ra.review_id = e.review_id
             left join raw.owner_reply o on o.review_id = e.review_id
-            left join staging.staff_names sn on sn.evidence_id = e.evidence_id::text
+            left join (
+                select se.review_id, string_agg(distinct s.staff_name, ', ') as staff_name
+                from staging.staff_names s
+                join staging.evidence_item se on se.evidence_id::text = s.evidence_id::text
+                group by se.review_id
+            ) sn on sn.review_id = e.review_id
             join ref.sub_point sp on sp.code = e.sub_point_code
             join extract.extraction_run x on x.run_id = e.run_id
             left join ref.sub_service ss on ss.code = e.sub_service_code
@@ -1142,7 +1177,12 @@ def evidence(
                    or (e.service_code is not null and e.service_code <> %s))
               and (%s::text is null or e.sub_service_code = %s)
               and (%s::smallint is null or sp.category_no = %s)
-              and (%s::text is null or e.polarity = %s)
+              -- Sentiment filter matches the REVIEW-level sentiment (the badge),
+              -- not the per-sub-point polarity.
+              and (%s::text is null or ra.overall_sentiment = %s)
+              and (not %s or e.polarity <> 'mention')
+              -- Named-staff filter, independent of sentiment.
+              and (not %s or sn.staff_name is not null)
             order by {order}
             limit %s offset %s
             """.format(order=_EVIDENCE_ORDER[sort]),
@@ -1150,6 +1190,7 @@ def evidence(
              service_code or None, service_code or None,
              exclude_service_code or None, exclude_service_code or None,
              sub_service_code or None, sub_service_code or None,
-             category_no, category_no, polarity, polarity, limit, offset),
+             category_no, category_no,
+             polarity, polarity, hide_mention, only_named, limit, offset),
         )
         return cur.fetchall()

@@ -11,13 +11,19 @@ import { IconArrow } from "../components/Icons";
 
    Names and numbers are exactly those in ref.framework_category. The framework
    is frozen: they change only if the database does. */
-const REPORTED_ONLY = {
-  no: 8,
-  name: "Overall Verdict",
-  tag: "A general verdict, reported but never weighted.",
-};
-const FRAMEWORK = [...CATEGORIES, REPORTED_ONLY];
-const GLOSS = Object.fromEntries(FRAMEWORK.map((c) => [c.no, c.tag]));
+/* The seven weighted categories plus the reported-only Overall Verdict, with a
+   short display name and, where it differs, the full formal name in brackets.
+   Order and count follow ref.framework_category. */
+const FRAMEWORK = [
+  { no: 1, name: "Quality of the Result",       tag: "Good results that last." },
+  { no: 2, name: "Consultation & Aftercare",    tag: "They advise you before and care for you after." },
+  { no: 3, name: "Owner Responsiveness",        tag: "The owner listens, responds and improves." },
+  { no: 4, name: "Trust & Recommendations",     tag: "Customers trust, recommend and return." },
+  { no: 5, name: "Staff & Customer Service",    tag: "Friendly staff, gentle care and punctual service." },
+  { no: 6, name: "Value & Price Honesty",       tag: "Fair prices with no hidden surprises." },
+  { no: 7, name: "Safety, Hygiene & Facilities", tag: "Clean spaces, safe practices and suitable facilities." },
+  { no: 8, name: "Overall Verdict",             tag: "The overall impression from customer reviews." },
+];
 
 /* Images are optional and matched by filename — drop one in and it appears,
    no code change. Same glob the landing page uses, so the two never disagree
@@ -65,6 +71,14 @@ function PosterImage({ src, word, side }) {
   );
 }
 const methodImage = byName.about3 ?? byName.skinbeauty ?? null;
+
+/* Render "&" in the plain text font — the display font's italic ampersand is
+   too ornate in the category names. The rest of the name stays in display. */
+function plainAmp(text) {
+  return text.split("&").flatMap((part, i) =>
+    i === 0 ? [part] : [<span key={i} className="amp-plain">&amp;</span>, part]
+  );
+}
 
 export function About({ onExplore }) {
   return (
@@ -132,12 +146,13 @@ export function About({ onExplore }) {
           about a salon in general, and weighting it would count the same opinion twice.
         </p>
         <ol className="about-cats">
-          {FRAMEWORK.map(({ no, name }) => (
+          {FRAMEWORK.map(({ no, name, formal, tag }) => (
             <li key={no} data-no={String(no).padStart(2, "0")}>
               <span className="about-cat-no">{String(no).padStart(2, "0")}</span>
               <span className="about-cat-body">
-                <strong>{name}</strong>
-                <span>{GLOSS[no]}</span>
+                <strong>{plainAmp(name)}</strong>
+                {formal && <em className="about-cat-formal">{formal}</em>}
+                <span>{tag}</span>
               </span>
             </li>
           ))}

@@ -4,6 +4,7 @@ import { AccountMenu } from "./components/AccountMenu";
 import { NotificationsMenu } from "./components/NotificationsMenu";
 import { IconHeart, IconSearch, IconUserPlus } from "./components/Icons";
 import { useFavorites } from "./hooks/useFavorites";
+import { useAuth } from "./hooks/useAuth";
 import { Dashboard } from "./screens/Dashboard";
 import { Favorites } from "./screens/Favorites";
 import { Landing } from "./screens/Landing";
@@ -14,6 +15,7 @@ import { HowItWorks } from "./screens/HowItWorks";
 import { About } from "./screens/About";
 import { Auth } from "./screens/Auth";
 import { Contact } from "./screens/Contact";
+import { Profile } from "./screens/Profile";
 import { DOMAINS } from "./constants/taxonomy";
 
 const NAV = [
@@ -27,6 +29,7 @@ const NAV = [
 
 
 export default function App() {
+  const auth = useAuth();
   const [route, setRoute] = useState("home");
   const [selectedSalon, setSelectedSalon] = useState(null);
   /* Seeded by the services bar when a specific service is picked, so the
@@ -221,7 +224,12 @@ export default function App() {
 
               <NotificationsMenu />
 
-              <AccountMenu onAuth={openAuth} />
+              <AccountMenu
+                onAuth={openAuth}
+                user={auth.user}
+                onProfile={() => go("profile")}
+                onSignOut={() => { auth.clearSession(); go("home"); }}
+              />
             </div>
 
             <button
@@ -284,19 +292,37 @@ export default function App() {
               Sign in, so on a phone there was no way to create an account at
               all. */}
           <p className="nav-drawer-label">Account</p>
-          <nav className="nav-drawer-account">
-            <button onClick={() => openAuth("signup")} tabIndex={menuOpen ? 0 : -1}>
-              <IconUserPlus size={15} /> Sign up
-            </button>
-          </nav>
-
-          <button
-            className="btn-hero nav-drawer-cta"
-            onClick={() => openAuth("signin")}
-            tabIndex={menuOpen ? 0 : -1}
-          >
-            Sign In
-          </button>
+          {auth.signedIn ? (
+            <>
+              <nav className="nav-drawer-account">
+                <button onClick={() => go("profile")} tabIndex={menuOpen ? 0 : -1}>
+                  <IconUserPlus size={15} /> Profile ({auth.user?.full_name?.split(" ")[0]})
+                </button>
+              </nav>
+              <button
+                className="btn-hero nav-drawer-cta"
+                onClick={() => { auth.clearSession(); go("home"); }}
+                tabIndex={menuOpen ? 0 : -1}
+              >
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <>
+              <nav className="nav-drawer-account">
+                <button onClick={() => openAuth("signup")} tabIndex={menuOpen ? 0 : -1}>
+                  <IconUserPlus size={15} /> Sign up
+                </button>
+              </nav>
+              <button
+                className="btn-hero nav-drawer-cta"
+                onClick={() => openAuth("signin")}
+                tabIndex={menuOpen ? 0 : -1}
+              >
+                Sign In
+              </button>
+            </>
+          )}
         </aside>
 
         <main className={`page ${isLanding || isAuth || isServices ? "page--flush" : ""}`}>
@@ -323,9 +349,16 @@ export default function App() {
             <SalonDetail salonId={selectedSalon} onBack={() => setSelectedSalon(null)} />
           ) : route === "services" ? null
           : route === "auth" ? (
-            <Auth mode={authMode} onSwitch={openAuth} onHome={() => go("home")} />
+            <Auth
+              mode={authMode}
+              onSwitch={openAuth}
+              onHome={() => go("home")}
+              onSignedIn={(token, user) => { auth.saveSession(token, user); go("home"); }}
+            />
+          ) : route === "profile" ? (
+            <Profile token={auth.token} onSignOut={() => { auth.clearSession(); go("home"); }} />
           ) : route === "contact" ? (
-            <Contact />
+            <Contact token={auth.token} />
           ) : route === "home" || route === "offers" || route === "ourservices" ? (
             <Landing
               onExplore={explore}

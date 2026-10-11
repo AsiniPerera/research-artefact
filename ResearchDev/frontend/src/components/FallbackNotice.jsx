@@ -25,10 +25,10 @@ export function FallbackNotice({ fallback, city, onSearchAllCities }) {
 
   const message =
     level === "none"
-      ? `No rated salons found for ${showing} services yet. Try another service or search all cities.`
+      ? `No rated salons found for ${showing} yet. Try another service or search all cities.`
       : level === "category"
-        ? `We couldn't find rated salons for ${asked} yet. Showing the best salons for ${showing} services instead.`
-        : `We couldn't find rated salons for ${asked} yet. Showing the best salons for ${showing} instead, which includes it.`;
+        ? `No rated salons for ${asked}, or for its service, yet. Showing the best in the ${showing} category instead.`
+        : `No rated salons for ${asked} yet. Showing the best in the ${showing} service instead, which includes it.`;
 
   return (
     /* role="status" so a screen reader announces the change of service
