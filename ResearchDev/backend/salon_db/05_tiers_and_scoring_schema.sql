@@ -93,7 +93,7 @@ create table score.commitment_outcome (         -- 3.4; filled once later review
   scoring_run_id  int  not null references score.scoring_run on delete cascade,
   review_id       text not null references raw.owner_reply(review_id),
   issue           text not null,
-  outcome         text not null check (outcome in ('kept', 'broken', 'not testable'))
+  outcome         text not null check (outcome in ('kept', 'broken', 'no clear change', 'not testable'))
 );
 
 -- ---------- 3. Ranking view (latest scoring run, default equal weights) ----------
@@ -117,7 +117,7 @@ returns table (rank_no bigint, place_id text, provider_name text, city text, per
                range_low numeric, range_high numeric, safety_status text, rank_status text, badges text, evidence_reviews int)
 language sql stable as $$
   with w as (
-    -- Seven weights, one per WEIGHTED category. Framework v4's category 8
+    -- Seven weights, one per WEIGHTED category. Framework v5's category 8
     -- (Overall Verdict) is reported only and carries no user weight, so
     -- generate_series stops at 7 and the join below drops its score rows
     -- from the mean. A shorter array is padded with 1 by the coalesce.

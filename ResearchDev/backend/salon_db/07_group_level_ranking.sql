@@ -58,7 +58,7 @@ returns table (rank_no bigint, place_id text, provider_name text, city text, per
                evidence_reviews int)
 language sql stable as $fn$
   with w as (
-    -- Seven weights, one per WEIGHTED category. Framework v4's category 8
+    -- Seven weights, one per WEIGHTED category. Framework v5's category 8
     -- (Overall Verdict) is reported only and carries no user weight, so
     -- generate_series stops at 7 and the join below drops its score rows
     -- from the mean. A shorter array is padded with 1 by the coalesce.

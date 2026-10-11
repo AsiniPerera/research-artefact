@@ -2,7 +2,7 @@
 // The ranking normalises proportionally, so these are relative importance —
 // not a fixed budget.
 //
-// SEVEN keys each, matching WEIGHTED_KEYS in WeightLevels. Framework v4's
+// SEVEN keys each, matching WEIGHTED_KEYS in WeightLevels. Framework v5's
 // eighth category, Overall Verdict, is reported only: it carries no weight, so
 // it has no key here and no preset can tilt towards it.
 
@@ -46,7 +46,7 @@ export const PRESETS = {
     safety_hygiene:         2,
   },
 
-  /* Clean & safe. Safety, Hygiene & Facilities is one category in v4, so this
+  /* Clean & safe. Safety, Hygiene & Facilities is one category in v5, so this
      preset is a single clear tilt rather than the spread it needed before. */
   hygiene: {
     quality_of_work:        2,

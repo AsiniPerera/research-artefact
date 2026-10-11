@@ -13,9 +13,7 @@ const UNRANKED_PREVIEW = 10;
 
 /** A provider listed but not ranked: name, city, review count, link to profile.
  *
- *  `preview` caps the list until asked for the rest. It is opt-in rather than
- *  the default: the safety-concern list uses this same component, and a salon
- *  people were hurt at should not be the one hidden behind a "see more".
+ *  `preview` caps the list until asked for the rest.
  */
 function UnrankedList({ rows, onSelectSalon, preview }) {
   const [showAll, setShowAll] = useState(false);
@@ -54,9 +52,9 @@ function UnrankedList({ rows, onSelectSalon, preview }) {
 }
 
 /**
- * The three sections of a ranking, in the order the API returns them:
- * ranked, available but not ranked, safety concern. Order within each is the
- * API's (score.rank_providers) — nothing here sorts.
+ * The sections of a ranking, in the order the API returns them: ranked, then
+ * available but not ranked. Order within each is the API's
+ * (score.rank_providers) — nothing here sorts.
  */
 export function Results({
   filters,
@@ -114,9 +112,7 @@ export function Results({
   // Salons with ≥1 review but below the ranking threshold — show alongside ranked.
   // Salons with 0 reviews — separate section at the bottom.
   const hasReviews = notRanked.filter((r) => (r.evidence_reviews ?? 0) >= 1);
-  const noReviews  = notRanked.filter((r) => (r.evidence_reviews ?? 0) === 0);
-  const safety = data.safety_concern ?? [];
-  /* Null unless the API answered above the service asked for. The notice says
+  const noReviews  = notRanked.filter((r) => (r.evidence_reviews ?? 0) === 0);  /* Null unless the API answered above the service asked for. The notice says
      so; nothing here re-scores or re-orders because of it. */
   const fallback = rankingFallback(data);
 
@@ -231,17 +227,6 @@ export function Results({
             They cannot be scored or compared until feedbacks are available.
           </p>
           <UnrankedList rows={noReviews} onSelectSalon={onSelectSalon} preview={UNRANKED_PREVIEW} />
-        </section>
-      )}
-
-      {safety.length > 0 && (
-        <section className="no-review-section no-review-section--safety">
-          <h4>Not ranked: safety concern ({safety.length})</h4>
-          <p>
-            Reviews report reactions, unsafe methods or work that had to be fixed
-            elsewhere. These salons are never ranked, whatever their score.
-          </p>
-          <UnrankedList rows={safety} onSelectSalon={onSelectSalon} />
         </section>
       )}
     </div>
