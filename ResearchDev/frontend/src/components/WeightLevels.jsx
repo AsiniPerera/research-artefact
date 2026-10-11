@@ -15,7 +15,7 @@ import { useState } from "react";
 // verdict itself is still shown on a salon's card, from the API's own category
 // scores.
 export const CATEGORIES = [
-  { no: 1, key: "quality_of_work",         label: "Quality of Work",                                    tag: "Good work, and it lasts." },
+  { no: 1, key: "quality_of_work",         label: "Quality of the Result",                              tag: "Good work, and it lasts." },
   { no: 2, key: "consultation_aftercare",  label: "Consultation, Care & Aftercare",                     tag: "They check first and advise after." },
   { no: 3, key: "owner_responsiveness",    label: "Management Responsiveness & Continuous Improvement", tag: "The owner answers and improves." },
   { no: 4, key: "customer_trust",          label: "Customer Trust & Recommendation",                    tag: "Customers recommend and return." },
@@ -44,10 +44,10 @@ export function toWeightList(weights) {
    distances while the weights behind them double, which is why a plain
    min/max range over 1–8 would bunch the first three stops together. */
 export const LEVELS = [
-  { value: 1, label: "Poor",      lvl: "poor"      },
-  { value: 2, label: "Fair",      lvl: "fair"      },
-  { value: 4, label: "Good",      lvl: "good"      },
-  { value: 8, label: "Excellent", lvl: "excellent" },
+  { value: 1, label: "Low",       lvl: "poor"      },
+  { value: 2, label: "Medium",    lvl: "fair"      },
+  { value: 4, label: "High",      lvl: "good"      },
+  { value: 8, label: "Very high", lvl: "excellent" },
 ];
 
 /* Exported so the About page can describe the real seven rather than keeping
@@ -82,6 +82,7 @@ export function WeightLevels({ weights, onChange }) {
 
   return (
     <>
+      <p className="weight-heading">How important is each to you?</p>
       <ul className="weight-list">
         {shown.map(({ key, label, tag }) => {
           const idx = indexOf(weights[key] ?? DEFAULT_LEVEL);

@@ -31,7 +31,7 @@ function UnrankedList({ rows, onSelectSalon, preview }) {
               <span className="salon-chip-name">{r.provider_name}</span>
               <span className="salon-chip-meta">
                 {r.city ? `${r.city} · ` : ""}
-                {r.evidence_reviews} {r.evidence_reviews === 1 ? "review" : "reviews"}
+                {r.evidence_reviews} {r.evidence_reviews === 1 ? "feedback" : "feedbacks"}
               </span>
             </button>
           </li>
@@ -111,13 +111,19 @@ export function Results({
 
   const ranked = data.ranked ?? [];
   const notRanked = data.available_but_not_ranked ?? [];
+  // Salons with ≥1 review but below the ranking threshold — show alongside ranked.
+  // Salons with 0 reviews — separate section at the bottom.
+  const hasReviews = notRanked.filter((r) => (r.evidence_reviews ?? 0) >= 1);
+  const noReviews  = notRanked.filter((r) => (r.evidence_reviews ?? 0) === 0);
   const safety = data.safety_concern ?? [];
   /* Null unless the API answered above the service asked for. The notice says
      so; nothing here re-scores or re-orders because of it. */
   const fallback = rankingFallback(data);
 
-  const pageCount = Math.ceil(ranked.length / PER_PAGE);
-  const current = ranked.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+  // Merge ≥1-feedback salons into the ranked list — user wants one combined list
+  const allRanked = [...ranked, ...hasReviews];
+  const pageCount = Math.ceil(allRanked.length / PER_PAGE);
+  const current = allRanked.slice((page - 1) * PER_PAGE, page * PER_PAGE);
   const path = servicePath(filters);
 
   return (
@@ -134,7 +140,7 @@ export function Results({
       )}
       <div className="results-head">
         <p className="summary">
-          <strong>{ranked.length}</strong> ranked {ranked.length === 1 ? "salon" : "salons"}
+          <strong>{allRanked.length}</strong> {allRanked.length === 1 ? "salon" : "salons"}
           {filters.city ? ` in ${filters.city}` : ""}
         </p>
         {/* The legend reads a score ring. With no cards there is none to read. */}
@@ -154,12 +160,12 @@ export function Results({
         />
       )}
 
-      {ranked.length === 0 ? (
+      {allRanked.length === 0 ? (
         /* "Nothing at any level" is already said in full by the notice —
            one message, not two. */
         fallback?.level === "none" ? null : (
           <div className="empty-state">
-            No salon has enough review evidence to be ranked for this service yet.
+            No salon has any customer feedbacks for this service yet.
           </div>
         )
       ) : (
@@ -169,8 +175,6 @@ export function Results({
               key={row.place_id}
               salon={row}
               onSelect={onSelectSalon}
-              /* The score is for a broader service than the one asked for;
-                 the card says which, so no one reads it as the exact one. */
               ratedFor={fallback && fallback.level !== "none" ? fallback.shown?.name : null}
             />
           ))}
@@ -219,14 +223,14 @@ export function Results({
         <NearbySection city={filters.city} nearby={nearby} onSelectSalon={onSelectSalon} />
       )}
 
-      {notRanked.length > 0 && (
-        <section className="no-review-section">
-          <h4>Available but not ranked ({notRanked.length})</h4>
+      {noReviews.length > 0 && (
+        <section className="no-review-section no-review-section--empty">
+          <h4>No customer feedbacks yet ({noReviews.length})</h4>
           <p>
-            These salons offer this service, but their reviews hold too little
-            evidence for a service of this risk level to rank them fairly.
+            These salons offer this service but have no customer feedbacks on record.
+            They cannot be scored or compared until feedbacks are available.
           </p>
-          <UnrankedList rows={notRanked} onSelectSalon={onSelectSalon} preview={UNRANKED_PREVIEW} />
+          <UnrankedList rows={noReviews} onSelectSalon={onSelectSalon} preview={UNRANKED_PREVIEW} />
         </section>
       )}
 

@@ -2,9 +2,9 @@
 
 Framework v4: SEVEN weighted categories plus Overall Verdict.
 
-  1 Quality of Work                                    from review evidence
+  1 Quality of the Result                              from review evidence
   2 Consultation, Care & Aftercare                     from review evidence
-  3 Management Responsiveness & Continuous Improvement review evidence + owner replies
+  3 Management Responsiveness & Continuous Improvement owner replies (3.1-3.4) + customer evidence (3.5)
   4 Customer Trust & Recommendation                    from review evidence
   5 Staff & Customer Service                           from review evidence
   6 Value & Price Honesty                              from review evidence
@@ -66,8 +66,10 @@ P = {
     # outcomes and do not travel.
     'provider_trait_categories': [3, 4, 5, 6, 7],
     'prior': [1.0, 1.0],                 # Beta(1,1): no evidence = neutral 0.5
-    'min_owner_replies_for_reply_category': 5,
-    'timely_reply_days': 30,
+    'category3_method': 'v5',
+    'promise_window_months': 12,
+    'min_before_reviews_for_promise': 10,
+    'min_after_reviews_for_promise': 10,
     'stance_score': {'accepts / apologises': 1.0, 'accepts and disputes (mixed)': 0.75, 'disputes the report': 0.5, 'neither accepts nor disputes': 0.25},
     # Filled from ref.sub_point.is_safety below, so the framework decides this
     # rather than a list that has to be kept in step with it. Stored in
@@ -124,10 +126,18 @@ dim = q("select sub_service_code, service_code, category_code, tier from ref.dim
 if dim['tier'].isna().any():
     sys.exit('Tiers are missing. Run 05_tiers_and_scoring_schema.sql first.')
 rep = q("""
-  select o.review_id, r.place_id, r.stars, a.latency_days, a.specificity, a.stance, a.remedy_offered, a.commitment_made
+  select distinct on (o.review_id) o.review_id, r.place_id, o.reply_date::date as reply_date,
+         a.specificity, a.stance, a.remedy_offered, a.commitment_made, a.commitment_issue
   from raw.owner_reply o join raw.review r using (review_id)
-  left join extract.reply_assessment a using (review_id)""")
-nrev = q("select place_id, count(*) as n from raw.review group by 1").set_index('place_id')['n']
+  left join extract.reply_assessment a using (review_id)
+  order by o.review_id, a.run_id desc nulls last""")
+rep['reply_date'] = pd.to_datetime(rep['reply_date'])
+revs = q("""
+  select distinct on (r.review_id) r.review_id, r.place_id, r.published_at::date as d,
+         coalesce(trim(r.review_text), '') <> '' as has_text, ra.overall_sentiment as sentiment
+  from raw.review r left join extract.review_assessment ra using (review_id)
+  order by r.review_id, ra.run_id desc nulls last""")
+revs['d'] = pd.to_datetime(revs['d'])
 ref_date = pd.Timestamp(q("select max(published_at)::date as d from raw.review")['d'][0])
 print(f'Evidence items: {len(ev):,}   Reference date: {ref_date.date()}')
 
@@ -182,40 +192,94 @@ for pid in veto_applied:
     s = safety.get(pid, ('clear', 0, 0, None))
     safety[pid] = ('safety concern', s[1], s[2], 'veto applied: 2 or more independent reports')
 
-# ================= 3. The owner-reply score (provider-wide) =================
-# Framework v4 puts this in category 3, Management Responsiveness & Continuous
-# Improvement, where 3.1 (reply coverage and latency) is marked is_computed: it
-# cannot be read off review text because it is a fact about the REPLIES. The
-# other three sub-points in that category do have review evidence, so the
-# category score blends the two halves in section 4.
-#
-# The reply half is still built from all four reply measures, because
-# reply_assessment carries them and throwing three away to honour the is_computed
-# flag literally would lose information the data already holds.
-reply_score = {}
-for pid, g in rep.groupby('place_id'):
-    if len(g) < P['min_owner_replies_for_reply_category']:
-        continue
-    parts = []
-    coverage = min(1.0, len(g) / nrev[pid])
-    valid = g[g['latency_days'].notna() & (g['latency_days'] >= 0)]
-    timely = (valid['latency_days'] <= P['timely_reply_days']).mean() if len(valid) else np.nan
-    parts.append(np.nanmean([coverage, timely]))                                              # 3.1 coverage + latency
-    parts.append(g['specificity'].map({'specific': 1.0, 'partly specific': 0.5, 'generic': 0.0}).mean())   # 3.2 specificity
-    ng = g[g['stance'].notna()]
-    if len(ng):
-        stance = ng['stance'].map(P['stance_score']).mean()
-        remedy = ng['remedy_offered'].fillna(False).infer_objects(copy=False).astype(float).mean()
-        parts.append((stance + remedy) / 2)                                                   # 3.3 stance + remedy
-        parts.append(ng['commitment_made'].fillna(False).infer_objects(copy=False).astype(float).mean())  # 3.4 commitment made
-    reply_score[pid] = (float(np.nanmean(parts)), len(g))     # fulfilment of that commitment is not testable yet
+# ================= 3. Category 3, parts 3.1-3.4 (provider-wide, framework v5) =================
+# A complaint is a review with text whose overall_sentiment is not positive,
+# weighted 0.5 ** (age_months / 24). Part 3.5 is customer evidence, scored per
+# sub-service in section 4.
+REPLY_SP = ['3.1', '3.2', '3.3', '3.4']
+SPEC_VALUE = {'specific': 1.0, 'partly specific': 0.5, 'generic': 0.0}
+
+revs['w'] = np.power(0.5, ((ref_date - revs['d']).dt.days / 30.44).clip(lower=0) / P['recency_half_life_months'])
+comp = revs[revs['has_text'] & revs['sentiment'].notna() & (revs['sentiment'] != 'positive')]
+comp = comp.merge(rep.drop(columns='place_id'), on='review_id', how='left', indicator=True)
+comp['replied'] = comp['_merge'] == 'both'
+
+reply_parts = {}   # pid -> [part scores, complaint weight, complaint count]
+for pid, c in comp.groupby('place_id'):
+    parts, W = [], float(c['w'].sum())
+    if W > 0:                                                                   # 3.1 complaints answered
+        parts.append((A0 + c.loc[c['replied'], 'w'].sum()) / (A0 + B0 + W))
+    r = c[c['replied']]
+    s = r[r['specificity'].isin(SPEC_VALUE.keys())]
+    if s['w'].sum() > 0:                                                        # 3.2 specificity
+        parts.append((A0 + (s['w'] * s['specificity'].map(SPEC_VALUE)).sum()) / (A0 + B0 + s['w'].sum()))
+    s = r[r['stance'].isin(P['stance_score'].keys())]
+    if s['w'].sum() > 0:                                                        # 3.3 stance + remedy
+        v = (s['stance'].map(P['stance_score'])
+             + s['remedy_offered'].fillna(False).infer_objects(copy=False).astype(float)) / 2
+        parts.append((A0 + (s['w'] * v).sum()) / (A0 + B0 + s['w'].sum()))
+    reply_parts[pid] = [parts, W, len(c)]
+
+# 3.4 promises: did complaints on the promised issue fall after the reply?
+text_rev = revs[revs['has_text']]
+neg_rev = ev.loc[ev['polarity'] == 'negative', ['place_id', 'review_id', 'sp']]
+win = pd.DateOffset(months=P['promise_window_months'])
+ISSUE_TAGS = [
+    ('waiting',         ['5.4']),
+    ('staff',           ['5.1']),
+    ('service outcome', [c for c in spx['code'] if c.startswith('1.')]),
+    ('price',           [c for c in spx['code'] if c.startswith('6.')]),
+    ('hygiene',         ['7.1', '7.2', '7.3']),
+]
+
+
+def promise_points(issue):
+    """Union of sub-points named by the ';'-separated tags; empty if none map."""
+    pts = set()
+    for tag in str(issue or '').lower().split(';'):
+        for key, sps in ISSUE_TAGS:
+            if key in tag:
+                pts.update(sps)
+    return pts
+
+
+def promise_outcome(pid, reply_date, issue):
+    pts = promise_points(issue)
+    if pd.isna(reply_date) or not pts:
+        return 'not testable'
+    t = text_rev[text_rev['place_id'] == pid]
+    before = t[(t['d'] >= reply_date - win) & (t['d'] < reply_date)]
+    after = t[(t['d'] > reply_date) & (t['d'] <= reply_date + win)]
+    if len(before) < P['min_before_reviews_for_promise'] or len(after) < P['min_after_reviews_for_promise']:
+        return 'not testable'
+    nv = neg_rev[(neg_rev['place_id'] == pid) & neg_rev['sp'].isin(pts)]
+    n_before = nv.loc[nv['review_id'].isin(before['review_id']), 'review_id'].nunique()
+    n_after = nv.loc[nv['review_id'].isin(after['review_id']), 'review_id'].nunique()
+    share_before, share_after = n_before / len(before), n_after / len(after)
+    if share_after < share_before:
+        return 'kept'
+    if n_after >= 2:
+        return 'broken'
+    return 'no clear change'
+
+
+commitment_rows = []
+kept_broken = defaultdict(lambda: [0, 0])
+for row in rep[rep['commitment_made'].fillna(False).infer_objects(copy=False).astype(bool)].itertuples():
+    out = promise_outcome(row.place_id, row.reply_date, row.commitment_issue)
+    commitment_rows.append((row.review_id, row.commitment_issue or 'not identified', out))
+    if out == 'kept': kept_broken[row.place_id][0] += 1
+    elif out == 'broken': kept_broken[row.place_id][1] += 1
+for pid, (k, b) in kept_broken.items():
+    if k + b:
+        reply_parts.setdefault(pid, [[], 0.0, 0])[0].append((A0 + k) / (A0 + B0 + k + b))
 
 # ================= 4. Category and trust scores per provider x sub-service =================
 # Reported-only sub-points are included: `overall` carries 10,296 of the 44,526
 # evidence rows, and category 8 is meant to be shown even though it is never
 # weighted. Computed sub-points are excluded because they are not read from
 # review text at all.
-sc = ev[(ev['is_score'] | ev['is_reported_only']) & ~ev['is_computed']
+sc = ev[(ev['is_score'] | ev['is_reported_only']) & ~ev['is_computed'] & ~ev['sp'].isin(REPLY_SP)
         & ev['polarity'].isin(['positive', 'negative', 'mixed'])].copy()
 sc['w0'] = sc['confidence'].map(P['confidence_weight']) * np.power(0.5, sc['age_m'].clip(lower=0) / P['recency_half_life_months'])
 sc['pos'] = sc['polarity'].map({'positive': 1.0, 'mixed': 0.5, 'negative': 0.0})
@@ -267,18 +331,13 @@ for pid, g in sc.groupby('place_id'):
             pc, nc = Pw[m].sum(), Nw[m].sum()
             scores[c] = ((A0 + pc) / (A0 + B0 + pc + nc), pc + nc, int(m.sum()))
 
-        # The reply-derived categories are half fact-about-replies and half
-        # review evidence. Where both halves exist they are averaged; where the
-        # provider has too few replies to judge, the evidence half stands alone.
+        # Category 3 = mean of the parts that have evidence: 3.1-3.4 from owner
+        # replies (provider-wide) and 3.5, which scores[c] now holds alone.
         for c in REPLY_CATS:
-            if pid not in reply_score:
-                continue
-            r_sc, r_n = reply_score[pid]
+            parts, r_w, r_n = reply_parts.get(pid, ([], 0.0, 0))
             ev_sc, ev_w, ev_n = scores[c]
-            if ev_n:
-                scores[c] = ((r_sc + ev_sc) / 2, float(ev_w + r_n), int(ev_n + r_n))
-            else:
-                scores[c] = (r_sc, float(r_n), int(r_n))
+            got = parts + ([ev_sc] if ev_w > 0 else [])
+            scores[c] = (float(np.mean(got)), float(r_w + ev_w), int(r_n + ev_n)) if got else (0.5, 0.0, 0)
 
         for c in ALL_CATS:
             cat_rows.append((pid, s, c, round(float(scores[c][0]), 4), round(float(scores[c][1]), 3), int(scores[c][2])))
@@ -332,6 +391,7 @@ with conn, conn.cursor() as cur:
                    [(run, r['place_id'], r['sub'], int(r['tier']), float(r['base']), float(r['pen']), float(r['trust']), float(r['low']), float(r['high']),
                      float(r['width']), float(r['ew']), int(r['nrev']), (None if pd.isna(r['badges']) else r['badges']), r['safety'], r['status'],
                      None if pd.isna(r['rank']) else int(r['rank'])) for r in tr.to_dict('records')], page_size=5000)
+    execute_values(cur, "insert into score.commitment_outcome values %s", [(run,) + r for r in commitment_rows], page_size=2000)
 conn.close()
 
 print(f'Scoring run {run} saved.')

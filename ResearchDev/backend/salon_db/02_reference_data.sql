@@ -1,4 +1,4 @@
--- Reference data: taxonomy v9 (5 / 17 / 51) and framework v4 (7 + Overall / 25 + overall)
+-- Reference data: taxonomy v9 (5 / 17 / 51) and framework v5 (7 + Overall / 25 + overall)
 begin;
 insert into ref.service_category (code, name, sort_order) values ('HR', 'Hair', 1);
 insert into ref.service (code, category_code, name, sort_order) values ('HR.CUT', 'HR', 'Haircuts', 1);
@@ -73,7 +73,7 @@ insert into ref.sub_service (code, service_code, name, sort_order) values ('MG.B
 insert into ref.sub_service (code, service_code, name, sort_order) values ('MG.BEARD.02', 'MG.BEARD', 'Clean Shave', 2);
 insert into ref.sub_service (code, service_code, name, sort_order) values ('MG.BEARD.03', 'MG.BEARD', 'Hot Towel Shave', 3);
 insert into ref.sub_service (code, service_code, name, sort_order) values ('MG.BEARD.04', 'MG.BEARD', 'Beard Colouring', 4);
--- ---------- Framework v4: 7 weighted categories + Overall Verdict ----------
+-- ---------- Framework v5: 7 weighted categories + Overall Verdict ----------
 -- 25 sub-points plus `overall`. Replaces the retired ten-category / 38-sub-point
 -- framework.
 --
@@ -89,7 +89,7 @@ insert into ref.sub_service (code, service_code, name, sort_order) values ('MG.B
 -- on 7.1-7.3, and 3.1 is the only computed sub-point (it comes from owner replies,
 -- not from review text).
 
-insert into ref.framework_category (category_no, name, weight) values (1, 'Quality of Work', 0.14286);
+insert into ref.framework_category (category_no, name, weight) values (1, 'Quality of the Result', 0.14286);
 insert into ref.sub_point (code, category_no, sort_order, customer_question, research_meaning, is_score, is_gate, is_veto, is_safety, is_reported_only, is_computed) values ('1.1', 1, 1, 'Is the work good?', 'Overall verdict on a named service; technical execution quality', true, false, false, false, false, false);
 insert into ref.sub_point (code, category_no, sort_order, customer_question, research_meaning, is_score, is_gate, is_veto, is_safety, is_reported_only, is_computed) values ('1.2', 1, 2, 'Will I get what I asked for?', 'Request-outcome match', true, false, false, false, false, false);
 insert into ref.sub_point (code, category_no, sort_order, customer_question, research_meaning, is_score, is_gate, is_veto, is_safety, is_reported_only, is_computed) values ('1.3', 1, 3, 'Will it last?', 'Longevity against expectation; early fading or chipping', true, false, false, false, false, false);
@@ -104,17 +104,17 @@ insert into ref.sub_point (code, category_no, sort_order, customer_question, res
 insert into ref.sub_point (code, category_no, sort_order, customer_question, research_meaning, is_score, is_gate, is_veto, is_safety, is_reported_only, is_computed) values ('3.2', 3, 8, 'Is the reply personal, not copy-paste?', 'Reply specificity', true, false, false, false, false, false);
 insert into ref.sub_point (code, category_no, sort_order, customer_question, research_meaning, is_score, is_gate, is_veto, is_safety, is_reported_only, is_computed) values ('3.3', 3, 9, 'Do they take responsibility and offer to put it right?', 'Responsibility stance and remedy', true, false, false, false, false, false);
 insert into ref.sub_point (code, category_no, sort_order, customer_question, research_meaning, is_score, is_gate, is_veto, is_safety, is_reported_only, is_computed) values ('3.4', 3, 10, 'Do they keep their promises to improve?', 'Corrective commitment and its fulfilment', true, false, false, false, false, false);
+insert into ref.sub_point (code, category_no, sort_order, customer_question, research_meaning, is_score, is_gate, is_veto, is_safety, is_reported_only, is_computed) values ('3.5', 3, 11, 'If something goes wrong, do they put it right?', 'Service recovery by the salon, and who bore the cost', true, false, false, false, false, false);
 
 insert into ref.framework_category (category_no, name, weight) values (4, 'Customer Trust & Recommendation', 0.14286);
-insert into ref.sub_point (code, category_no, sort_order, customer_question, research_meaning, is_score, is_gate, is_veto, is_safety, is_reported_only, is_computed) values ('4.1', 4, 11, 'Do people recommend it?', 'Explicit recommendation and referral behaviour', true, false, false, false, false, false);
-insert into ref.sub_point (code, category_no, sort_order, customer_question, research_meaning, is_score, is_gate, is_veto, is_safety, is_reported_only, is_computed) values ('4.2', 4, 12, 'Do customers keep coming back?', 'Return intent and self-declared repeat visits', true, false, false, false, false, false);
+insert into ref.sub_point (code, category_no, sort_order, customer_question, research_meaning, is_score, is_gate, is_veto, is_safety, is_reported_only, is_computed) values ('4.1', 4, 12, 'Do people recommend it?', 'Explicit recommendation and referral behaviour', true, false, false, false, false, false);
+insert into ref.sub_point (code, category_no, sort_order, customer_question, research_meaning, is_score, is_gate, is_veto, is_safety, is_reported_only, is_computed) values ('4.2', 4, 13, 'Do customers keep coming back?', 'Return intent and self-declared repeat visits', true, false, false, false, false, false);
 
 insert into ref.framework_category (category_no, name, weight) values (5, 'Staff & Customer Service', 0.14286);
-insert into ref.sub_point (code, category_no, sort_order, customer_question, research_meaning, is_score, is_gate, is_veto, is_safety, is_reported_only, is_computed) values ('5.1', 5, 13, 'Are they friendly and caring?', 'Courtesy, respect and attentiveness', true, false, false, false, false, false);
-insert into ref.sub_point (code, category_no, sort_order, customer_question, research_meaning, is_score, is_gate, is_veto, is_safety, is_reported_only, is_computed) values ('5.2', 5, 14, 'Is the treatment gentle and comfortable?', 'Pain and comfort during a treatment', true, false, false, false, false, false);
-insert into ref.sub_point (code, category_no, sort_order, customer_question, research_meaning, is_score, is_gate, is_veto, is_safety, is_reported_only, is_computed) values ('5.3', 5, 15, 'Do they explain things, in my language?', 'Explanation during service and language accommodation', true, false, false, false, false, false);
-insert into ref.sub_point (code, category_no, sort_order, customer_question, research_meaning, is_score, is_gate, is_veto, is_safety, is_reported_only, is_computed) values ('5.4', 5, 16, 'Will I be seen on time, by the person I booked?', 'Appointment reliability and unannounced substitution', true, false, false, false, false, false);
-insert into ref.sub_point (code, category_no, sort_order, customer_question, research_meaning, is_score, is_gate, is_veto, is_safety, is_reported_only, is_computed) values ('5.5', 5, 17, 'If something goes wrong, do they put it right?', 'Service recovery by the salon, and who bore the cost', true, false, false, false, false, false);
+insert into ref.sub_point (code, category_no, sort_order, customer_question, research_meaning, is_score, is_gate, is_veto, is_safety, is_reported_only, is_computed) values ('5.1', 5, 14, 'Are they friendly and caring?', 'Courtesy, respect and attentiveness', true, false, false, false, false, false);
+insert into ref.sub_point (code, category_no, sort_order, customer_question, research_meaning, is_score, is_gate, is_veto, is_safety, is_reported_only, is_computed) values ('5.2', 5, 15, 'Is the treatment gentle and comfortable?', 'Pain and comfort during a treatment', true, false, false, false, false, false);
+insert into ref.sub_point (code, category_no, sort_order, customer_question, research_meaning, is_score, is_gate, is_veto, is_safety, is_reported_only, is_computed) values ('5.3', 5, 16, 'Do they explain things, in my language?', 'Explanation during service and language accommodation', true, false, false, false, false, false);
+insert into ref.sub_point (code, category_no, sort_order, customer_question, research_meaning, is_score, is_gate, is_veto, is_safety, is_reported_only, is_computed) values ('5.4', 5, 17, 'Will I be seen on time, by the person I booked?', 'Appointment reliability and unannounced substitution', true, false, false, false, false, false);
 
 insert into ref.framework_category (category_no, name, weight) values (6, 'Value & Price Honesty', 0.14286);
 insert into ref.sub_point (code, category_no, sort_order, customer_question, research_meaning, is_score, is_gate, is_veto, is_safety, is_reported_only, is_computed) values ('6.1', 6, 18, 'Is it worth the money?', 'Value judgement', true, false, false, false, false, false);

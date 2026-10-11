@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { SelectMenu } from "../components/SelectMenu";
+import { submitInquiry } from "../api/client";
 import {
   IconMail, IconClock, IconPin, IconInstagram, IconFacebook, IconArrow,
 } from "../components/Icons";
@@ -73,18 +74,55 @@ function MosaicImage({ src }) {
 
 const REASONS = ["General enquiry", "List your salon", "Feedback", "Something went wrong"];
 
-export function Contact() {
+function validateContact(form) {
+  const errs = {};
+  if (!form.name.trim())          errs.name    = "Your name is required.";
+  else if (form.name.trim().length < 2) errs.name = "Name must be at least 2 characters.";
+  if (!form.email.trim())         errs.email   = "Email address is required.";
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+                                  errs.email   = "Enter a valid email address.";
+  if (form.phone && !/^[\d\s\+\-\(\)]{7,15}$/.test(form.phone))
+                                  errs.phone   = "Enter a valid phone number.";
+  if (!form.message.trim())       errs.message = "Please write a message.";
+  else if (form.message.trim().length < 10)
+                                  errs.message = "Message must be at least 10 characters.";
+  return errs;
+}
+
+export function Contact({ token }) {
   const [form, setForm] = useState({
     name: "", email: "", phone: "", reason: REASONS[0], message: "",
   });
-  const [sent, setSent] = useState(false);
+  const [fieldErrs, setFieldErrs] = useState({});
+  const [sent, setSent]           = useState(false);
+  const [loading, setLoading]     = useState(false);
+  const [apiError, setApiError]   = useState("");
 
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  const set = (k) => (e) => {
+    setForm((f) => ({ ...f, [k]: e.target.value }));
+    if (fieldErrs[k]) setFieldErrs((fe) => ({ ...fe, [k]: "" }));
+    setApiError("");
+  };
 
-  function handleSubmit(e) {
+  const blur = (k) => () => {
+    const errs = validateContact(form);
+    if (errs[k]) setFieldErrs((fe) => ({ ...fe, [k]: errs[k] }));
+  };
+
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (!form.name.trim() || !form.email.trim()) return;
-    setSent(true);
+    const errs = validateContact(form);
+    if (Object.keys(errs).length) { setFieldErrs(errs); return; }
+    setApiError("");
+    setLoading(true);
+    try {
+      await submitInquiry(form, token);
+      setSent(true);
+    } catch (err) {
+      setApiError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -139,32 +177,38 @@ export function Contact() {
                 Fill this out so we can learn more about you and what you need.
               </p>
 
-              <form className="cp-form" onSubmit={handleSubmit}>
-                {/* Ruled fields with the label ABOVE the line rather than
-                    floating in it. The reference shows placeholder-only
-                    fields; a placeholder disappears the moment you type, so
-                    the label stays and the placeholder is dropped. */}
-                <label className="cp-field">
-                  <span>Name and surname</span>
-                  <input type="text" value={form.name} onChange={set("name")} placeholder="Your name"
-                         autoComplete="name" required />
-                </label>
+              <form className="cp-form" onSubmit={handleSubmit} noValidate>
 
-                <label className="cp-field">
-                  <span>Email address</span>
-                  <input type="email" value={form.email} onChange={set("email")} placeholder="you@example.com"
-                         autoComplete="email" required />
-                </label>
+                <div className="cp-field-wrap">
+                  <label className={`cp-field ${fieldErrs.name ? "cp-field--err" : ""}`}>
+                    <span>Name and surname</span>
+                    <input type="text" value={form.name} onChange={set("name")} onBlur={blur("name")}
+                           placeholder="Your name" autoComplete="name"
+                           aria-invalid={!!fieldErrs.name} />
+                  </label>
+                  {fieldErrs.name && <p className="cp-field-error">{fieldErrs.name}</p>}
+                </div>
 
-                <label className="cp-field">
-                  <span>Phone number</span>
-                  <input type="tel" value={form.phone} onChange={set("phone")} placeholder="Optional"
-                         autoComplete="tel" />
-                </label>
+                <div className="cp-field-wrap">
+                  <label className={`cp-field ${fieldErrs.email ? "cp-field--err" : ""}`}>
+                    <span>Email address</span>
+                    <input type="email" value={form.email} onChange={set("email")} onBlur={blur("email")}
+                           placeholder="you@example.com" autoComplete="email"
+                           aria-invalid={!!fieldErrs.email} />
+                  </label>
+                  {fieldErrs.email && <p className="cp-field-error">{fieldErrs.email}</p>}
+                </div>
 
-                {/* The site's own listbox, not a native <select>: the browser
-                    draws a native option list itself, white, and CSS cannot
-                    reach it. */}
+                <div className="cp-field-wrap">
+                  <label className={`cp-field ${fieldErrs.phone ? "cp-field--err" : ""}`}>
+                    <span>Phone number <span className="cp-optional">(optional)</span></span>
+                    <input type="tel" value={form.phone} onChange={set("phone")} onBlur={blur("phone")}
+                           placeholder="+94 77 000 0000" autoComplete="tel"
+                           aria-invalid={!!fieldErrs.phone} />
+                  </label>
+                  {fieldErrs.phone && <p className="cp-field-error">{fieldErrs.phone}</p>}
+                </div>
+
                 <div className="cp-select">
                   <SelectMenu
                     label="Subject"
@@ -174,17 +218,23 @@ export function Contact() {
                   />
                 </div>
 
-                <label className="cp-field">
-                  <span>Message</span>
-                  <textarea rows={3} value={form.message} onChange={set("message")}
-                            placeholder="Tell us how we can help…" />
-                </label>
+                <div className="cp-field-wrap">
+                  <label className={`cp-field ${fieldErrs.message ? "cp-field--err" : ""}`}>
+                    <span>Message</span>
+                    <textarea rows={4} value={form.message} onChange={set("message")} onBlur={blur("message")}
+                              placeholder="Tell us how we can help…"
+                              aria-invalid={!!fieldErrs.message} />
+                  </label>
+                  {fieldErrs.message && <p className="cp-field-error">{fieldErrs.message}</p>}
+                  <p className="cp-char-count" aria-live="polite">
+                    {form.message.length} / 1000
+                  </p>
+                </div>
 
-                {/* The same control as the home page's call to action: one
-                    champagne pill with the arrow disc riding inside its own
-                    padding, so the two pages ask in the same voice. */}
-                <button type="submit" className="btn-hero cp-send">
-                  Send message
+                {apiError && <p className="auth-error" role="alert">{apiError}</p>}
+
+                <button type="submit" className="btn-hero cp-send" disabled={loading}>
+                  {loading ? "Sending…" : "Send message"}
                   <span className="btn-hero-disc" aria-hidden="true">
                     <IconArrow size={16} />
                   </span>

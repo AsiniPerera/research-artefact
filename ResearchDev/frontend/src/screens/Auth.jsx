@@ -1,107 +1,133 @@
 import { useState } from "react";
-import { IconFacebook, IconInstagram } from "../components/Icons";
 import logoMark from "../assets/images/logo/logo-mark.png";
-
-/* Side image — a dedicated auth.* if present, else the hero, else gradient. */
-const authFiles = import.meta.glob("../assets/images/auth.{jpg,jpeg,png,webp}", {
-  eager: true, import: "default",
-});
-/* heroroom.webp, not hero.png — see the note in Landing.jsx: the PNG master
-   is 5.1 MB and an eager glob would ship it just for this fallback. */
-const heroFiles = import.meta.glob("../assets/images/heroroom.webp", {
-  eager: true, import: "default",
-});
-const sideImage = Object.values(authFiles)[0] ?? Object.values(heroFiles)[0] ?? null;
+import authBg   from "../assets/images/Auth/bridal.jpg";
+import { IconFacebookBrand, IconGoogleBrand, IconInstagramBrand } from "../components/Icons";
+import { signIn, signUp } from "../api/client";
 
 const COPY = {
   signin: {
     title: "Welcome Back!",
-    sub: "Enter your details below",
+    sub: "Sign in to your account",
     submit: "Log in",
-    google: "Log in with Google",
     switchText: "Don't have an account?",
     switchCta: "Sign Up",
     switchTo: "signup",
   },
   signup: {
     title: "Create Account",
-    sub: "Enter your details below",
+    sub: "Fill in your details to get started",
     submit: "Sign Up",
-    google: "Sign up with Google",
     switchText: "Already have an account?",
     switchCta: "Log in",
     switchTo: "signin",
   },
 };
 
-function GoogleIcon() {
+/* ── Validation rules ──────────────────────────────────────────────── */
+function validate(mode, form) {
+  const errs = {};
+  if (mode === "signup") {
+    if (!form.name.trim())               errs.name = "Full name is required.";
+    else if (form.name.trim().length < 2) errs.name = "Name must be at least 2 characters.";
+  }
+  if (!form.email.trim())                errs.email = "Email address is required.";
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+                                         errs.email = "Enter a valid email address.";
+  if (!form.password)                    errs.password = "Password is required.";
+  else if (mode === "signup" && form.password.length < 8)
+                                         errs.password = "Password must be at least 8 characters.";
+  return errs;
+}
+
+/* ── Field component with inline error ─────────────────────────────── */
+function Field({ id, label, type = "text", value, onChange, onBlur, autoComplete, error, children }) {
   return (
-    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-      <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.71-1.57 2.68-3.88 2.68-6.62z" />
-      <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z" />
-      <path fill="#FBBC05" d="M3.97 10.72a5.41 5.41 0 0 1 0-3.44V4.95H.96a9 9 0 0 0 0 8.1l3.01-2.33z" />
-      <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.9 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z" />
-    </svg>
+    <div className="auth-field-wrap">
+      <label className="auth-field" htmlFor={id}>
+        <span className="auth-field-label sr-only">{label}</span>
+        <div className={`auth-field-control ${error ? "has-error" : ""}`}>
+          <input
+            id={id}
+            type={type}
+            value={value}
+            onChange={onChange}
+            onBlur={onBlur}
+            autoComplete={autoComplete}
+            placeholder={label}
+            aria-describedby={error ? `${id}-err` : undefined}
+            aria-invalid={!!error}
+          />
+          {children}
+        </div>
+      </label>
+      {error && (
+        <p className="auth-field-error" id={`${id}-err`} role="alert">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
 
-function Field({ id, label, type = "text", value, onChange, autoComplete, children }) {
-  return (
-    <label className="auth-field" htmlFor={id}>
-      {/* Visually hidden, not removed: the placeholder below is the visible
-          name, but a placeholder is not an accessible one. It is not read by
-          every screen reader and it vanishes as soon as anything is typed,
-          so the label stays for both. */}
-      <span className="auth-field-label sr-only">{label}</span>
-      <div className="auth-field-control">
-        <input
-          id={id}
-          type={type}
-          value={value}
-          onChange={onChange}
-          autoComplete={autoComplete}
-          placeholder={label}
-          required
-        />
-        {children}
-      </div>
-    </label>
-  );
-}
-
-export function Auth({ mode, onSwitch, onHome }) {
+export function Auth({ mode, onSwitch, onHome, onSignedIn }) {
   const c = COPY[mode];
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
-  const [showPw, setShowPw] = useState(false);
-  const [done, setDone] = useState(false);
+  const [form, setForm]       = useState({ name: "", email: "", password: "" });
+  const [fieldErrs, setFieldErrs] = useState({});
+  const [showPw, setShowPw]   = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
 
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  /* Reset field errors when mode switches */
+  const switchMode = (to) => { setFieldErrs({}); setApiError(""); onSwitch(to); };
 
-  function handleSubmit(e) {
+  const set = (k) => (e) => {
+    setForm((f) => ({ ...f, [k]: e.target.value }));
+    /* Clear that field's error as soon as the user starts fixing it */
+    if (fieldErrs[k]) setFieldErrs((fe) => ({ ...fe, [k]: "" }));
+    setApiError("");
+  };
+
+  /* Validate a single field on blur */
+  const blur = (k) => () => {
+    const errs = validate(mode, form);
+    if (errs[k]) setFieldErrs((fe) => ({ ...fe, [k]: errs[k] }));
+  };
+
+  async function handleSubmit(e) {
     e.preventDefault();
-    // Prototype: no auth backend is wired yet. Acknowledge rather than
-    // pretend a session was created.
-    setDone(true);
+    const errs = validate(mode, form);
+    if (Object.keys(errs).length) { setFieldErrs(errs); return; }
+
+    setApiError("");
+    setLoading(true);
+    try {
+      const result = mode === "signup"
+        ? await signUp(form.name, form.email, form.password)
+        : await signIn(form.email, form.password);
+      onSignedIn?.(result.token, result.user);
+    } catch (err) {
+      setApiError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <div className="auth">
       <div className="auth-card">
-        {/* ── Image panel (left) ─────────────────────── */}
+        {/* ── Image panel ─────────────────────────── */}
         <aside
-          className={`auth-visual ${sideImage ? "has-photo" : ""}`}
-          style={sideImage ? { backgroundImage: `url(${sideImage})` } : undefined}
+          className="auth-visual has-photo"
+          style={{ backgroundImage: `url(${authBg})` }}
           aria-hidden="true"
         >
           <div className="auth-visual-copy">
             <p className="eyebrow">The pinnacle of beauty standards</p>
-            <p className="auth-quote">
-              Chosen on evidence,<br />never on averages.
-            </p>
+            <p className="auth-quote">Chosen on evidence,<br />never on averages.</p>
           </div>
         </aside>
 
-        {/* ── Form panel (right) ─────────────────────── */}
+        {/* ── Form panel ──────────────────────────── */}
         <div className="auth-form-panel">
           <div className="auth-form">
             <button className="auth-brand" onClick={onHome} aria-label="Amore Beauty — home">
@@ -111,108 +137,136 @@ export function Auth({ mode, onSwitch, onHome }) {
             <h1 className="auth-title">{c.title}</h1>
             <p className="auth-sub">{c.sub}</p>
 
-            {done ? (
-              <div className="auth-note">
-                Thanks{form.name ? `, ${form.name.split(" ")[0]}` : ""} — accounts aren't
-                connected in this prototype yet, so there's nothing to sign into.
-                <button type="button" className="link-arrow" onClick={onHome}>
-                  Back to home
+            {/* API-level error (wrong password, server down, etc.) */}
+            {apiError && (
+              <p className="auth-error" role="alert">{apiError}</p>
+            )}
+
+            <form onSubmit={handleSubmit} className="auth-fields" noValidate>
+              {mode === "signup" && (
+                <Field
+                  id="auth-name"
+                  label="Full name"
+                  value={form.name}
+                  onChange={set("name")}
+                  onBlur={blur("name")}
+                  autoComplete="name"
+                  error={fieldErrs.name}
+                />
+              )}
+
+              <Field
+                id="auth-email"
+                label="Email address"
+                type="email"
+                value={form.email}
+                onChange={set("email")}
+                onBlur={blur("email")}
+                autoComplete="email"
+                error={fieldErrs.email}
+              />
+
+              <Field
+                id="auth-password"
+                label="Password"
+                type={showPw ? "text" : "password"}
+                value={form.password}
+                onChange={set("password")}
+                onBlur={blur("password")}
+                autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                error={fieldErrs.password}
+              >
+                <button
+                  type="button"
+                  className="auth-pw-toggle"
+                  onClick={() => setShowPw((s) => !s)}
+                  aria-label={showPw ? "Hide password" : "Show password"}
+                >
+                  {showPw ? (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M2 12s3.5-7 10-7c2 0 3.8.6 5.3 1.5M22 12s-3.5 7-10 7c-2 0-3.8-.6-5.3-1.5" />
+                      <path d="m4 4 16 16" />
+                    </svg>
+                  ) : (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  )}
+                </button>
+              </Field>
+
+              {/* Password strength hint on signup */}
+              {mode === "signup" && form.password && (
+                <PasswordStrength password={form.password} />
+              )}
+
+              {mode === "signin" && (
+                <div className="auth-row">
+                  <button type="button" className="auth-forgot">Forgot your password?</button>
+                </div>
+              )}
+
+              <button type="submit" className="auth-submit" disabled={loading}>
+                {loading ? "Please wait…" : c.submit}
+              </button>
+
+              <p className="auth-or" aria-hidden="true">Or continue with</p>
+
+              <div className="auth-social">
+                <button type="button" className="auth-social-btn" aria-label="Continue with Facebook" disabled title="Coming soon">
+                  <IconFacebookBrand size={36} />
+                </button>
+                <button type="button" className="auth-social-btn" aria-label="Continue with Google" disabled title="Coming soon">
+                  <IconGoogleBrand size={36} />
+                </button>
+                <button type="button" className="auth-social-btn" aria-label="Continue with Instagram" disabled title="Coming soon">
+                  <IconInstagramBrand size={36} />
                 </button>
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="auth-fields">
-                {mode === "signup" && (
-                  <Field
-                    id="auth-name"
-                    label="Full name"
-                    value={form.name}
-                    onChange={set("name")}
-                    autoComplete="name"
-                  />
-                )}
 
-                <Field
-                  id="auth-email"
-                  label="Email"
-                  type="email"
-                  value={form.email}
-                  onChange={set("email")}
-                  autoComplete="email"
-                />
-
-                <Field
-                  id="auth-password"
-                  label="Password"
-                  type={showPw ? "text" : "password"}
-                  value={form.password}
-                  onChange={set("password")}
-                  autoComplete={mode === "signin" ? "current-password" : "new-password"}
-                >
-                  <button
-                    type="button"
-                    className="auth-pw-toggle"
-                    onClick={() => setShowPw((s) => !s)}
-                    aria-label={showPw ? "Hide password" : "Show password"}
-                  >
-                    {showPw ? (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M2 12s3.5-7 10-7c2 0 3.8.6 5.3 1.5M22 12s-3.5 7-10 7c-2 0-3.8-.6-5.3-1.5" />
-                        <path d="m4 4 16 16" />
-                      </svg>
-                    ) : (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
-                        <circle cx="12" cy="12" r="3" />
-                      </svg>
-                    )}
-                  </button>
-                </Field>
-
-                {mode === "signin" && (
-                  <div className="auth-row">
-                    <button type="button" className="auth-forgot">
-                      Forgot your password?
-                    </button>
-                  </div>
-                )}
-
-                <button type="submit" className="auth-submit">{c.submit}</button>
-
-                <p className="auth-or" aria-hidden="true">Or</p>
-
-                <div className="auth-social">
-                  <button type="button" aria-label={c.google.replace("Google", "Facebook")}
-                          onClick={() => setDone(true)}>
-                    <IconFacebook size={16} />
-                  </button>
-                  <button type="button" aria-label={c.google} onClick={() => setDone(true)}>
-                    <GoogleIcon />
-                  </button>
-                  <button type="button" aria-label={c.google.replace("Google", "Instagram")}
-                          onClick={() => setDone(true)}>
-                    <IconInstagram size={16} />
-                  </button>
-                </div>
-
-                {mode === "signup" && (
-                  <p className="auth-terms">
-                    By continuing you agree to our{" "}
-                    <button type="button">Terms</button> and{" "}
-                    <button type="button">Privacy Policy</button>.
-                  </p>
-                )}
-              </form>
-            )}
+              {mode === "signup" && (
+                <p className="auth-terms">
+                  By continuing you agree to our{" "}
+                  <button type="button">Terms</button> and{" "}
+                  <button type="button">Privacy Policy</button>.
+                </p>
+              )}
+            </form>
 
             <p className="auth-switch">
               {c.switchText}{" "}
-              <button type="button" onClick={() => onSwitch(c.switchTo)}>
+              <button type="button" onClick={() => switchMode(c.switchTo)}>
                 {c.switchCta}
               </button>
             </p>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ── Password strength meter ──────────────────────────────────────── */
+function PasswordStrength({ password }) {
+  const checks = [
+    password.length >= 8,
+    /[A-Z]/.test(password),
+    /[0-9]/.test(password),
+    /[^A-Za-z0-9]/.test(password),
+  ];
+  const score = checks.filter(Boolean).length;
+  const label = ["Too short", "Weak", "Fair", "Good", "Strong"][score];
+  const color = ["#ef4444", "#f97316", "#eab308", "#84cc16", "#22c55e"][score];
+
+  return (
+    <div className="auth-pw-strength">
+      <div className="auth-pw-bars">
+        {checks.map((ok, i) => (
+          <span key={i} className="auth-pw-bar" style={{ background: i < score ? color : undefined }} />
+        ))}
+      </div>
+      <span className="auth-pw-label" style={{ color }}>{label}</span>
     </div>
   );
 }
