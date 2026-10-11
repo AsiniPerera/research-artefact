@@ -1,29 +1,8 @@
 import { CATEGORIES } from "../components/WeightLevels";
 import { IconArrow } from "../components/Icons";
 
-/* The framework as the page shows it: the seven weighted categories, taken
-   straight from the priority sliders so the two lists cannot disagree, plus
-   category 8. Overall Verdict is reported only — it carries weight 0 in
-   ref.framework_category and is absent from the sliders, because it summarises
-   the other seven rather than sitting beside them. The page still names it, so
-   someone reading the framework sees all eight things the extraction can
-   return.
-
-   Names and numbers are exactly those in ref.framework_category. The framework
-   is frozen: they change only if the database does. */
-/* The seven weighted categories plus the reported-only Overall Verdict, with a
-   short display name and, where it differs, the full formal name in brackets.
-   Order and count follow ref.framework_category. */
-const FRAMEWORK = [
-  { no: 1, name: "Quality of the Result",       tag: "Good results that last." },
-  { no: 2, name: "Consultation & Aftercare",    tag: "They advise you before and care for you after." },
-  { no: 3, name: "Owner Responsiveness",        tag: "The owner listens, responds and improves." },
-  { no: 4, name: "Trust & Recommendations",     tag: "Customers trust, recommend and return." },
-  { no: 5, name: "Staff & Customer Service",    tag: "Friendly staff, gentle care and punctual service." },
-  { no: 6, name: "Value & Price Honesty",       tag: "Fair prices with no hidden surprises." },
-  { no: 7, name: "Safety, Hygiene & Facilities", tag: "Clean spaces, safe practices and suitable facilities." },
-  { no: 8, name: "Overall Verdict",             tag: "The overall impression from customer reviews." },
-];
+/* The seven categories, taken from the priority panel so the two lists
+   cannot disagree. Overall Verdict is stored but never shown. */
 
 /* Images are optional and matched by filename — drop one in and it appears,
    no code change. Same glob the landing page uses, so the two never disagree
@@ -138,21 +117,16 @@ export function About({ onExplore }) {
         <p className="about-kicker">The framework</p>
         <h2>What gets measured</h2>
         <p className="about-note">
-          {FRAMEWORK.length} categories, {CATEGORIES.length} of which you weight. The
-          vocabulary is fixed and closed — extraction can only ever return one of these,
-          which is what keeps scores comparable between salons. You set how much each of
-          the {CATEGORIES.length} counts; none of them is weighted for you. The last,
-          Overall Verdict, is reported rather than weighted: it is what a review says
-          about a salon in general, and weighting it would count the same opinion twice.
+          {CATEGORIES.length} categories. The vocabulary is fixed and closed — extraction
+          can only ever return one of these, which is what keeps scores comparable between
+          salons. You set how much each of them counts; none of them is weighted for you.
         </p>
         <ol className="about-cats">
-          {FRAMEWORK.map(({ no, name, formal, tag }) => (
+          {CATEGORIES.map(({ no, label: name, tag }) => (
             <li key={no} data-no={String(no).padStart(2, "0")}>
               <span className="about-cat-no">{String(no).padStart(2, "0")}</span>
               <span className="about-cat-body">
-                <strong>{plainAmp(name)}</strong>
-                {formal && <em className="about-cat-formal">{formal}</em>}
-                <span>{tag}</span>
+                <strong>{plainAmp(name)}</strong>                <span>{tag}</span>
               </span>
             </li>
           ))}

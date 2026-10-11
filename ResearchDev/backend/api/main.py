@@ -205,7 +205,7 @@ def _sub_service_or_404(cur, code: str) -> dict:
     return row
 
 
-# Framework v4 has eight categories but only SEVEN of them are weighted:
+# Framework v5 has eight categories but only SEVEN of them are weighted:
 # category 8, Overall Verdict, is reported only — it summarises the other seven
 # and would double-count if the user could also weight it. So the weights vector
 # is seven numbers, and ref.framework_category.weight > 0 is what defines that.
@@ -563,12 +563,12 @@ def rankings(
     """Ranked, available-but-not-ranked and safety-concern providers, in database order.
 
     Every provider with enough review evidence is ranked, including those
-    carrying a safety concern: safety decides ORDER (clear, then caution, then
-    concern, whatever the score) rather than removal, and `safety_reason`
-    carries the plain sentence to show beside the salon — for example
-    "3 customers reported a reaction or burn, latest July 2026". The
-    `safety_concern` list below is therefore normally empty and is kept so an
-    older client does not break.
+    carrying a safety mark: safety decides ORDER (clear, then caution, then
+    concern, whatever the score) rather than removal. No safety notice is shown
+    to the customer; safety is presented through the Category 7 score.
+    `safety_status` and `safety_reason` stay in each row for reference only.
+    No sub-point acts as a veto in v5, so the `safety_concern` list below is
+    always empty; it is kept so an older client does not break.
 
     Scores are held per sub-service, and for some sub-services no provider has
     enough review evidence to be ranked at all. Rather than answer "no salons",
@@ -903,177 +903,93 @@ def sub_point_proof(place_id: str):
 
 @app.get("/providers/{place_id}/reply-quality")
 def reply_quality(place_id: str):
-    """How this owner handles reviews — the four measures behind category 3.
+    """Category 3 parts 3.1-3.4 as scored in framework v5.
 
-    Each figure is scoped the way its sub-point defines it, which is why they
-    do not share one denominator:
-
-      3.1  coverage and speed, measured on NEGATIVE AND NEUTRAL reviews only.
-           A reply under a five-star review says nothing about how complaints
-           are handled, so it is not counted.
-      3.2  specificity, assessed on every reply there is.
-      3.3  stance and remedy, judged only where there was a complaint to take
-           a stance on.
-      3.4  commitments made, same scope as 3.3.
-
-    3.3 and 3.4 are thin by design: only 78 of 549 providers have any stance
-    at all and 34 have a commitment, because most salons have few complaints.
-    The response says so rather than letting a client read an empty chart as
-    a flaw -- `has_complaints` is the flag to branch on.
+    A complaint is a review with text whose latest overall_sentiment is not
+    positive. 3.1-3.3 count replies to complaints only; replies to positive
+    reviews are not counted anywhere. 3.4 reads the promise outcomes the
+    latest scoring run wrote to score.commitment_outcome.
+    """
+    # Latest assessment run per review, as 06_run_scoring.py takes it, so no
+    # review is counted twice.
+    complaints_cte = """
+            with c as (
+                select r.review_id, o.review_id is not null as replied, o.reply_text,
+                       rp.specificity, rp.stance, rp.remedy_offered
+                from raw.review r
+                join lateral (
+                    select x.overall_sentiment from extract.review_assessment x
+                    where x.review_id = r.review_id order by x.run_id desc limit 1
+                ) ra on true
+                left join raw.owner_reply o using (review_id)
+                left join lateral (
+                    select y.specificity, y.stance, y.remedy_offered from extract.reply_assessment y
+                    where y.review_id = r.review_id order by y.run_id desc limit 1
+                ) rp on true
+                where r.place_id = %s
+                  and coalesce(trim(r.review_text), '') <> ''
+                  and ra.overall_sentiment <> 'positive'
+            )
     """
     with cursor() as cur:
         cur.execute(
-            """
-            with rv as (
-                select r.review_id,
-                       coalesce(ra.overall_sentiment, 'positive') as sentiment,
-                       o.review_id is not null as replied,
-                       rp.latency_days, rp.specificity, rp.stance,
-                       rp.remedy_offered, rp.commitment_made
-                from raw.review r
-                left join extract.review_assessment ra using (review_id)
-                left join raw.owner_reply o using (review_id)
-                left join extract.reply_assessment rp using (review_id)
-                where r.place_id = %s
-            )
+            complaints_cte + """
             select
-              count(*)                                                   as reviews,
-              count(*) filter (where replied)                            as replied,
-              count(*) filter (where sentiment in ('negative','neutral')) as complaints,
-              count(*) filter (where sentiment in ('negative','neutral') and replied)
-                                                                         as complaints_replied,
-              percentile_cont(0.5) within group (
-                  order by latency_days
-              ) filter (where latency_days >= 0)                         as median_days,
-              count(*) filter (where specificity = 'specific')           as spec_specific,
-              count(*) filter (where specificity = 'partly specific')    as spec_partly,
-              count(*) filter (where specificity = 'generic')            as spec_generic,
-              count(*) filter (where stance = 'accepts / apologises')    as st_accepts,
-              count(*) filter (where stance = 'accepts and disputes (mixed)') as st_mixed,
-              count(*) filter (where stance = 'neither accepts nor disputes') as st_neither,
-              count(*) filter (where stance = 'disputes the report')     as st_disputes,
-              count(*) filter (where remedy_offered)                     as remedy,
-              count(*) filter (where commitment_made)                    as commitment
-            from rv
+              count(*)                                                            as complaints,
+              count(*) filter (where replied)                                     as complaints_replied,
+              count(*) filter (where replied and specificity = 'specific')        as spec_specific,
+              count(*) filter (where replied and specificity = 'partly specific') as spec_partly,
+              count(*) filter (where replied and specificity = 'generic')         as spec_generic,
+              count(*) filter (where replied and stance = 'accepts / apologises') as st_accepts,
+              count(*) filter (where replied and stance = 'accepts and disputes (mixed)') as st_mixed,
+              count(*) filter (where replied and stance = 'neither accepts nor disputes') as st_neither,
+              count(*) filter (where replied and stance = 'disputes the report')  as st_disputes,
+              count(*) filter (where replied and remedy_offered)                  as remedy
+            from c
             """,
             (place_id,),
         )
         r = cur.fetchone()
 
-        # One real reply of each kind, so "mostly generic" can be checked
-        # rather than taken on trust. Shortest first: a specific reply proves
-        # the point in a sentence, and a 400-word one would bury the panel.
+        # One real reply to a complaint of each kind, shortest first.
         cur.execute(
-            """
-            select distinct on (rp.specificity) rp.specificity, o.reply_text
-            from raw.review rv
-            join raw.owner_reply o using (review_id)
-            join extract.reply_assessment rp using (review_id)
-            where rv.place_id = %s
-              and rp.specificity in ('specific', 'generic')
-              and length(o.reply_text) between 40 and 400
-            order by rp.specificity, length(o.reply_text)
+            complaints_cte + """
+            select distinct on (specificity) specificity, reply_text
+            from c
+            where replied
+              and specificity in ('specific', 'generic')
+              and length(reply_text) between 40 and 400
+            order by specificity, length(reply_text)
             """,
             (place_id,),
         )
         examples = {x["specificity"]: x["reply_text"] for x in cur.fetchall()}
 
-        # Was the promise kept? score.commitment_outcome is where that answer
-        # would live, and the scoring run has never filled it in -- the run
-        # notes fulfilment as "not testable yet". Reporting the table's
-        # emptiness is the honest answer; guessing from later reviews would
-        # invent a measure the artefact has not validated.
-        cur.execute("select count(*) as n from score.commitment_outcome")
-        outcomes_known = cur.fetchone()["n"] > 0
-
-        # Did it change? score.commitment_outcome is empty, so test each
-        # promise against the reviews themselves: count complaints about the
-        # PROMISED issue in a fixed 90-day window each side of every promise,
-        # and sum across the salon's promises.
-        #
-        #   * only the categories a promise was tagged with are counted, so a
-        #     promise about waiting is judged on waiting complaints, not all
-        #   * a fixed, symmetric window means the two sides cover the same
-        #     span, so neither is favoured by a longer history
-        #   * per-promise and summed, so a salon that kept promising through a
-        #     bad patch is measured across all of them, not one cutoff that
-        #     might sit at the edge of its history
-        # The counts are small and promises cluster, so this is a before/after
-        # trend, not a verdict -- the client shows a direction, not a score.
         cur.execute(
             """
-            with promise as (
-                select o.reply_date as at,
-                       array_remove(array[
-                         case when rp.commitment_issue like '%%service outcome%%' then 1 end,
-                         case when rp.commitment_issue like '%%waiting / time%%'  then 5 end,
-                         case when rp.commitment_issue like '%%staff behaviour%%' then 5 end,
-                         case when rp.commitment_issue like '%%price%%'           then 6 end,
-                         case when rp.commitment_issue like '%%hygiene / safety%%' then 7 end
-                       ], null) as cats
-                from raw.owner_reply o
-                join extract.reply_assessment rp using (review_id)
-                join raw.review rv using (review_id)
-                where rv.place_id = %(pid)s and rp.commitment_made
-                  and o.reply_date is not null
-            ),
-            counted as (
-                select p.at,
-                       (select count(*)
-                        from raw.review r
-                        join extract.evidence_item e using (review_id)
-                        join ref.sub_point sp on sp.code = e.sub_point_code
-                        where r.place_id = %(pid)s
-                          and e.polarity in ('negative', 'mixed')
-                          and sp.category_no = any(p.cats)
-                          and r.published_at <  p.at
-                          and r.published_at >= p.at - interval '90 days') as before_n,
-                       (select count(*)
-                        from raw.review r
-                        join extract.evidence_item e using (review_id)
-                        join ref.sub_point sp on sp.code = e.sub_point_code
-                        where r.place_id = %(pid)s
-                          and e.polarity in ('negative', 'mixed')
-                          and sp.category_no = any(p.cats)
-                          and r.published_at >= p.at
-                          and r.published_at <  p.at + interval '90 days') as after_n
-                from promise p
-                where array_length(p.cats, 1) > 0
-            )
-            select count(*) as promises,
-                   coalesce(sum(before_n), 0) as before_total,
-                   coalesce(sum(after_n), 0)  as after_total
-            from counted
+            select co.outcome, count(*) as n
+            from score.commitment_outcome co
+            join raw.review rv using (review_id)
+            where rv.place_id = %s
+              and co.scoring_run_id = (select max(scoring_run_id) from score.scoring_run)
+            group by co.outcome
             """,
-            {"pid": place_id},
+            (place_id,),
         )
-        tr = cur.fetchone()
-        commitment_trend = None
-        if tr and tr["promises"] and (tr["before_total"] + tr["after_total"]) > 0:
-            commitment_trend = {
-                "promises": tr["promises"],
-                "before": tr["before_total"],
-                "after": tr["after_total"],
-                "window_days": 90,
-            }
+        outcomes = {x["outcome"]: x["n"] for x in cur.fetchall()}
 
-    stance = {"accepts": r["st_accepts"], "mixed": r["st_mixed"],
-              "neither": r["st_neither"], "disputes": r["st_disputes"]}
     return {
-        "reviews": r["reviews"],
-        "replied": r["replied"],
         "complaints": r["complaints"],
         "complaints_replied": r["complaints_replied"],
-        "median_days": float(r["median_days"]) if r["median_days"] is not None else None,
         "specificity": {"specific": r["spec_specific"], "partly": r["spec_partly"],
                         "generic": r["spec_generic"]},
-        "stance": stance,
+        "stance": {"accepts": r["st_accepts"], "mixed": r["st_mixed"],
+                   "neither": r["st_neither"], "disputes": r["st_disputes"]},
         "remedy": r["remedy"],
-        "commitment": r["commitment"],
-        "commitment_trend": commitment_trend,
-        "has_complaints": sum(stance.values()) > 0,
+        "promises": {"kept": outcomes.get("kept", 0), "broken": outcomes.get("broken", 0),
+                     "no_clear_change": outcomes.get("no clear change", 0),
+                     "not_testable": outcomes.get("not testable", 0)},
         "examples": examples,
-        "outcomes_known": outcomes_known,
     }
 
 

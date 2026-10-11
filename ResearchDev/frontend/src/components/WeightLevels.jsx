@@ -1,28 +1,27 @@
 import { useState } from "react";
+import { CATEGORY_INFO } from "../constants/categories";
 
 // `label` is the category's name and `tag` a one-line plain-language gloss
 // shown under it; both are display only.
 //
 // `no` is the backend contract: ref.framework_category.category_no. The API
 // takes the seven weights as a list in category_no order; toWeightList builds
-// that list from `no`, never from position. Labels are the framework's own
-// category names (frozen, as in the database), shown in framework order.
+// that list from `no`, never from position. Labels and tags come from
+// constants/categories.js, so every screen uses the same wording.
 //
-// Framework v4 has EIGHT categories, but category 8 — Overall Verdict — is
+// Framework v5 has EIGHT categories, but category 8 — Overall Verdict — is
 // reported only: it carries weight 0 in ref.framework_category, summarises the
 // other seven, and would double-count if someone could weight it too. It is
-// deliberately absent from this list, which is the weighting control. The
-// verdict itself is still shown on a salon's card, from the API's own category
-// scores.
+// deliberately absent from this list, and it is never shown.
 export const CATEGORIES = [
-  { no: 1, key: "quality_of_work",         label: "Quality of the Result",                              tag: "Good work, and it lasts." },
-  { no: 2, key: "consultation_aftercare",  label: "Consultation, Care & Aftercare",                     tag: "They check first and advise after." },
-  { no: 3, key: "owner_responsiveness",    label: "Management Responsiveness & Continuous Improvement", tag: "The owner answers and improves." },
-  { no: 4, key: "customer_trust",          label: "Customer Trust & Recommendation",                    tag: "Customers recommend and return." },
-  { no: 5, key: "staff_customer_service",  label: "Staff & Customer Service",                           tag: "Friendly, gentle, on time." },
-  { no: 6, key: "value_price_honesty",     label: "Value & Price Honesty",                              tag: "Fair price, no surprises." },
-  { no: 7, key: "safety_hygiene",          label: "Safety, Hygiene & Facilities",                       tag: "Clean, safe, well equipped." },
-];
+  { no: 1, key: "quality_of_work" },
+  { no: 2, key: "consultation_aftercare" },
+  { no: 3, key: "owner_responsiveness" },
+  { no: 4, key: "customer_trust" },
+  { no: 5, key: "staff_customer_service" },
+  { no: 6, key: "value_price_honesty" },
+  { no: 7, key: "safety_hygiene" },
+].map((c) => ({ ...c, label: CATEGORY_INFO[c.no].name, tag: CATEGORY_INFO[c.no].description }));
 
 /** How many weights the API expects — the seven weighted categories. Kept as a
     constant rather than read off CATEGORIES.length at the call site so the

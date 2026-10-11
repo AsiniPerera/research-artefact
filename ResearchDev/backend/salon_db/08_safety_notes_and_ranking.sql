@@ -8,7 +8,7 @@
 -- was the one thing the list would not tell them: the salon simply was not
 -- there, with no reason given.
 --
--- Framework v4 has no vetoes, so nothing reaches "safety concern" through that
+-- Framework v5 has no vetoes, so nothing reaches "safety concern" through that
 -- route today and the caution comes from the safety evidence instead. The
 -- precedence rule below is what matters either way, and is unchanged.
 --
@@ -37,7 +37,7 @@
 -- "0 customers reported…" if the counter is trusted. So two sources are used:
 --
 --   vetoes    score.gate_veto_status, which stores the report count and the
---             first and last report date per sub-point. Framework v4 marks no
+--             first and last report date per sub-point. Framework v5 marks no
 --             sub-point as a veto, so this source is currently empty; it is
 --             kept because the rule is still implemented and driven off
 --             is_veto.
@@ -47,7 +47,7 @@
 --             sub-point list are both read from the scoring run's own
 --             parameters, so this view cannot drift from the scoring.
 --
--- The safety sub-points in framework v4 are 7.1, 7.2 and 7.3; the scoring reads
+-- The safety sub-points in framework v5 are 7.1, 7.2 and 7.3; the scoring reads
 -- them from ref.sub_point.is_safety rather than from a hard-coded list, so
 -- changing that flag is enough to change both.
 
@@ -62,13 +62,12 @@ ref_date as (select max(published_at)::date as d from raw.review),
 
 -- How each sub-point is said to a customer. Kept here rather than in the app
 -- so the wording cannot drift between the API, the card and a report.
--- Framework v4 sub-point codes. Any safety sub-point missing from here falls
+-- Framework v5 sub-point codes. Any safety sub-point missing from here falls
 -- back to 'damage', so adding one is safe but leaves a vaguer sentence.
 phrase(code, words) as (values
   ('7.1', 'an unclean salon'),
   ('7.2', 'tools or staff that were not hygienic'),
-  ('7.3', 'being hurt — a reaction, a burn or unsafe methods'),
-  ('5.5', 'work the salon did not put right')
+  ('7.3', 'being hurt — a reaction, a burn or unsafe methods')
 ),
 
 -- A veto: the report count and dates are already stored per sub-point.
@@ -162,7 +161,7 @@ returns table (rank_no bigint, place_id text, provider_name text, city text, per
                range_low numeric, range_high numeric, safety_status text, rank_status text, badges text, evidence_reviews int)
 language sql stable as $$
   with w as (
-    -- Seven weights, one per WEIGHTED category. Framework v4's category 8
+    -- Seven weights, one per WEIGHTED category. Framework v5's category 8
     -- (Overall Verdict) is reported only and carries no user weight, so
     -- generate_series stops at 7 and the join below drops its score rows
     -- from the mean. A shorter array is padded with 1 by the coalesce.
@@ -214,7 +213,7 @@ returns table (rank_no bigint, place_id text, provider_name text, city text, per
                evidence_reviews int)
 language sql stable as $$
   with w as (
-    -- Seven weights, one per WEIGHTED category. Framework v4's category 8
+    -- Seven weights, one per WEIGHTED category. Framework v5's category 8
     -- (Overall Verdict) is reported only and carries no user weight, so
     -- generate_series stops at 7 and the join below drops its score rows
     -- from the mean. A shorter array is padded with 1 by the coalesce.

@@ -1,6 +1,6 @@
 """Step 6: scoring. Reads the evidence from the database, calculates the scores, writes the score tables.
 
-Framework v4: SEVEN weighted categories plus Overall Verdict.
+Framework v5: SEVEN weighted categories plus Overall Verdict.
 
   1 Quality of the Result                              from review evidence
   2 Consultation, Care & Aftercare                     from review evidence
@@ -47,7 +47,7 @@ P = {
     'window_months': 24,                 # gate / veto / safety evidence window and expiry
     'min_days_apart': 7,                 # independence of two reports
     'gate_penalty': 0.15,
-    # Gates only bite where the service calls for them. Framework v4 marks no
+    # Gates only bite where the service calls for them. Framework v5 marks no
     # sub-point as a gate, so this is empty and no penalty is ever applied; a
     # gate added to ref.sub_point but not listed here defaults to tier 1, i.e.
     # it applies everywhere.
@@ -59,7 +59,7 @@ P = {
     'recency_half_life_months': 24,      # an item this old counts half
     'specificity_weight': {'same_sub_service': 1.0, 'same_service': 0.75, 'provider_level': 0.5, 'other_service_provider_trait': 0.25, 'other_service_outcome': 0.0},
     # Categories that describe the SALON rather than one service, so evidence
-    # from another service still says something about them. Framework v4:
+    # from another service still says something about them. Framework v5:
     # 3 management responsiveness, 4 customer trust, 5 staff & customer service,
     # 6 value & price honesty, 7 safety, hygiene & facilities. Categories 1
     # (quality of work) and 2 (consultation, care & aftercare) are service
@@ -115,7 +115,7 @@ WEIGHTED = [int(c) for c in fc.loc[fc['weight'] > 0, 'category_no']]        # 1 
 REPORTED = [int(c) for c in fc.loc[fc['weight'] <= 0, 'category_no']]       # 8, Overall Verdict
 ALL_CATS = WEIGHTED + REPORTED
 # The category whose sub-points are computed from owner replies rather than from
-# review text, and the sub-points inside it that are. Framework v4: 3.1 only.
+# review text, and the sub-points inside it that are. Framework v5: 3.1 only.
 COMPUTED_SP = list(spx.loc[spx['is_computed'], 'code'])
 REPLY_CATS = sorted({int(c) for c in spx.loc[spx['is_computed'], 'category_no']})
 P['safety_sub_points'] = list(spx.loc[spx['is_safety'], 'code'])

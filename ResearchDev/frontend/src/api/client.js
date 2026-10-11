@@ -51,7 +51,8 @@ export const getFramework = (opts) => get("/framework", null, opts);
  *            8, Overall Verdict, is reported only and takes no weight.
  *   city     optional city filter
  *   status   "open" | "closed" | "any" — Google business status, not opening hours
- * Returns { sub_service, weights, ranked[], available_but_not_ranked[], safety_concern[] }.
+ * Returns { sub_service, weights, ranked[], available_but_not_ranked[] }. The API also
+ * returns safety_concern[], which is always empty in v5 and is not read here.
  *
  * When nothing can be ranked at the sub-service asked for, the API may answer
  * at a broader level and say so with requested / level_used / shown — read

@@ -1,7 +1,7 @@
 -- Run after loading. Each query should return the figure in the comment.
 
 -- 1. Reference data: 5 / 17 / 51 / 8 / 26
---    Taxonomy v9 is 5 / 17 / 51. Framework v4 is 7 weighted categories plus
+--    Taxonomy v9 is 5 / 17 / 51. Framework v5 is 7 weighted categories plus
 --    Overall Verdict (8 rows), and 25 sub-points plus `overall` (26 rows).
 select (select count(*) from ref.service_category) as categories,
        (select count(*) from ref.service)          as services,
@@ -25,7 +25,7 @@ select category_no, polarity, count(*) from extract.v_evidence group by 1, 2 ord
 
 -- 5. Preview of the gate / veto rule: providers with 2 or more qualifying reports in the last 24 months,
 --    at least 7 days apart. Near-copy checks are not applied yet.
---    Framework v4 marks NO sub-point as a gate or a veto, so this returns no rows.
+--    Framework v5 marks NO sub-point as a gate or a veto, so this returns no rows.
 --    It is kept because the rule is still implemented and driven off is_gate /
 --    is_veto: mark a sub-point in 02_reference_data.sql and this answers again.
 with q as (
