@@ -1221,20 +1221,40 @@ export function SalonDetail({ salonId, onBack }) {
             {[1,2,3,4,5,6,7].map((no) => {
               const label = CATEGORY_DISPLAY[no] ?? categoryName[no] ?? `Category ${no}`;
               const checks = subPointsOf(no);
-              // aggregate pos/neg across all sub-points of this category
+              // aggregate across all sub-points; a mixed comment counts half positive, half negative
               let totalPos = 0, totalNeg = 0;
               for (const c of checks) {
                 if (no === 3 && c.code !== "3.5") continue;   // 3.1-3.4 come from owner replies, not statements
                 const cnt = subPointBy?.[c.code];
-                totalPos += cnt?.positive ?? 0;
-                totalNeg += (cnt?.negative ?? 0) + (cnt?.mixed ?? 0);
+                totalPos += (cnt?.positive ?? 0) + 0.5 * (cnt?.mixed ?? 0);
+                totalNeg += (cnt?.negative ?? 0) + 0.5 * (cnt?.mixed ?? 0);
               }
-              const total = totalPos + totalNeg;
-              const posShare = total ? Math.round((totalPos / total) * 100) : null;
-              const verdict = posShare == null ? null
-                : posShare >= 85 ? { word: "Excellent", cls: "excellent" }
-                : posShare >= 70 ? { word: "Good", cls: "good" }
-                : posShare >= 55 ? { word: "Mixed", cls: "average" }
+              const total = Math.round(totalPos + totalNeg);
+              const posShare = total ? Math.round((totalPos / (totalPos + totalNeg)) * 100) : null;
+
+              // Category 3 is the average of its parts that have evidence, as in the score.
+              let share = posShare;
+              if (no === 3 && replyQuality) {
+                const rq = replyQuality;
+                const sp = rq.specificity ?? {}, st = rq.stance ?? {}, pr = rq.promises ?? {};
+                const nSpec = (sp.specific ?? 0) + (sp.partly ?? 0) + (sp.generic ?? 0);
+                const nSt = (st.accepts ?? 0) + (st.mixed ?? 0) + (st.disputes ?? 0) + (st.neither ?? 0);
+                const tested = (pr.kept ?? 0) + (pr.broken ?? 0);
+                const parts = [
+                  rq.complaints > 0 ? rq.complaints_replied / rq.complaints : null,                      // 3.1
+                  nSpec ? ((sp.specific ?? 0) + 0.5 * (sp.partly ?? 0)) / nSpec : null,                  // 3.2
+                  nSt ? (((st.accepts ?? 0) + 0.75 * (st.mixed ?? 0) + 0.5 * (st.disputes ?? 0)
+                          + 0.25 * (st.neither ?? 0)) / nSt + Math.min(1, (rq.remedy ?? 0) / nSt)) / 2
+                      : null,                                                                            // 3.3
+                  tested ? (pr.kept ?? 0) / tested : null,                                               // 3.4
+                  total ? totalPos / (totalPos + totalNeg) : null,                                       // 3.5
+                ].filter((x) => x != null);
+                share = parts.length ? Math.round((parts.reduce((a, b) => a + b, 0) / parts.length) * 100) : null;
+              }
+              const verdict = share == null ? null
+                : share >= 85 ? { word: "Excellent", cls: "excellent" }
+                : share >= 70 ? { word: "Good", cls: "good" }
+                : share >= 55 ? { word: "Mixed", cls: "average" }
                 : { word: "Needs attention", cls: "poor" };
 
               return (
@@ -1419,9 +1439,9 @@ export function SalonDetail({ salonId, onBack }) {
                       }
 
                       const cnt = subPointBy?.[c.code];
-                      const pos = cnt?.positive ?? 0;
-                      const neg = (cnt?.negative ?? 0) + (cnt?.mixed ?? 0);
-                      const n = pos + neg;
+                      const mixed = cnt?.mixed ?? 0;
+                      const pos = (cnt?.positive ?? 0) + 0.5 * mixed;
+                      const n = (cnt?.positive ?? 0) + (cnt?.negative ?? 0) + mixed;
                       const pShare = n ? Math.round((pos / n) * 100) : null;
                       const icon = pShare == null ? "—" : pShare >= 75 ? "✓" : pShare >= 50 ? "~" : "✗";
                       const iconCls = pShare == null ? "neutral" : pShare >= 75 ? "pos" : pShare >= 50 ? "mix" : "neg";
