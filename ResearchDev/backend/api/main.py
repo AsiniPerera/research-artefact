@@ -187,7 +187,7 @@ app.add_middleware(
 
 from auth import router as auth_router
 from contact import router as contact_router
-from consistency import ConsistencyWindow, consistency_for
+_VALID_WINDOWS = {"6m", "1y", "3y", "anytime"}
 from staff import (staff_for, staff_dependent_flag, staff_dependent_for,
                    reviews_for_staff, named_staff_summary_for, staff_card_for)
 from popular_services import popular_services_for
@@ -210,15 +210,22 @@ def _sub_service_or_404(cur, code: str) -> dict:
     return row
 
 
-# Framework v5 has eight categories but only SEVEN of them are weighted:
-# category 8, Overall Verdict, is reported only — it summarises the other seven
-# and would double-count if the user could also weight it. So the weights vector
-# is seven numbers, and ref.framework_category.weight > 0 is what defines that.
+# Framework v6: nine categories, but the API contract stays at SEVEN weights
+# (categories 1-7). Category 3 is reported only (weight forced to 0).
+# Category 8 (Overall Verdict) is never weighted. Category 9 (Service Expertise
+# & Consistency) is fixed at 2 (Medium) — the ranking functions handle this
+# internally. The weights vector the client sends is seven numbers, categories
+# 1 to 7 in order; the ranking function reads positions 1-7 from it and adds
+# Category 9 at a fixed 2.
 WEIGHTED_CATEGORIES = 7
 
 
 def _parse_weights(weights: str | None) -> list[float] | None:
-    """'1,1,…' → seven non-negative numbers in category_no order, or None for equal."""
+    """'1,1,…' → seven non-negative numbers in category_no order, or None for equal.
+
+    Category 3 is forced to 0 (reported only) regardless of what the client
+    sends. The ranking functions add Category 9 at a fixed weight of 2.
+    """
     if not weights:
         return None
     try:
@@ -229,21 +236,21 @@ def _parse_weights(weights: str | None) -> list[float] | None:
         raise HTTPException(
             422,
             f"weights must have exactly {WEIGHTED_CATEGORIES} values, one per weighted "
-            "category (1 to 7). Category 8, Overall Verdict, is reported only and "
-            "takes no weight.",
+            "category (1 to 7). Category 8 and 9 are handled automatically.",
         )
     if any(v < 0 for v in values):
         raise HTTPException(422, "weights cannot be negative")
+    # Category 3 is reported only — force to 0 so it never affects ranking
+    values[2] = 0
     if all(v == 0 for v in values):
         raise HTTPException(422, "at least one weight must be above zero")
     return values
 
 
-def _window(value: str) -> ConsistencyWindow:
-    try:
-        return ConsistencyWindow(value)
-    except ValueError:
+def _window(value: str) -> str:
+    if value not in _VALID_WINDOWS:
         raise HTTPException(422, "consistency_window must be 6m, 1y, 3y or anytime")
+    return "all" if value == "anytime" else value
 
 
 @app.get("/health")
@@ -393,14 +400,15 @@ _RANK_COLUMNS = """
 """
 
 
-def _rank_rows(cur, level: str, code: str, w, city: str, status: str) -> list[dict]:
+def _rank_rows(cur, level: str, code: str, w, city: str, status: str,
+               window: str = "1y") -> list[dict]:
     """One level of the ranking, filtered. Nothing here re-orders the rows."""
     if level == "sub_service":
-        source = "from score.rank_providers(%s, %s::numeric[]) with ordinality r"
-        args = (code, w)
+        source = "from score.rank_providers(%s, %s::numeric[], %s) with ordinality r"
+        args = (code, w, window)
     else:
-        source = "from score.rank_providers_group(%s, %s, %s::numeric[]) with ordinality r"
-        args = (level, code, w)
+        source = "from score.rank_providers_group(%s, %s, %s::numeric[], %s) with ordinality r"
+        args = (level, code, w, window)
     cur.execute(
         _RANK_COLUMNS + source + _RANK_FILTER,
         args + (city, city, status, status, status),
@@ -414,7 +422,7 @@ _LEVEL_COL = {"sub_service": "sub_service_code",
               "service": "service_code", "category": "category_code"}
 
 
-def _attach_category_scores(cur, rows, level_used, shown):
+def _attach_category_scores(cur, rows, level_used, shown, window="1y"):
     """Add `category_scores` to each row, in place.
 
     Keyed at whatever level ranked: the category scores of the sub-service at
@@ -422,6 +430,9 @@ def _attach_category_scores(cur, rows, level_used, shown):
     sub-services at a broader one. Scores here do not depend on the user's
     weights -- weights blend the categories into the overall, they do not
     change a category's own score -- so this is stable across re-weights.
+
+    Category 9 is replaced with the chosen window's value from
+    score.category9_window, with score_9_1 and score_9_2 included.
     """
     if not (rows and level_used in _LEVEL_COL and shown):
         return
@@ -447,9 +458,45 @@ def _attach_category_scores(cur, rows, level_used, shown):
             "score": float(cs["score"]),
             "evidence_count": cs["evidence_count"],
         })
+    cat9 = _cat9_window_scores(cur, place_ids, level_used, shown["code"], window)
+    for pid, c9 in cat9.items():
+        cats = by_place.get(pid, [])
+        cats = [c for c in cats if c["category_no"] != 9]
+        cats.append(c9)
+        by_place[pid] = cats
     for r in rows:
         r["category_scores"] = sorted(
             by_place.get(r["place_id"], []), key=lambda x: x["category_no"])
+
+
+def _cat9_window_scores(cur, place_ids, level_used, code, window):
+    """Category 9 scores from category9_window for the chosen window."""
+    cur.execute(
+        f"""
+        select cw.place_id,
+               round(avg(cw.score)::numeric, 4) as score,
+               round(avg(cw.score_9_1)::numeric, 4) as score_9_1,
+               round(avg(cw.score_9_2)::numeric, 4) as score_9_2
+        from score.category9_window cw
+        join ref.dim_service d using (sub_service_code)
+        where cw.scoring_run_id = {_LATEST_RUN}
+          and cw.place_id = any(%s)
+          and d.{_LEVEL_COL[level_used]} = %s
+          and cw.window_code = %s
+        group by cw.place_id
+        """,
+        (place_ids, code, window),
+    )
+    out = {}
+    for r in cur.fetchall():
+        out[r["place_id"]] = {
+            "category_no": 9,
+            "score": float(r["score"]) if r["score"] is not None else 0.5,
+            "score_9_1": float(r["score_9_1"]) if r["score_9_1"] is not None else None,
+            "score_9_2": float(r["score_9_2"]) if r["score_9_2"] is not None else None,
+            "evidence_count": 0,
+        }
+    return out
 
 
 def _haversine_km(lat1, lng1, lat2, lng2) -> float:
@@ -527,7 +574,7 @@ def rankings_nearby(
         level_used, shown, rows = "none", None, []
         for level, code_key, name_key in _FALLBACK_LEVELS:
             code, name = sub[code_key], sub[name_key]
-            found = _rank_rows(cur, level, code, w, "", status)
+            found = _rank_rows(cur, level, code, w, "", status, window=cw)
             shown, rows = {"code": code, "name": name}, found
             if any(r["rank_status"] == "ranked" for r in found):
                 level_used = level
@@ -548,14 +595,11 @@ def rankings_nearby(
 
         nearby.sort(key=lambda x: x["distance_km"])
         nearby = nearby[:limit]
-        _attach_category_scores(cur, nearby, level_used, shown)
-        cons = consistency_for(cur, [r["place_id"] for r in nearby], cw, sub["service_code"])
-        # One staff query, not two: the flag and the summary are the same scan.
+        _attach_category_scores(cur, nearby, level_used, shown, window=cw)
         staff_card = staff_card_for(cur, [r["place_id"] for r in nearby])
         pop = popular_services_for(cur, [r["place_id"] for r in nearby])
         for r in nearby:
             card = staff_card.get(r["place_id"], {})
-            r["consistency"] = cons.get(r["place_id"])
             r["staff_dependent"] = card.get("staff_dependent", False)
             r["popular_services"] = pop.get(r["place_id"])
             r["named_staff"] = card.get("named_staff", {"count": 0, "top": []})
@@ -619,26 +663,17 @@ def rankings(
         level_used, shown, rows = "none", None, []
         for level, code_key, name_key in _FALLBACK_LEVELS:
             code, name = sub[code_key], sub[name_key]
-            found = _rank_rows(cur, level, code, w, city, status)
-            # The broadest level's lists stand as the answer when no level can
-            # rank anyone, so keep what each step found until one succeeds.
+            found = _rank_rows(cur, level, code, w, city, status, window=cw)
             shown, rows = {"code": code, "name": name}, found
             if any(r["rank_status"] == "ranked" for r in found):
                 level_used = level
                 break
 
-        # Per-category scores for every row, so a card can show the breakdown
-        # behind the overall number without a second request -- the thing that
-        # lets a reader compare two salons on the results page itself.
-        #
-        _attach_category_scores(cur, rows, level_used, shown)
-        cons = consistency_for(cur, [r["place_id"] for r in rows], cw, sub["service_code"])
-        # One staff query, not two: the flag and the summary are the same scan.
+        _attach_category_scores(cur, rows, level_used, shown, window=cw)
         staff_card = staff_card_for(cur, [r["place_id"] for r in rows])
         pop = popular_services_for(cur, [r["place_id"] for r in rows])
         for r in rows:
             card = staff_card.get(r["place_id"], {})
-            r["consistency"] = cons.get(r["place_id"])
             r["staff_dependent"] = card.get("staff_dependent", False)
             r["popular_services"] = pop.get(r["place_id"])
             r["named_staff"] = card.get("named_staff", {"count": 0, "top": []})
@@ -678,10 +713,12 @@ def search_providers(q: str = "", limit: int = Query(50, ge=1, le=200)):
 
 @app.get("/providers/{place_id}")
 def provider(place_id: str, consistency_window: str = Query("1y", description="6m, 1y, 3y or anytime")):
-    """Details, safety, gates and vetoes, and a score per service with eight category scores.
+    """Details, safety, gates and vetoes, and a score per service with category scores.
 
-    Seven weighted categories plus Overall Verdict, which is reported only.
+    Seven weighted categories plus Overall Verdict (reported only) and
+    Category 9 (from category9_window for the chosen window, with 9.1/9.2).
     """
+    cw = _window(consistency_window)
     with cursor() as cur:
         cur.execute(
             """
@@ -749,6 +786,27 @@ def provider(place_id: str, consistency_window: str = Query("1y", description="6
         for r in cur.fetchall():
             by_service.setdefault(r.pop("sub_service_code"), []).append(r)
 
+        cur.execute(
+            f"""
+            select cw.sub_service_code, cw.score, cw.score_9_1, cw.score_9_2
+            from score.category9_window cw
+            where cw.place_id = %s and cw.scoring_run_id = {_LATEST_RUN}
+              and cw.window_code = %s
+            """,
+            (place_id, cw),
+        )
+        for r in cur.fetchall():
+            ssc = r.pop("sub_service_code")
+            cats = by_service.get(ssc, [])
+            cats = [c for c in cats if c["category_no"] != 9]
+            cats.append({
+                "category_no": 9, "name": "Service Expertise & Consistency",
+                "score": r["score"], "evidence_count": 0,
+                "score_9_1": float(r["score_9_1"]) if r["score_9_1"] is not None else None,
+                "score_9_2": float(r["score_9_2"]) if r["score_9_2"] is not None else None,
+            })
+            by_service[ssc] = cats
+
         # The services this provider's EVIDENCE is actually filed under.
         #
         # Not the same thing as `services` above. A sub-service is scored from
@@ -795,7 +853,6 @@ def provider(place_id: str, consistency_window: str = Query("1y", description="6
             (place_id,),
         )
         sentiment_totals = {r["polarity"]: r["n"] for r in cur.fetchall()}
-        consistency = consistency_for(cur, [place_id], _window(consistency_window))[place_id]
         staff_reputation = staff_for(cur, [place_id])[place_id]
         # From the list just fetched, not a second query.
         staff_reputation["staff_dependent"] = staff_dependent_flag(staff_reputation["staff"])
@@ -807,7 +864,7 @@ def provider(place_id: str, consistency_window: str = Query("1y", description="6
 
     return {**details, "safety": safety, "gates_and_vetoes": gates, "services": services_,
             "evidence_services": evidence_services, "sentiment_totals": sentiment_totals,
-            "consistency": consistency, "staff_reputation": staff_reputation,
+            "staff_reputation": staff_reputation,
             "popular_services": popular_services, "languages": languages}
 
 
@@ -1031,7 +1088,7 @@ def evidence(
     # listable; an outcome category gives them weight 0 and the app does not
     # ask for them.
     exclude_service_code: str | None = None,
-    category_no: int | None = Query(None, ge=1, le=8),
+    category_no: int | None = Query(None, ge=1, le=9),
     # Any review-level sentiment the data holds (extract.review_assessment
     # .overall_sentiment). Kept as a word so a new value is accepted, not a
     # fixed allow-list; the query simply matches it, and an unknown value finds

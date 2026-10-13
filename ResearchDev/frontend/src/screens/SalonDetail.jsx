@@ -8,7 +8,6 @@ import {
 import { LEAF_BY_CODE } from "../constants/taxonomy";
 import { SUB_POINTS, subPointsOf } from "../constants/subPoints";
 import { CATEGORY_INFO, isShownCategory } from "../constants/categories";
-import { ConsistencyBadge } from "../components/ConsistencyBadge";
 import { StaffReputation } from "../components/StaffReputation";
 import { StaffDependentChip } from "../components/StaffDependentChip";
 import { PopularServicesBadge } from "../components/PopularServicesBadge";
@@ -992,6 +991,20 @@ function ServiceScores({ service, categoryName, categoryTrait, sentimentBy, subP
                 <span className="csl-bar-fill" style={{ width: `${s}%` }} />
               </div>
               <span className="csl-blurb">{CATEGORY_BLURB[r.category_no]}</span>
+              {r.category_no === 9 && (r.score_9_1 != null || r.score_9_2 != null) && (
+                <div className="csl-sub9">
+                  {r.score_9_1 != null && (
+                    <span className="csl-sub9-part">
+                      9.1 Consistency: {Math.round(r.score_9_1 * 100)}%
+                    </span>
+                  )}
+                  {r.score_9_2 != null && (
+                    <span className="csl-sub9-part">
+                      9.2 Expertise: {Math.round(r.score_9_2 * 100)}%
+                    </span>
+                  )}
+                </div>
+              )}
             </li>
           );
         })}
@@ -1169,7 +1182,6 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "1y" }) {
             {p.city && !String(p.address ?? "").includes(p.city) ? ` · ${p.city}` : ""}
           </p>
           <div className="detail-chips">
-            <ConsistencyBadge c={provider.consistency} />
             <StaffDependentChip
               show={provider.staff_reputation?.staff_dependent}
               linkTo="#staff-reputation"
