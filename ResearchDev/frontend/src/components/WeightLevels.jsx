@@ -9,10 +9,10 @@ import { CATEGORY_INFO } from "../constants/categories";
 // that list from `no`, never from position. Labels and tags come from
 // constants/categories.js, so every screen uses the same wording.
 //
-// Framework v5 has EIGHT categories, but category 8 — Overall Verdict — is
-// reported only: it carries weight 0 in ref.framework_category, summarises the
-// other seven, and would double-count if someone could weight it too. It is
-// deliberately absent from this list, and it is never shown.
+// Framework v6: nine categories. Category 8 (Overall Verdict) is never shown.
+// Category 3 (Management Responsiveness) is reported only: weight 0, shown on
+// profiles but not ranked. Category 9 (Service Expertise & Consistency) is
+// fixed at Medium weight — computed from review data, not adjustable.
 export const CATEGORIES = [
   { no: 1, key: "quality_of_work" },
   { no: 2, key: "consultation_aftercare" },
@@ -21,18 +21,17 @@ export const CATEGORIES = [
   { no: 5, key: "staff_customer_service" },
   { no: 6, key: "value_price_honesty" },
   { no: 7, key: "safety_hygiene" },
+  { no: 9, key: "service_expertise_consistency" },
 ].map((c) => ({ ...c, label: CATEGORY_INFO[c.no].name, tag: CATEGORY_INFO[c.no].description }));
 
-/* Category 3 is scored and shown like any other — it is on the business
-   profile, in About and in the profile's "How salons are scored" list — but it
-   is not something a customer is asked to rank themselves against the rest.
-   It describes how the business answers complaints rather than what the
-   customer is choosing between, so it keeps a fixed, neutral weight and is
-   left out of the priorities panel.
+/* Category 3 is reported only (weight 0) — shown on profiles but not ranked.
+   Category 9 is fixed at Medium (weight 2) — it measures consistency and
+   specialisation from review data and is not something a customer chooses.
+   Both are excluded from the priorities panel sliders.
 
-   CATEGORIES stays the full seven: it is what the descriptive screens read,
+   CATEGORIES stays the full eight: it is what the descriptive screens read,
    and shortening it there would under-report the framework. */
-const UNWEIGHTABLE = new Set([3]);
+const UNWEIGHTABLE = new Set([3, 9]);
 
 /** The categories the priorities panel offers. */
 export const WEIGHTABLE_CATEGORIES = CATEGORIES.filter((c) => !UNWEIGHTABLE.has(c.no));
@@ -99,15 +98,12 @@ export const CONSISTENCY_WINDOWS = [
 ];
 export const DEFAULT_CONSISTENCY_WINDOW = "1y";
 
-/* Panel order only. category_no and the weights list are unchanged, so the
-   API still receives the seven weights in category_no order. "consistency" is
-   the window selector, shown as a row like the others. */
-const PANEL_ORDER = [1, "consistency", 7, 2, 5, 6, 4];
-const CONSISTENCY_ROW = {
-  key: "consistency",
-  label: "Service Expertise & Consistency",
-  tag: "How reliably they deliver good results, within the time you choose",
-};
+/* Panel order: the categories the user can weight, plus Category 9 which shows
+   the window selector (6m / 1y / 3y / Anytime) instead of importance buttons.
+   Category 9 is in CATEGORIES (for profiles) and UNWEIGHTABLE (no importance
+   slider), so it needs its own lookup against CATEGORIES. */
+const CAT9_ROW = CATEGORIES.find((c) => c.no === 9);
+const PANEL_ORDER = [1, 9, 7, 2, 5, 6, 4];
 
 export function WeightLevels({ weights, onChange, consistencyWindow, onConsistencyWindowChange }) {
   const [showAll, setShowAll] = useState(true);
@@ -116,11 +112,11 @@ export function WeightLevels({ weights, onChange, consistencyWindow, onConsisten
      inputs left in the tree would keep taking tab stops from a control the
      visitor has put away. */
   const rows = PANEL_ORDER
-    .map((k) => (k === "consistency"
-      ? (onConsistencyWindowChange ? CONSISTENCY_ROW : null)
-      /* WEIGHTABLE_CATEGORIES, not CATEGORIES: a row listed here but ignored
-         by toWeightList would be a control that silently does nothing. */
-      : WEIGHTABLE_CATEGORIES.find((c) => c.no === k)))
+    .map((k) => {
+      if (k === 9) return (CAT9_ROW && onConsistencyWindowChange)
+        ? { ...CAT9_ROW, isWindow: true } : null;
+      return WEIGHTABLE_CATEGORIES.find((c) => c.no === k);
+    })
     .filter(Boolean);
   const shown = showAll ? rows : rows.slice(0, PREVIEW_COUNT);
 
@@ -128,8 +124,8 @@ export function WeightLevels({ weights, onChange, consistencyWindow, onConsisten
     <>
       <p className="weight-heading">How important is each to you?</p>
       <ul className="weight-list">
-        {shown.map(({ key, label, tag }) => {
-          const isWindow = key === "consistency";
+        {shown.map((row) => {
+          const { key, label, tag, isWindow } = row;
           const options = isWindow ? CONSISTENCY_WINDOWS : LEVELS;
           const idx = isWindow
             ? Math.max(0, CONSISTENCY_WINDOWS.findIndex((w) => w.value === consistencyWindow))
@@ -137,16 +133,12 @@ export function WeightLevels({ weights, onChange, consistencyWindow, onConsisten
           const id = `w-${key}`;
 
           return (
-            /* data-level drives the row's colour in CSS — the ramp lives in the
-               stylesheet rather than as hex strings passed from here. */
             <li className="weight-row" key={key} data-level={idx + 1}>
               <div className="weight-head">
                 <label id={`${id}-label`} className="weight-label">{label}</label>
                 <span className="weight-tag">{tag}</span>
               </div>
 
-              {/* Four buttons, not a drag — there are exactly four levels and
-                  no value between them. A radio group names its own stops. */}
               <div className="lvl-group" role="radiogroup" aria-labelledby={`${id}-label`}>
                 {options.map((l, i) => (
                   <button

@@ -4,6 +4,9 @@ import { toggleFavorite } from "../lib/favorites";
 import { splitBadges } from "../api/client";
 import { CATEGORY_INFO, isShownCategory } from "../constants/categories";
 
+const isCardCategory = (no) => isShownCategory(no) && Number(no) !== 3;
+const CARD_ORDER = [1, 9, 7, 2, 5, 6, 4];
+
 /** 0–1 score → 0–100 for display. */
 const pct = (x) => Math.round(Number(x ?? 0) * 100);
 
@@ -44,8 +47,8 @@ export function SalonCard({ salon, onSelect, ratedFor }) {
   const badges = splitBadges(salon.badges);
   const gateBadges = badges.filter((b) => b.startsWith("gate"));
   const catScores = (salon.category_scores ?? [])
-    .filter((c) => isShownCategory(c.category_no))
-    .sort((a, b) => a.category_no - b.category_no);
+    .filter((c) => isCardCategory(c.category_no))
+    .sort((a, b) => CARD_ORDER.indexOf(a.category_no) - CARD_ORDER.indexOf(b.category_no));
   const closed = salon.permanently_closed || salon.temporarily_closed;
   return (
     <article

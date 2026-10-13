@@ -309,6 +309,8 @@ c1 = ev[ev['sp'].str.startswith('1.')
         & ~NOFAULT & ~NOCHECK]
 # One row per (business, review) carrying that review's WORST Category 1
 # statement, so a review counts once however many points it makes.
+# Worst code: positive 0 / mixed 1 / negative 2 (higher = worse).
+# Value mapping: worst 0 → 1.0 (good), 1 → 0.5 (mixed), 2 → 0.0 (bad).
 w9 = (c1.assign(w=c1['polarity'].map({'positive': 0, 'mixed': 1, 'negative': 2}))
         .groupby(['place_id', 'review_id'], as_index=False)
         .agg(w=('w', 'max'), age_m=('age_m', 'min')))

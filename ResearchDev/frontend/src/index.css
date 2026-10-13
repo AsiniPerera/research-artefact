@@ -13286,6 +13286,155 @@ span.chip-staff-dependent:hover { background: transparent; color: var(--champagn
   margin: .15rem 0 0;
 }
 
+/* ── Contact page: fully white simple variant ─────────────────────── */
+.contactpage--simple {
+  background: #fff;
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: clamp(2.5rem, 6vw, 5rem);
+}
+.contactpage--simple .cp-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.04);
+  padding: clamp(2rem, 5vw, 3rem);
+}
+.contactpage--simple .cp-card::before { display: none; }
+.contactpage--simple .cp-card-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 2.5vw, 1.9rem);
+  color: #111827;
+  margin-bottom: .25rem;
+}
+.contactpage--simple .cp-card-sub {
+  color: #6b7280;
+  font-size: .95rem;
+  line-height: 1.6;
+  margin-bottom: .5rem;
+}
+.contactpage--simple .cp-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+.contactpage--simple .cp-field span {
+  order: -1;
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: none;
+  color: #374151;
+}
+.contactpage--simple .cp-field:focus-within span { color: #111827; }
+.contactpage--simple .cp-field input,
+.contactpage--simple .cp-field select,
+.contactpage--simple .cp-field textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: .75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #fff;
+  color: #111827;
+  font: inherit;
+  font-size: .95rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+  transition: border-color .2s, box-shadow .2s;
+}
+.contactpage--simple .cp-field input::placeholder,
+.contactpage--simple .cp-field textarea::placeholder {
+  color: #9ca3af;
+}
+.contactpage--simple .cp-field input:hover,
+.contactpage--simple .cp-field select:hover,
+.contactpage--simple .cp-field textarea:hover {
+  border-color: #9ca3af;
+}
+.contactpage--simple .cp-field input:focus,
+.contactpage--simple .cp-field select:focus,
+.contactpage--simple .cp-field textarea:focus,
+.contactpage--simple .cp-field input:focus-visible,
+.contactpage--simple .cp-field select:focus-visible,
+.contactpage--simple .cp-field textarea:focus-visible {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.12);
+  background: #fff;
+}
+.contactpage--simple .cp-field textarea {
+  min-height: 130px;
+  resize: vertical;
+  line-height: 1.6;
+}
+.contactpage--simple .cp-field select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 2.4rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%236b7280' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  cursor: pointer;
+}
+.contactpage--simple .cp-field select option { background: #fff; color: #111827; }
+.contactpage--simple .cp-field--err input,
+.contactpage--simple .cp-field--err textarea {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239,68,68,.08);
+}
+.contactpage--simple .cp-field-error {
+  font-size: .78rem;
+  color: #dc2626;
+}
+.contactpage--simple .cp-optional {
+  font-size: .75rem;
+  color: #9ca3af;
+  font-weight: 400;
+}
+.contactpage--simple .cp-char-count {
+  font-size: .75rem;
+  color: #9ca3af;
+}
+.contactpage--simple .cp-send {
+  align-self: flex-end;
+  padding: .85rem 2rem;
+  border: 0;
+  border-radius: 10px;
+  background: #111827;
+  color: #fff;
+  font-size: .88rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,.12);
+  transition: background .2s, transform .15s;
+}
+.contactpage--simple .cp-send:hover {
+  background: #1f2937;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,.15);
+}
+.contactpage--simple .cp-send:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+.contactpage--simple .cp-done h2 { color: #111827; }
+.contactpage--simple .cp-done p { color: #6b7280; }
+.contactpage--simple .btn-text { color: #3b82f6; }
+.contactpage--simple .btn-text:hover { color: #2563eb; }
+.contactpage--simple .auth-error {
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: .75rem 1rem;
+  font-size: .85rem;
+}
+
 /* ════════════════════════════════════════════════════════════════════
    SALON CARD — DOSSIER design (ranked results)
    Identity + score on top, category breakdown across the middle, an
@@ -13936,14 +14085,9 @@ span.chip-staff-dependent:hover { background: transparent; color: var(--champagn
   .cat-score-list { grid-template-columns: 1fr; }
 }
 
-/* Service Expertise Consistency badge (display only, never part of the score). */
-.consistency { display: flex; flex-direction: column; align-items: flex-end; gap: .2rem; margin-top: .4rem; }
-.detail-chips .consistency { align-items: flex-start; margin-top: 0; }
-.consistency-note { font-size: .7rem; color: var(--muted); }
-.badge--consistency-consistent_results  { color: var(--ok);    border: 1px solid var(--ok);    background: transparent; }
-.badge--consistency-mostly_consistent   { color: #9db8d6;      border: 1px solid #9db8d6;      background: transparent; }
-.badge--consistency-variable_results    { color: var(--warn);  border: 1px solid var(--warn);  background: transparent; }
-.badge--consistency-not_enough_evidence { color: var(--faint); border: 1px solid var(--faint); background: transparent; }
+.csl-sub9 { display: flex; gap: 1rem; margin-top: .25rem; flex-wrap: wrap; }
+.csl-sub9-part { font-size: .75rem; color: var(--muted); }
+
 .weight-consistency { display: flex; flex-direction: column; gap: .35rem; margin-top: 1rem; }
 /* Priorities panel at full length: no height cap and no inner scroll, so all
    seven categories and the consistency selector show without scrolling the box. */
