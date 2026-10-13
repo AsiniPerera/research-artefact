@@ -71,6 +71,15 @@ P = {
     'min_before_reviews_for_promise': 10,
     'min_after_reviews_for_promise': 10,
     'stance_score': {'accepts / apologises': 1.0, 'accepts and disputes (mixed)': 0.75, 'disputes the report': 0.5, 'neither accepts nor disputes': 0.25},
+    # Category 9, Service Expertise & Consistency. Both parts are computed
+    # here by rule, not read from review text, so neither carries a
+    # confidence, a recency weight or a specificity weight.
+    'cat9_windows': {'6m': 6, '1y': 12, '3y': 36, 'all': None},
+    'cat9_default_window': '1y',          # the value stored in score.category_score
+    'cat9_min_reviews_per_period': 3,     # 9.1: a period counts at 3 reviews
+    'cat9_min_periods': 2,                # 9.1: needs two periods to compare
+    'cat9_shrink_k': 20,                  # 9.1: pulls a thin spread toward 0.5
+    'cat9_min_service_reviews': 5,        # 9.2: below this, no evidence
     # Filled from ref.sub_point.is_safety below, so the framework decides this
     # rather than a list that has to be kept in step with it. Stored in
     # score.scoring_run.parameters, which score.v_provider_caution reads back.
@@ -274,13 +283,85 @@ for pid, (k, b) in kept_broken.items():
     if k + b:
         reply_parts.setdefault(pid, [[], 0.0, 0])[0].append((A0 + k) / (A0 + B0 + k + b))
 
+# ================= 3b. Category 9: consistency and expertise =================
+# Both parts are computed, so they never appear in `sc` and therefore never
+# reach the 80% ranking range -- that range is built only from statements read
+# from review text.
+CAT9 = 9
+HAS_CAT9 = CAT9 in set(ALL_CATS)        # false until 12_ has been run
+WINDOWS = P['cat9_windows']
+
+# Reused by `sc` below. Both columns are NOT NULL in the schema, so these are
+# plain bool today; fillna makes the guard survive a nullable column.
+NOFAULT = ev['reviewer_fault'].fillna(False).astype(bool)
+NOCHECK = ev['needs_manual_check'].fillna(False).astype(bool)
+
+# --- 9.1 consistency: business-wide, every Category 1 statement -------------
+# Business level deliberately: at service level only 26 business x service
+# pairs had enough reviews in two periods, against 120 businesses here.
+# It measures VARIATION, not level -- Category 1 measures level, and a
+# steadily mediocre salon scores high here and low there.
+c1 = ev[ev['sp'].str.startswith('1.')
+        & ev['polarity'].isin(['positive', 'negative', 'mixed'])
+        & ~NOFAULT & ~NOCHECK]
+# One row per (business, review) carrying that review's WORST Category 1
+# statement, so a review counts once however many points it makes.
+w9 = (c1.assign(w=c1['polarity'].map({'positive': 0, 'mixed': 1, 'negative': 2}))
+        .groupby(['place_id', 'review_id'], as_index=False)
+        .agg(w=('w', 'max'), age_m=('age_m', 'min')))
+w9['val'] = w9['w'].map({0: 1.0, 1: 0.5, 2: 0.0})
+# Three periods, not four: P1 and P2 merged, the pre-registered fallback.
+# They must not overlap, or a recent review lands in several and hides the
+# change the measure exists to find.
+w9['period'] = np.where(w9['age_m'] < 12, 1, np.where(w9['age_m'] < 36, 2, 3))
+
+per9 = (w9.groupby(['place_id', 'period'])
+          .agg(n=('val', 'size'), share=('val', 'mean')).reset_index())
+per9 = per9[per9['n'] >= P['cat9_min_reviews_per_period']]
+
+cat9_consistency = {}                   # pid -> (score, reviews behind it)
+for pid, g in per9.groupby('place_id'):
+    if len(g) < P['cat9_min_periods']:
+        continue
+    raw = 1.0 - float(g['share'].max() - g['share'].min())
+    n_eff = int(g['n'].sum())
+    cat9_consistency[pid] = (0.5 + (raw - 0.5) * n_eff / (n_eff + P['cat9_shrink_k']), n_eff)
+
+# --- 9.2 expertise: per business x service, per window ----------------------
+# Share of the business's SERVICE-ATTRIBUTED reviews that concern this service.
+# Attributed, not all text reviews: only 29% of evidence names a service, so
+# dividing by every review reads 0.075 for the median salon and measures
+# tagging coverage rather than specialisation.
+attr9 = ev[ev['polarity'].isin(['positive', 'negative', 'mixed'])
+           & ~NOFAULT & ~NOCHECK & ev['svc'].notna()]
+
+cat9_expertise = {}                     # (pid, service, window) -> (score, n)
+for wc, months in WINDOWS.items():
+    a = attr9 if months is None else attr9[attr9['age_m'] <= months]
+    biz_n = a.groupby('place_id')['review_id'].nunique()
+    svc_n = a.groupby(['place_id', 'svc'])['review_id'].nunique()
+    for (pid, sv), n in svc_n.items():
+        if n < P['cat9_min_service_reviews']:
+            continue
+        cat9_expertise[(pid, sv, wc)] = ((1.0 + n) / (2.0 + int(biz_n[pid])), int(n))
+
+n_pairs9 = len(set((p, sv) for p, sv, _ in cat9_expertise))
+print('Category 9: 9.1 on {:,} businesses, 9.2 on {:,} business x service pairs'
+      .format(len(cat9_consistency), n_pairs9))
+
+cat9_rows = []                          # -> score.category9_window
+
 # ================= 4. Category and trust scores per provider x sub-service =================
 # Reported-only sub-points are included: `overall` carries 10,296 of the 44,526
 # evidence rows, and category 8 is meant to be shown even though it is never
 # weighted. Computed sub-points are excluded because they are not read from
 # review text at all.
 sc = ev[(ev['is_score'] | ev['is_reported_only']) & ~ev['is_computed'] & ~ev['sp'].isin(REPLY_SP)
-        & ev['polarity'].isin(['positive', 'negative', 'mixed'])].copy()
+        & ev['polarity'].isin(['positive', 'negative', 'mixed'])
+        # Rule A4 and the manual-check flag, applied here as well as on the
+        # safety line. Both columns are NOT NULL today (0 fault rows, 655
+        # manual-check, 1.5%); fillna keeps this correct if that ever changes.
+        & ~NOFAULT & ~NOCHECK].copy()
 sc['w0'] = sc['confidence'].map(P['confidence_weight']) * np.power(0.5, sc['age_m'].clip(lower=0) / P['recency_half_life_months'])
 sc['pos'] = sc['polarity'].map({'positive': 1.0, 'mixed': 0.5, 'negative': 0.0})
 sc['neg'] = (1 - sc['pos']) * np.where(sc['severity'] == 'damage', P['damage_multiplier'], 1.0)
@@ -339,6 +420,28 @@ for pid, g in sc.groupby('place_id'):
             got = parts + ([ev_sc] if ev_w > 0 else [])
             scores[c] = (float(np.mean(got)), float(r_w + ev_w), int(r_n + ev_n)) if got else (0.5, 0.0, 0)
 
+        # Category 9 = mean of the parts with evidence, per window. 9.1 is
+        # business-wide so it repeats across every service of a business;
+        # 9.2 belongs to this service. The default window's value is what
+        # reaches score.category_score and the overall score.
+        #
+        # Evidence weight is 0.0 on purpose: these are counts of reviews, not
+        # weighted statements, and the two must not be added together. The one
+        # consumer, the group roll-up at 08:231, then falls to avg(score),
+        # which is the right treatment for a computed category.
+        if HAS_CAT9:
+            c9 = cat9_consistency.get(pid)
+            for wc in WINDOWS:
+                e9 = cat9_expertise.get((pid, s_svc, wc))
+                parts9 = [x[0] for x in (c9, e9) if x is not None]
+                val9 = float(np.mean(parts9)) if parts9 else 0.5
+                cat9_rows.append((pid, s, wc,
+                                  round(c9[0], 4) if c9 else None,
+                                  round(e9[0], 4) if e9 else None,
+                                  round(val9, 4)))
+                if wc == P['cat9_default_window']:
+                    scores[CAT9] = (val9, 0.0, len(parts9))
+
         for c in ALL_CATS:
             cat_rows.append((pid, s, c, round(float(scores[c][0]), 4), round(float(scores[c][1]), 3), int(scores[c][2])))
 
@@ -392,6 +495,12 @@ with conn, conn.cursor() as cur:
                      float(r['width']), float(r['ew']), int(r['nrev']), (None if pd.isna(r['badges']) else r['badges']), r['safety'], r['status'],
                      None if pd.isna(r['rank']) else int(r['rank'])) for r in tr.to_dict('records')], page_size=5000)
     execute_values(cur, "insert into score.commitment_outcome values %s", [(run,) + r for r in commitment_rows], page_size=2000)
+    if HAS_CAT9:
+        execute_values(cur,
+                       "insert into score.category9_window "
+                       "(scoring_run_id, place_id, sub_service_code, window_code, "
+                       " score_9_1, score_9_2, score) values %s",
+                       [(run,) + r for r in cat9_rows], page_size=5000)
 conn.close()
 
 print(f'Scoring run {run} saved.')
