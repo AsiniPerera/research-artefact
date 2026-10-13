@@ -8,6 +8,11 @@ import {
 import { LEAF_BY_CODE } from "../constants/taxonomy";
 import { SUB_POINTS, subPointsOf } from "../constants/subPoints";
 import { CATEGORY_INFO, isShownCategory } from "../constants/categories";
+import { ConsistencyBadge } from "../components/ConsistencyBadge";
+import { StaffReputation } from "../components/StaffReputation";
+import { StaffDependentChip } from "../components/StaffDependentChip";
+import { PopularServicesBadge } from "../components/PopularServicesBadge";
+import { LanguageMix } from "../components/LanguageMix";
 
 const EVIDENCE_PAGE = 20;
 
@@ -683,7 +688,7 @@ function CategoryEvidence({ placeId, serviceCode, categoryCode, categoryNo, labe
   );
 }
 
-const BLANK_FILTERS = { category: "", service_code: "", status: "", category_no: "", polarity: "", named: false, sort: "" };
+const BLANK_FILTERS = { category: "", service_code: "", status: "", category_no: "", polarity: "", named: false, language: "", sort: "" };
 
 /* A row of chips instead of a select.
  
@@ -725,7 +730,7 @@ function ChipRow({ caption, hint, value, options, onChange }) {
    which part of the salon, what about it, and said how. Everything else that
    used to be a control is gone — the service itself is chosen by opening it
    in the list below, which is one less thing to explain. */
-function DetailFilters({ services, categories, sentimentTotals, filters, onChange }) {
+function DetailFilters({ services, categories, sentimentTotals, languages, filters, onChange }) {
   const set = (k) => (v) => onChange({ ...filters, [k]: v });
 
   const categoryChips = useMemo(() => {
@@ -741,13 +746,21 @@ function DetailFilters({ services, categories, sentimentTotals, filters, onChang
             ...Object.keys(byCat).sort().map((c) => ({ value: c, label: c, n: byCat[c].size }))];
   }, [services]);
 
+  /* Category 3 is left out of this row. It is scored almost entirely from
+     the owner's replies (3.1-3.4), not from what customers write, so
+     "reviews about Management" would return the handful of 3.5 statements
+     and read as though the salon were barely answered for. The category is
+     still shown everywhere it is scored — this row is about what a REVIEW
+     is about. */
   const topicChips = [
     { value: "", label: "All" },
-    ...categories.map((c) => ({
-      value: String(c.category_no),
-      label: CATEGORY_SHORT[c.category_no] ?? c.name,
-      title: CATEGORY_BLURB[c.category_no],
-    })),
+    ...categories
+      .filter((c) => Number(c.category_no) !== 3)
+      .map((c) => ({
+        value: String(c.category_no),
+        label: CATEGORY_SHORT[c.category_no] ?? c.name,
+        title: CATEGORY_BLURB[c.category_no],
+      })),
   ];
 
   /* All four sentiments, always, with the empty ones shown dimmed and
@@ -768,6 +781,15 @@ function DetailFilters({ services, categories, sentimentTotals, filters, onChang
         const n = sentimentTotals[v] ?? 0;
         return { value: v, label: v[0].toUpperCase() + v.slice(1), n, disabled: n === 0 };
       }),
+  ];
+
+  /* Built from provider.languages, which is already gated at 5+ reviews across
+     2+ languages — so a single-language salon shows no row rather than a
+     filter whose only options are "All" and "everything". "All" keeps showing
+     'other' and undetected reviews: this narrows, it never quietly drops. */
+  const languageChips = [
+    { value: "", label: "All" },
+    ...(languages ?? []).map((l) => ({ value: l.code, label: l.label, n: l.n })),
   ];
 
   return (
@@ -802,6 +824,11 @@ function DetailFilters({ services, categories, sentimentTotals, filters, onChang
           </button>
         </div>
       </div>
+
+      {languageChips.length > 1 && (
+        <ChipRow caption="Language" value={filters.language}
+                 options={languageChips} onChange={set("language")} />
+      )}
     </div>
   );
 }
@@ -988,7 +1015,7 @@ function EvidenceList({ placeId, filters, salonName }) {
      Category and Status, which narrow the services above and mean nothing
      here — sending them would put unread params on the request and, worse,
      reload this list every time the Status select moved. */
-  const { service_code, category_no, polarity, named, sort } = filters;
+  const { service_code, category_no, polarity, named, language, sort } = filters;
   const query = useMemo(
     // polarity (single-select) and `named` (names a staff member) are
     // independent, so both can be active. Neutral mention-polarity rows stay
@@ -997,8 +1024,9 @@ function EvidenceList({ placeId, filters, salonName }) {
       service_code, category_no, polarity, sort,
       only_named: named || undefined,
       hide_mention: named ? undefined : true,
+      language: language || undefined,
     }),
-    [service_code, category_no, polarity, named, sort],
+    [service_code, category_no, polarity, named, language, sort],
   );
 
   // A filter change starts the list over.
@@ -1052,7 +1080,7 @@ function EvidenceList({ placeId, filters, salonName }) {
   );
 }
 
-export function SalonDetail({ salonId, onBack }) {
+export function SalonDetail({ salonId, onBack, consistencyWindow = "1y" }) {
   const [provider, setProvider] = useState(null);
   const [categories, setCategories] = useState([]);
   const [sentiment, setSentiment] = useState([]);
@@ -1065,7 +1093,7 @@ export function SalonDetail({ salonId, onBack }) {
     const ctrl = new AbortController();
     setProvider(null);
     setError(null);
-    getProvider(salonId, { signal: ctrl.signal })
+    getProvider(salonId, { signal: ctrl.signal }, consistencyWindow)
       .then(setProvider)
       .catch((e) => e.name !== "AbortError" && setError(e.message));
     getFramework({ signal: ctrl.signal })
@@ -1086,7 +1114,7 @@ export function SalonDetail({ salonId, onBack }) {
       .then(setReplyQuality)
       .catch(() => { /* degrades gracefully */ });
     return () => ctrl.abort();
-  }, [salonId]);
+  }, [salonId, consistencyWindow]);
 
   if (error) return <p className="error">{error}</p>;
   if (!provider) return <p className="loading-text">Loading</p>;
@@ -1141,6 +1169,12 @@ export function SalonDetail({ salonId, onBack }) {
             {p.city && !String(p.address ?? "").includes(p.city) ? ` · ${p.city}` : ""}
           </p>
           <div className="detail-chips">
+            <ConsistencyBadge c={provider.consistency} />
+            <StaffDependentChip
+              show={provider.staff_reputation?.staff_dependent}
+              linkTo="#staff-reputation"
+            />
+            <PopularServicesBadge data={provider.popular_services} />
             {closed && (
               <span className="detail-chip detail-chip--alert">
                 {p.permanently_closed ? "Permanently closed" : "Temporarily closed"}
@@ -1215,6 +1249,14 @@ export function SalonDetail({ salonId, onBack }) {
               ))}
             </div>
           )}
+
+          {/* Who the reviews name, and what language they are in: two facts
+              about the review set itself rather than about the salon's work,
+              so they sit together as a pair above the category findings. */}
+          <div className="summary-side-cards">
+            <StaffReputation data={provider.staff_reputation} placeId={salonId} />
+            <LanguageMix data={provider.languages} />
+          </div>
 
           {/* Smart category cards: what we check, findings, verdict */}
           <div className="summary-cats">
@@ -1476,6 +1518,7 @@ export function SalonDetail({ salonId, onBack }) {
             services={services}
             categories={categories}
             sentimentTotals={provider.sentiment_totals ?? {}}
+            languages={provider.languages?.languages ?? []}
             filters={filters}
             onChange={setFilters}
           />

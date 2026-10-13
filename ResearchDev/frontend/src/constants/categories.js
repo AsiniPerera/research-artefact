@@ -5,7 +5,7 @@
 export const CATEGORY_INFO = {
   1: { name: "Quality of the Result",        short: "Quality",    description: "Good results that match what you asked for and last" },
   2: { name: "Consultation & Aftercare",     short: "Care",       description: "They look after you before and after" },
-  3: { name: "Management Response",          short: "Management", description: "How the business deals with complaints and mistakes" },
+  3: { name: "Responsiveness and Adaptability", short: "Management", description: "How the business deals with complaints and mistakes" },
   4: { name: "Trust & Recommendation",       short: "Trust",      description: "Customers recommend it and come back" },
   5: { name: "Staff & Customer Service",     short: "Staff",      description: "How the staff treat you" },
   6: { name: "Value & Price Honesty",        short: "Value",      description: "Fair price, as agreed" },

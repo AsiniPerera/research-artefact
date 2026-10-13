@@ -8,7 +8,7 @@ import { getRankings } from "../api/client";
  * A short debounce so dragging a slider across three stops sends one request,
  * and an abort so a slow earlier answer can never overwrite a newer one.
  */
-export function useRanking(code, weights, city, status) {
+export function useRanking(code, weights, city, status, consistencyWindow) {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -25,7 +25,7 @@ export function useRanking(code, weights, city, status) {
     setLoading(true);
     setError(null);
     const t = setTimeout(() => {
-      getRankings(code, key.split(",").map(Number), city, status, { signal: ctrl.signal })
+      getRankings(code, key.split(",").map(Number), city, status, consistencyWindow, { signal: ctrl.signal })
         .then((data) => {
           console.group("[ranking] results for weights:", key);
           (data.ranked ?? []).forEach((r, i) =>
@@ -41,7 +41,7 @@ export function useRanking(code, weights, city, status) {
         });
     }, 250);
     return () => { clearTimeout(t); ctrl.abort(); };
-  }, [code, key, city, status]);
+  }, [code, key, city, status, consistencyWindow]);
 
   return { results, loading, error };
 }

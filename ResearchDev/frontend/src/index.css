@@ -7676,6 +7676,56 @@ select {
 .svcbar-col-head:hover,
 .svcbar-col button:hover { background: rgba(255, 248, 244, .1); color: #fff; }
 
+/* Letterhead hairline, same mark the priority panel leads with — it was the
+   one surface in the set with a flat top edge instead of the gold lead-in. */
+.svcbar-panel { overflow: hidden; }
+.svcbar-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold) 0%, var(--gold-300) 45%, transparent 100%);
+}
+
+/* A warm glow dot ahead of each column head, matching the one on "Your
+   priorities" — the uppercase label read as a stray caption without it. */
+.svcbar-col-head {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+}
+.svcbar-col-head::before {
+  content: "";
+  flex: none;
+  width: .4rem;
+  height: .4rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--champagne-200), var(--gold));
+  box-shadow: 0 0 8px rgba(217, 179, 130, .5);
+}
+
+/* Columns divided by a hairline rather than gap alone, so the eye reads six
+   groups instead of one long wrapped list. Grid items stretch to the tallest
+   column by default, so every divider runs the full height for free. */
+.svcbar-panel-inner { gap: 1.25rem 0; }
+.svcbar-col { padding-right: 1.1rem; }
+.svcbar-col:not(:first-child) {
+  border-left: 1px solid rgba(255, 248, 244, .09);
+  padding-left: 1.1rem;
+}
+
+/* A touch of motion on the row itself, not just a colour swap — the nudge is
+   what makes a hover feel chosen rather than merely detected. */
+.svcbar-col button {
+  transition: color .14s var(--ease), background .14s var(--ease), transform .14s var(--ease);
+}
+.svcbar-col button:hover { transform: translateX(2px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .svcbar-col button { transition: color .14s var(--ease), background .14s var(--ease); }
+  .svcbar-col button:hover { transform: none; }
+}
+
 /* ============================================================
    LUXURY FINISH — the last layer, so it wins.
    One surface language for the whole app: dark plum glass, a fine
@@ -12123,32 +12173,192 @@ select {
   .cat-check-proof { margin-left: 0; }
 }
 
-/* Who the reviews name — same proof grammar as the sub-point checks above
-   it, reused rather than invented fresh: a label, a short meter, a count. */
-.staff-mentions { margin-top: 1rem; padding-top: .9rem; border-top: 1px dashed var(--lux-hair); }
-.staff-mentions-list {
-  list-style: none;
-  margin: .6rem 0 0;
-  padding: 0;
+/* The staff and language cards, side by side where there is room. Both
+   describe the REVIEW SET rather than the salon's work, which is why they
+   pair, and why they sit above the category findings rather than among
+   them. Either one hides itself when it has nothing to say, and the grid
+   then leaves the other full width rather than a gap beside it. */
+.summary-side-cards {
   display: grid;
-  gap: .3rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin: 0 0 1.5rem;
+  align-items: start;
 }
-.staff-mentions-list li {
-  display: flex;
-  align-items: center;
-  gap: .6rem;
+/* Both classes named rather than `> *`: each carries its own margin and
+   dashed top rule from when it was a divider in the flow, and a single-class
+   selector would not outrank them. */
+.summary-side-cards > .staff-mentions,
+.summary-side-cards > .language-mix {
+  margin: 0;
+  padding: 1rem 1.1rem 1.15rem;
+  border: 1px solid rgba(201, 168, 108, .2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .03);
 }
-.staff-name { flex: 0 0 7rem; font-size: .76rem; font-weight: 600; color: var(--ink-700); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.staff-meter {
-  flex: 1 1 auto;
-  height: 4px;
-  border-radius: 999px;
-  background: var(--sent-negative, #b98e33);
-  opacity: .55;
+/* 44 names at Dee's would run the card past the fold and leave the language
+   card stranded beside a column of them. The list scrolls inside instead,
+   so the pair keeps a sane height whatever the salon. */
+.summary-side-cards > .staff-mentions .staff-list {
+  max-height: 20rem;
+  overflow-y: auto;
+  padding-right: .4rem;
+  scrollbar-width: thin;
+}
+
+/* Who the reviews name. One stacked row per person: the name and how many
+   reviews name them, the split as a bar, the counts in words beneath. */
+.staff-mentions { margin-top: 1rem; padding-top: .9rem; border-top: 1px dashed var(--lux-hair); }
+.staff-head { font-size: .95rem; font-weight: 600; margin: 0 0 .25rem; }
+.staff-note { font-size: .8rem; color: var(--muted); margin: 0 0 .75rem; max-width: 60ch; }
+.staff-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .7rem; }
+.staff-item { padding-top: .55rem; border-top: 1px solid var(--line-soft); }
+.staff-item:first-child { padding-top: 0; border-top: 0; }
+.staff-row-head { display: flex; justify-content: space-between; align-items: baseline; gap: .75rem; }
+.staff-row-head strong { font-size: .84rem; font-weight: 600; }
+/* The figure answers the row's question, so it carries the row's colour and
+   sits opposite the name where the eye lands after reading it. */
+.staff-rate { flex: none; font-size: .8rem; font-weight: 600; }
+.staff-item[data-band="good"]  .staff-rate { color: var(--ok); }
+.staff-item[data-band="mixed"] .staff-rate { color: var(--warn); }
+.staff-item[data-band="poor"]  .staff-rate { color: var(--bad); }
+/* A track with one fill: how much of this person's record went well. The
+   track stays visible behind it, so a short fill reads as a share of
+   something rather than as a stubby bar on its own. */
+.staff-bar {
+  height: 8px;
+  border-radius: 4px;
   overflow: hidden;
+  margin-top: .4rem;
+  background: rgba(255, 255, 255, .08);
 }
-.staff-meter > span { display: block; height: 100%; background: linear-gradient(90deg, #6f55a3, #9579cc); }
-.staff-n { flex: 0 0 auto; font-size: .68rem; color: var(--faint); min-width: 1.4rem; text-align: right; }
+.staff-bar-fill { display: block; height: 100%; border-radius: 4px; background: var(--ok); }
+.staff-item[data-band="mixed"] .staff-bar-fill { background: var(--warn); }
+.staff-item[data-band="poor"]  .staff-bar-fill { background: var(--bad); }
+.staff-counts { font-size: .75rem; color: var(--muted); margin-top: .35rem; }
+
+/* "Who serves you matters". --chip-soft and --chip-hover are not defined in
+   this stylesheet, so it takes the outline-on-transparent shape the
+   consistency badges beside it use, at the same weight. */
+.chip-staff-dependent {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  margin-top: .3rem;
+  padding: .25rem .55rem;
+  border-radius: 999px;
+  border: 1px solid var(--champagne-400);
+  background: transparent;
+  color: var(--champagne-300);
+  font-size: .72rem;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .16s var(--ease), color .16s var(--ease);
+}
+.chip-staff-dependent:hover {
+  background: rgba(217, 179, 130, .12);
+  color: var(--ink);
+}
+/* On a card it states a fact rather than going anywhere. */
+span.chip-staff-dependent { cursor: default; }
+span.chip-staff-dependent:hover { background: transparent; color: var(--champagne-300); }
+
+/* What a business is most reviewed for. margin-top clears the badges stacked
+   above it on a card; nowrap keeps the longest pair name ("Mostly Wedding,
+   Events & Occasions and Hair") from breaking across lines inside the pill. */
+.chip-popular-services {
+  display: inline-flex;
+  align-items: center;
+  margin-top: .3rem;
+  padding: .25rem .55rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--chip-soft, transparent);
+  color: var(--ink);
+  font-size: .72rem;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+/* Reviews by language: one bar, then the same split in words. */
+.language-mix { margin-top: 1rem; padding-top: .9rem; border-top: 1px dashed var(--lux-hair); }
+.language-mix h3 { font-size: .95rem; font-weight: 600; margin: 0 0 .25rem; }
+.language-note { font-size: .8rem; color: var(--muted); margin: 0 0 .75rem; }
+.language-bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; margin-bottom: .75rem; background: var(--line); }
+.language-bar .lang-english             { background: var(--ok); }
+.language-bar .lang-sinhala             { background: #c9a46a; }
+.language-bar .lang-english-sinhala-mix { background: #b89cd4; }
+.language-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .35rem; }
+.language-list li { display: flex; justify-content: space-between; gap: .75rem; font-size: .8rem; }
+.language-list span { color: var(--muted); }
+
+/* A staff name opens the reviews that name them. A button, not a link: it
+   opens a panel rather than going anywhere, so it should not offer a new tab
+   or a copyable address it cannot honour. */
+.staff-name-link {
+  background: none; border: 0; padding: 0; cursor: pointer;
+  color: inherit; font: inherit; font-size: .84rem; font-weight: 600;
+  text-decoration: underline; text-decoration-color: var(--line);
+  text-underline-offset: 3px;
+}
+.staff-name-link:hover { text-decoration-color: var(--accent); }
+
+/* Same shape as the nav drawer: scrim, slide from the right, one z-index
+   pair above the page, so the app has one side-panel behaviour. */
+.staff-drawer-scrim {
+  position: fixed; inset: 0; z-index: 40;
+  background: rgba(26, 24, 21, .4);
+  backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+  opacity: 0; visibility: hidden;
+  transition: opacity .3s var(--ease), visibility .3s var(--ease);
+}
+.staff-drawer-scrim.is-open { opacity: 1; visibility: visible; }
+.staff-drawer {
+  position: fixed; top: 0; right: 0; z-index: 41;
+  width: min(420px, 90vw); height: 100%;
+  display: flex; flex-direction: column;
+  background: var(--card);
+  border-left: 1px solid var(--line);
+  box-shadow: -20px 0 50px -20px rgba(26, 24, 21, .45);
+  transform: translateX(100%); visibility: hidden;
+  transition: transform .35s var(--ease), visibility .35s var(--ease);
+}
+.staff-drawer.is-open { transform: none; visibility: visible; }
+.staff-drawer-head {
+  padding: 1rem; border-bottom: 1px solid var(--line);
+  display: flex; justify-content: space-between; align-items: center; gap: .75rem;
+}
+.staff-drawer-head h3 { margin: 0; font-size: .95rem; font-weight: 600; }
+.staff-drawer-close {
+  background: none; border: 0; cursor: pointer;
+  font-size: 1.4rem; line-height: 1; color: var(--muted);
+}
+.staff-drawer-close:hover { color: var(--ink); }
+.staff-drawer-note { padding: 1rem; font-size: .82rem; color: var(--muted); }
+.staff-drawer-list { overflow-y: auto; padding: .75rem 1rem 1.25rem; display: grid; gap: .75rem; }
+.staff-review { padding: .75rem; border: 1px solid var(--line); border-radius: 6px; }
+.staff-review-head {
+  display: flex; gap: .5rem; align-items: center;
+  font-size: .8rem; color: var(--muted); margin-bottom: .4rem; flex-wrap: wrap;
+}
+.staff-review-outcome { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.staff-review-outcome.positive { background: var(--ok); }
+.staff-review-outcome.mixed    { background: #9db8d6; }
+.staff-review-outcome.negative { background: var(--bad); }
+.staff-review-text { margin: 0; font-size: .82rem; line-height: 1.5; overflow-wrap: anywhere; }
+
+.named-staff-summary {
+  margin-top: .4rem; font-size: .75rem; color: var(--muted);
+  display: flex; gap: .4rem; flex-wrap: wrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .staff-drawer, .staff-drawer-scrim { transition: none; }
+}
 
 /* ── Horizontal salon card: identity | category bars | score+actions ───
    A landscape strip so a column of them is short and scannable, and the
@@ -13725,3 +13935,199 @@ select {
 @media (max-width: 700px) {
   .cat-score-list { grid-template-columns: 1fr; }
 }
+
+/* Service Expertise Consistency badge (display only, never part of the score). */
+.consistency { display: flex; flex-direction: column; align-items: flex-end; gap: .2rem; margin-top: .4rem; }
+.detail-chips .consistency { align-items: flex-start; margin-top: 0; }
+.consistency-note { font-size: .7rem; color: var(--muted); }
+.badge--consistency-consistent_results  { color: var(--ok);    border: 1px solid var(--ok);    background: transparent; }
+.badge--consistency-mostly_consistent   { color: #9db8d6;      border: 1px solid #9db8d6;      background: transparent; }
+.badge--consistency-variable_results    { color: var(--warn);  border: 1px solid var(--warn);  background: transparent; }
+.badge--consistency-not_enough_evidence { color: var(--faint); border: 1px solid var(--faint); background: transparent; }
+.weight-consistency { display: flex; flex-direction: column; gap: .35rem; margin-top: 1rem; }
+/* Priorities panel at full length: no height cap and no inner scroll, so all
+   seven categories and the consistency selector show without scrolling the box. */
+.page-body--explore .sidebar { position: static; max-height: none; }
+
+/* ── Services tab bar, refined ──────────────────────────────
+   The row read as plain, static text — a label and four links with a flat
+   hairline under them, nothing to say it was interactive before the cursor
+   found it. Adds: a lit gold gradient in place of the flat hairline, a
+   hover underline that grows in from the left on every tab (not just the
+   open one), a small lift on hover/open, and a soft glow behind the active
+   tab's mark so it reads as current, not just underlined. */
+.page-body--explore .discover > section > .svcbar {
+  border-bottom: 1px solid transparent;
+  background-image: linear-gradient(90deg, var(--lux-hair) 0%, rgba(232, 211, 171, .22) 45%, var(--lux-hair) 100%);
+  background-position: 0 100%;
+  background-size: 100% 1px;
+  background-repeat: no-repeat;
+}
+.page-body--explore .svcbar-label {
+  position: relative;
+}
+.page-body--explore .svcbar-label::before {
+  background: linear-gradient(90deg, transparent, var(--champagne));
+  box-shadow: 0 0 6px rgba(217, 179, 130, .5);
+}
+.page-body--explore .svcbar-tab {
+  transition: color .18s var(--ease), transform .18s var(--ease);
+}
+.page-body--explore .svcbar-tab::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--champagne-400);
+  opacity: 0;
+  transition: right .22s var(--ease), opacity .18s var(--ease);
+}
+.page-body--explore .svcbar-tab:hover,
+.page-body--explore .svcbar-tab.is-open {
+  transform: translateY(-1px);
+}
+.page-body--explore .svcbar-tab:hover::before,
+.page-body--explore .svcbar-tab.is-open::before {
+  right: 0;
+  opacity: .55;
+}
+/* The active tab keeps its own solid mark (set above) and adds a soft glow
+   under it, so "where you are" reads a touch brighter than "what you're
+   pointing at". */
+.page-body--explore .svcbar-tab.is-active,
+.page-body--explore .svcbar-tab.is-active:hover,
+.page-body--explore .svcbar-tab.is-active.is-open {
+  text-shadow: 0 0 14px rgba(217, 179, 130, .25);
+}
+.page-body--explore .svcbar-tab.is-active::before,
+.page-body--explore .svcbar-tab.is-active:hover::before,
+.page-body--explore .svcbar-tab.is-active.is-open::before {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-body--explore .svcbar-tab,
+  .page-body--explore .svcbar-tab::before {
+    transition: color .18s var(--ease);
+  }
+  .page-body--explore .svcbar-tab:hover,
+  .page-body--explore .svcbar-tab.is-open {
+    transform: none;
+  }
+}
+
+/* ── Services dropdown: column widths and line breaks ───────
+   An earlier rule kept every group on one row (`flex-wrap: nowrap`) and
+   shrank columns to fit, which is what was clipping "Hair & Scalp
+   Treatments" and "Beard & Shave" off the right edge at ordinary widths —
+   the row simply ran out of room and nothing was left to move the extra
+   groups anywhere.
+
+   Fixed width columns instead: short names (Rebonding, Clean Shave) sit on
+   one line, longer ones (Hair Spa & Deep Conditioning) wrap to two — and
+   text-wrap: pretty lets the browser choose where, so a name breaks between
+   sensible words rather than stranding one short word (or a bare "&") on
+   its own line. Columns that no longer fit the row move to a new one
+   instead of being cut off; nothing is ever lost off the edge again. */
+.svcbar-panel-inner {
+  flex-wrap: wrap;
+  row-gap: 1.75rem;
+}
+.svcbar-col {
+  flex: 0 0 200px;
+  min-width: 0;
+}
+/* An earlier rule, `.svcbar-col .svcbar-col-head { white-space: nowrap }`,
+   chains two classes and so outranks a plain `.svcbar-col-head` here no
+   matter which comes later in the file — CSS specificity, not source order,
+   decides. Matched here at the same two-class weight so this one is the
+   tiebreaker instead. Without it the heading stayed on one line and
+   overflowed past its column into the next one, which is what was reading
+   as uneven spacing between columns. */
+.svcbar-panel-inner .svcbar-col-head,
+.svcbar-panel-inner .svcbar-col-head:hover,
+.svcbar-col button {
+  white-space: normal;
+  overflow-wrap: break-word;
+  hyphens: none;
+  text-wrap: pretty;
+}
+.svcbar-panel-inner .svcbar-col-head,
+.svcbar-panel-inner .svcbar-col-head:hover {
+  line-height: 1.35;
+}
+.svcbar-col button { line-height: 1.4; }
+
+/* Now that a heading can wrap to two lines, centering the dot against the
+   whole flex row floats it between the lines instead of beside the first
+   one. Top-aligned with a small nudge keeps it level with the first line's
+   cap height whether the heading wraps or not. */
+.svcbar-col-head {
+  align-items: flex-start;
+}
+.svcbar-col-head::before {
+  margin-top: .45rem;
+}
+.page-body--explore .sidebar-scroll { overflow: visible; flex: none; }
+/* ── Salon profile: one calm surface ──────────────────────────────────
+   The Summary tab carried four border treatments inside a single panel:
+   filled chips with gold rims, bordered cards beside them, a 2px left rule
+   on every category block, and dashed rules above the staff and language
+   sections. Each was reasonable alone; together they cut the page into
+   boxes inside boxes, and the eye spent its first pass finding edges
+   rather than reading. This layer keeps every structure and takes the
+   lines away, leaning on space and one quiet rule instead. */
+
+/* Sentiment chips: tint, no rim. The colour already says which is which,
+   so the outline was saying it twice. */
+.summary-sentiments { gap: .6rem; margin-bottom: 2.25rem; }
+.summary-sent-chip { border: 0; padding: .75rem 1.35rem; background: rgba(255, 255, 255, .035); }
+.summary-sent-chip--positive { background: rgba(100, 180, 120, .09); }
+.summary-sent-chip--negative { background: rgba(200, 80, 80, .09); }
+.summary-sent-chip--neutral  { background: rgba(180, 160, 120, .07); }
+
+/* The staff and language cards: no rim either, and more room inside, so
+   they read as areas of the page rather than objects placed on it. */
+.summary-side-cards { gap: 1.25rem; margin-bottom: 2.25rem; }
+.summary-side-cards > .staff-mentions,
+.summary-side-cards > .language-mix {
+  border: 0;
+  border-radius: 10px;
+  padding: 1.25rem 1.4rem 1.4rem;
+  background: rgba(255, 255, 255, .025);
+}
+
+/* One heading idiom across the tab — the small gold capitals the category
+   blocks already use — so the two cards read as peers of the sections
+   below them rather than as a different kind of thing. */
+.summary-side-cards .staff-head,
+.summary-side-cards .language-mix h3 {
+  margin: 0 0 .5rem;
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #C9A86C;
+}
+.summary-side-cards .staff-note,
+.summary-side-cards .language-note { font-size: .78rem; line-height: 1.55; margin-bottom: 1.1rem; }
+
+/* The category rule is the one structural line left on the page, so it can
+   afford to be thin. The blocks sit further apart to carry the separation
+   the borders used to. */
+.summary-cats { gap: 2.5rem; margin-top: 0; }
+.summary-cat-block {
+  border-left-width: 1px;
+  border-left-color: rgba(201, 168, 108, .18);
+  padding-left: 1.4rem;
+}
+.summary-cat-heading { margin-bottom: .9rem; font-size: .78rem; letter-spacing: .08em; }
+
+/* More air inside every tab, and under the name. */
+.detail-panel { padding: clamp(1.5rem, 3.2vw, 2.5rem); }
+.detail-head { padding-bottom: 2rem; }
+.detail-chips { margin-top: 1.4rem; }
+.language-note--foot { margin: .7rem 0 0; font-size: .75rem; }

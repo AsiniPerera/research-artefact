@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { QuickFilters } from "../components/QuickFilters";
 import { ServicesNav } from "../components/ServicesNav";
-import { WeightLevels, toWeightList } from "../components/WeightLevels";
+import { WeightLevels, toWeightList, DEFAULT_CONSISTENCY_WINDOW } from "../components/WeightLevels";
 import { Results } from "./Results";
 import { useRanking } from "../hooks/useRanking";
 import { getServices, getNearbyRankings } from "../api/client";
@@ -12,7 +12,9 @@ import { DOMAINS, GROUP_BY_ID, LEAF_BY_CODE, LEAF_BY_VALUE } from "../constants/
 const DOMAIN_BY_ID = Object.fromEntries(DOMAINS.map((d) => [d.id, d.value]));
 
 /* Every category at the same level: equal weights, the API's default. */
-const DEFAULT_WEIGHTS = PRESETS.balanced;
+/* consistency_window rides in the same object; toWeightList reads only the
+   seven category keys, so it never reaches the weights list. */
+const DEFAULT_WEIGHTS = { ...PRESETS.balanced, consistency_window: DEFAULT_CONSISTENCY_WINDOW };
 
 const DEFAULT_FILTERS = {
   serviceFamily: "hair",
@@ -47,14 +49,19 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
      group pick narrows the menu; Results asks for a specific service. */
   const code = LEAF_BY_VALUE[filters.subService]?.id ?? null;
   const weightList = useMemo(() => toWeightList(weights), [weights]);
-  const querySig = JSON.stringify({ code, weightList, city: filters.city, availability: filters.availability });
+  const cw = weights.consistency_window ?? DEFAULT_CONSISTENCY_WINDOW;
+  const querySig = JSON.stringify({ code, weightList, cw, city: filters.city, availability: filters.availability });
   const stale = submitted !== null && submitted.sig !== querySig;
+  const cwUsed = submitted?.cw ?? cw;
   const { results, loading, error } = useRanking(
     submitted?.code ?? null,
     submitted?.weightList ?? weightList,
     submitted?.city ?? "",
-    submitted?.availability ?? "open"
+    submitted?.availability ?? "open",
+    cwUsed
   );
+  /* The profile shows the badge for the same window as the list it was opened from. */
+  const openSalon = (id) => onSelectSalon(id, cwUsed);
 
   /* Salons just outside the chosen city. The "Nearby areas" toggle by the
      city filter drives it; off by default, so the normal path never pays for
@@ -72,7 +79,7 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
     const ctrl = new AbortController();
     setNearby({ status: "loading", data: null, error: null });
     getNearbyRankings(
-      submitted.code, submitted.weightList, submitted.city, submitted.availability,
+      submitted.code, submitted.weightList, submitted.city, submitted.availability, submitted.cw,
       { signal: ctrl.signal },
     )
       .then((d) => { if (active) setNearby({ status: "done", data: d, error: null }); })
@@ -115,9 +122,10 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
     };
     setFilters(next);
     setSubmitted({
-      sig: JSON.stringify({ code: item.code, weightList, city: next.city, availability: next.availability }),
+      sig: JSON.stringify({ code: item.code, weightList, cw, city: next.city, availability: next.availability }),
       code: item.code,
       weightList,
+      cw,
       city: next.city,
       availability: next.availability,
       filters: next,
@@ -135,9 +143,10 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
     if (!codeUsed) return;
     setFilters(next);
     setSubmitted({
-      sig: JSON.stringify({ code: codeUsed, weightList: weightsUsed, city: "", availability: next.availability }),
+      sig: JSON.stringify({ code: codeUsed, weightList: weightsUsed, cw: cwUsed, city: "", availability: next.availability }),
       code: codeUsed,
       weightList: weightsUsed,
+      cw: cwUsed,
       city: "",
       availability: next.availability,
       filters: next,
@@ -147,7 +156,7 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
   function handleSubmit(e) {
     e.preventDefault();
     if (!code) return;
-    setSubmitted({ sig: querySig, code, weightList, city: filters.city, availability: filters.availability, filters });
+    setSubmitted({ sig: querySig, code, weightList, cw, city: filters.city, availability: filters.availability, filters });
   }
 
   return (
@@ -186,13 +195,18 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
                 <button
                   type="button"
                   className="btn-text"
-                  onClick={() => setWeights(DEFAULT_WEIGHTS)}
+                  onClick={() => setWeights({ ...DEFAULT_WEIGHTS, consistency_window: cw })}
                   title="Set every priority back to the same level"
                 >
                   Reset
                 </button>
               </div>
-              <WeightLevels weights={weights} onChange={setWeights} />
+              <WeightLevels
+                weights={weights}
+                onChange={setWeights}
+                consistencyWindow={cw}
+                onConsistencyWindowChange={(v) => setWeights({ ...weights, consistency_window: v })}
+              />
             </section>
           </div>
 
@@ -249,7 +263,7 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
             data={results}
             loading={loading}
             error={error}
-            onSelectSalon={onSelectSalon}
+            onSelectSalon={openSalon}
             onSearchAllCities={searchAllCities}
             nearby={nearby}
           />

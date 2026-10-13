@@ -17,6 +17,7 @@ import { Auth } from "./screens/Auth";
 import { Contact } from "./screens/Contact";
 import { Profile } from "./screens/Profile";
 import { DOMAINS } from "./constants/taxonomy";
+import { readUrl, buildUrl } from "./utils/url";
 
 const NAV = [
   { key: "home",        label: "Home" },
@@ -30,16 +31,29 @@ const NAV = [
 
 export default function App() {
   const auth = useAuth();
-  const [route, setRoute] = useState("home");
-  const [selectedSalon, setSelectedSalon] = useState(null);
+  /* Read once per mount, not per render: this is the state the page STARTED
+     with, and re-reading it later would fight the sync effect below. */
+  const initialRef = useRef(null);
+  if (initialRef.current === null) initialRef.current = readUrl();
+  const initial = initialRef.current;
+
+  const [route, setRoute] = useState(initial.route);
+  const [selectedSalon, setSelectedSalon] = useState(initial.salon);
+  /* The consistency window the profile was opened with. Only the ranking list
+     sends one; any other way in falls back to the default (1 year). */
+  const [salonWindow, setSalonWindow] = useState(initial.cw);
+  const openSalon = (id, consistencyWindow = null) => {
+    setSalonWindow(consistencyWindow);
+    setSelectedSalon(id);
+  };
   /* Seeded by the services bar when a specific service is picked, so the
      ranking opens on that service rather than just its domain. */
-  const [sub, setSub] = useState(null);
+  const [sub, setSub] = useState(initial.sub);
   // Set when a service card sends you to the ranking pre-filtered.
-  const [family, setFamily] = useState(null);
-  const [authMode, setAuthMode] = useState("signin");
-  const [draftQuery, setDraftQuery] = useState("");
-  const [submittedQuery, setSubmittedQuery] = useState("");
+  const [family, setFamily] = useState(initial.family);
+  const [authMode, setAuthMode] = useState(initial.authMode);
+  const [draftQuery, setDraftQuery] = useState(initial.q);
+  const [submittedQuery, setSubmittedQuery] = useState(initial.q);
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const searchRef = useRef(null);
@@ -56,6 +70,42 @@ export default function App() {
     });
   };
   const favorites = useFavorites();
+
+  /* State → address bar. The first run replaces, so arriving at "/" does not
+     leave an empty entry behind that Back would return to; everything after
+     pushes, so Back steps through the screens you actually visited. */
+  const urlWritten = useRef(false);
+  useEffect(() => {
+    const next = buildUrl({
+      route, family, sub, salon: selectedSalon, cw: salonWindow,
+      q: submittedQuery, authMode,
+    });
+    if (next === window.location.hash) {
+      urlWritten.current = true;
+      return;
+    }
+    if (urlWritten.current) window.history.pushState(null, "", next);
+    else window.history.replaceState(null, "", next);
+    urlWritten.current = true;
+  }, [route, family, sub, selectedSalon, salonWindow, submittedQuery, authMode]);
+
+  /* Address bar → state, for Back and Forward. The effect above sees the hash
+     it is given already matches and writes nothing, so the two cannot loop. */
+  useEffect(() => {
+    const onPop = () => {
+      const s = readUrl();
+      setRoute(s.route);
+      setFamily(s.family);
+      setSub(s.sub);
+      setSelectedSalon(s.salon);
+      setSalonWindow(s.cw);
+      setAuthMode(s.authMode);
+      setSubmittedQuery(s.q);
+      setDraftQuery(s.q);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
 
   // The nav is weightless at rest and earns its edge once content
   // slides beneath it.
@@ -340,13 +390,17 @@ export default function App() {
                 key={`${family ?? "all"}-${sub ?? ""}`}
                 initialFamily={family}
                 initialSubService={sub}
-                onSelectSalon={setSelectedSalon}
+                onSelectSalon={openSalon}
               />
             </div>
           )}
 
           {selectedSalon ? (
-            <SalonDetail salonId={selectedSalon} onBack={() => setSelectedSalon(null)} />
+            <SalonDetail
+              salonId={selectedSalon}
+              consistencyWindow={salonWindow ?? undefined}
+              onBack={() => setSelectedSalon(null)}
+            />
           ) : route === "services" ? null
           : route === "auth" ? (
             <Auth
@@ -367,7 +421,7 @@ export default function App() {
             />
           ) : route === "favorites" ? (
             <Favorites
-              onSelectSalon={setSelectedSalon}
+              onSelectSalon={(id) => openSalon(id)}
               onExplore={() => go("services")}
             />
           ) : route === "account" ? (
@@ -376,7 +430,7 @@ export default function App() {
                auth lands and it works as-is. */
             <Dashboard onExplore={() => openAuth("signin")} />
           ) : route === "search" ? (
-            <Lookup query={submittedQuery} onSelectSalon={setSelectedSalon} />
+            <Lookup query={submittedQuery} onSelectSalon={(id) => openSalon(id)} />
           ) : route === "how" ? (
             <HowItWorks />
           ) : (
