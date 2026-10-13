@@ -124,9 +124,13 @@ WEIGHTED = [int(c) for c in fc.loc[fc['weight'] > 0, 'category_no']]        # 1 
 REPORTED = [int(c) for c in fc.loc[fc['weight'] <= 0, 'category_no']]       # 8, Overall Verdict
 ALL_CATS = WEIGHTED + REPORTED
 # The category whose sub-points are computed from owner replies rather than from
-# review text, and the sub-points inside it that are. Framework v5: 3.1 only.
+# review text, and the sub-points inside it that are. REPLY_SP must be defined
+# before REPLY_CATS because REPLY_CATS is derived from it. Category 9 sub-points
+# are also is_computed but are NOT owner-reply parts; deriving from REPLY_SP
+# instead of is_computed keeps them out.
+REPLY_SP = ['3.1', '3.2', '3.3', '3.4']
 COMPUTED_SP = list(spx.loc[spx['is_computed'], 'code'])
-REPLY_CATS = sorted({int(c) for c in spx.loc[spx['is_computed'], 'category_no']})
+REPLY_CATS = sorted({int(spx.loc[spx['code'] == sp, 'category_no'].iloc[0]) for sp in REPLY_SP})
 P['safety_sub_points'] = list(spx.loc[spx['is_safety'], 'code'])
 print(f"Framework: {len(WEIGHTED)} weighted categories {WEIGHTED}, reported only {REPORTED}")
 print(f"Safety sub-points: {P['safety_sub_points']}   computed: {COMPUTED_SP or 'none'}")
@@ -205,7 +209,6 @@ for pid in veto_applied:
 # A complaint is a review with text whose overall_sentiment is not positive,
 # weighted 0.5 ** (age_months / 24). Part 3.5 is customer evidence, scored per
 # sub-service in section 4.
-REPLY_SP = ['3.1', '3.2', '3.3', '3.4']
 SPEC_VALUE = {'specific': 1.0, 'partly specific': 0.5, 'generic': 0.0}
 
 revs['w'] = np.power(0.5, ((ref_date - revs['d']).dt.days / 30.44).clip(lower=0) / P['recency_half_life_months'])
