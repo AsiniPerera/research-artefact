@@ -5,6 +5,12 @@ export default defineConfig({
   plugins: [react()],
   build: { sourcemap: false },
   server: {
+    // Pinned. Without strictPort, a dev server left running from an earlier
+    // session makes Vite silently pick 5174 instead, and the app then loads
+    // from an address that is not the one being worked on. Failing to start
+    // is the useful behaviour here: it says the port is taken.
+    port: 5173,
+    strictPort: true,
     proxy: {
       // backend/api mounts routes at the root (/rankings, /providers …), so
       // strip the prefix. 127.0.0.1, not localhost: on Windows localhost can

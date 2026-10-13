@@ -23,15 +23,35 @@ export const CATEGORIES = [
   { no: 7, key: "safety_hygiene" },
 ].map((c) => ({ ...c, label: CATEGORY_INFO[c.no].name, tag: CATEGORY_INFO[c.no].description }));
 
+/* Category 3 is scored and shown like any other — it is on the business
+   profile, in About and in the profile's "How salons are scored" list — but it
+   is not something a customer is asked to rank themselves against the rest.
+   It describes how the business answers complaints rather than what the
+   customer is choosing between, so it keeps a fixed, neutral weight and is
+   left out of the priorities panel.
+
+   CATEGORIES stays the full seven: it is what the descriptive screens read,
+   and shortening it there would under-report the framework. */
+const UNWEIGHTABLE = new Set([3]);
+
+/** The categories the priorities panel offers. */
+export const WEIGHTABLE_CATEGORIES = CATEGORIES.filter((c) => !UNWEIGHTABLE.has(c.no));
+
 /** How many weights the API expects — the seven weighted categories. Kept as a
     constant rather than read off CATEGORIES.length at the call site so the
     contract is named where it is relied on. */
 export const WEIGHT_COUNT = 7;
 
-/** { key: weight } → seven weights in category_no order, as the API expects. */
+/** { key: weight } → seven weights in category_no order, as the API expects.
+ *
+ *  The API contract is unchanged: seven numbers. A category the panel does not
+ *  offer keeps the 1 it is filled with, so it still counts, at neutral. Built
+ *  from WEIGHTABLE_CATEGORIES rather than CATEGORIES so a preset carrying a
+ *  value for an unweightable category cannot set a weight behind the reader's
+ *  back — what is not on screen cannot be silently in effect. */
 export function toWeightList(weights) {
   const list = Array(WEIGHT_COUNT).fill(1);
-  for (const { no, key } of CATEGORIES) list[no - 1] = weights[key] ?? 1;
+  for (const { no, key } of WEIGHTABLE_CATEGORIES) list[no - 1] = weights[key] ?? 1;
   return list;
 }
 
@@ -71,20 +91,49 @@ const indexOf = (value) => {
   return i === -1 ? LEVELS.findIndex((l) => l.value === DEFAULT_LEVEL) : i;
 };
 
-export function WeightLevels({ weights, onChange }) {
-  const [showAll, setShowAll] = useState(false);
+export const CONSISTENCY_WINDOWS = [
+  { value: "6m", label: "6 months", lvl: "poor" },
+  { value: "1y", label: "1 year", lvl: "fair" },
+  { value: "3y", label: "3 years", lvl: "good" },
+  { value: "anytime", label: "Anytime", lvl: "excellent" },
+];
+export const DEFAULT_CONSISTENCY_WINDOW = "1y";
+
+/* Panel order only. category_no and the weights list are unchanged, so the
+   API still receives the seven weights in category_no order. "consistency" is
+   the window selector, shown as a row like the others. */
+const PANEL_ORDER = [1, "consistency", 7, 2, 5, 6, 4];
+const CONSISTENCY_ROW = {
+  key: "consistency",
+  label: "Service Expertise & Consistency",
+  tag: "How reliably they deliver good results, within the time you choose",
+};
+
+export function WeightLevels({ weights, onChange, consistencyWindow, onConsistencyWindowChange }) {
+  const [showAll, setShowAll] = useState(true);
   /* Collapsed rows are UNMOUNTED, not hidden. The weights live in the page
      above, so nothing set is lost by folding them away — and three range
      inputs left in the tree would keep taking tab stops from a control the
      visitor has put away. */
-  const shown = showAll ? CATEGORIES : CATEGORIES.slice(0, PREVIEW_COUNT);
+  const rows = PANEL_ORDER
+    .map((k) => (k === "consistency"
+      ? (onConsistencyWindowChange ? CONSISTENCY_ROW : null)
+      /* WEIGHTABLE_CATEGORIES, not CATEGORIES: a row listed here but ignored
+         by toWeightList would be a control that silently does nothing. */
+      : WEIGHTABLE_CATEGORIES.find((c) => c.no === k)))
+    .filter(Boolean);
+  const shown = showAll ? rows : rows.slice(0, PREVIEW_COUNT);
 
   return (
     <>
       <p className="weight-heading">How important is each to you?</p>
       <ul className="weight-list">
         {shown.map(({ key, label, tag }) => {
-          const idx = indexOf(weights[key] ?? DEFAULT_LEVEL);
+          const isWindow = key === "consistency";
+          const options = isWindow ? CONSISTENCY_WINDOWS : LEVELS;
+          const idx = isWindow
+            ? Math.max(0, CONSISTENCY_WINDOWS.findIndex((w) => w.value === consistencyWindow))
+            : indexOf(weights[key] ?? DEFAULT_LEVEL);
           const id = `w-${key}`;
 
           return (
@@ -97,13 +146,9 @@ export function WeightLevels({ weights, onChange }) {
               </div>
 
               {/* Four buttons, not a drag — there are exactly four levels and
-                  no value between them, so a continuous slider was asking for
-                  a gesture the control could never actually use. A radio
-                  group names its own stops and needs no reading of a ramp or
-                  a thumb position; picking Low or Very high is one press
-                  either way, nothing to drag past the others to reach. */}
+                  no value between them. A radio group names its own stops. */}
               <div className="lvl-group" role="radiogroup" aria-labelledby={`${id}-label`}>
-                {LEVELS.map((l, i) => (
+                {options.map((l, i) => (
                   <button
                     key={l.value}
                     type="button"
@@ -111,7 +156,9 @@ export function WeightLevels({ weights, onChange }) {
                     aria-checked={i === idx}
                     className={`lvl-opt ${i === idx ? "is-on" : ""}`}
                     data-lvl={l.lvl}
-                    onClick={() => onChange({ ...weights, [key]: l.value })}
+                    onClick={() => (isWindow
+                      ? onConsistencyWindowChange(l.value)
+                      : onChange({ ...weights, [key]: l.value }))}
                   >
                     {l.label}
                   </button>

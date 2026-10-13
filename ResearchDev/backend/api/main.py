@@ -187,6 +187,11 @@ app.add_middleware(
 
 from auth import router as auth_router
 from contact import router as contact_router
+from consistency import ConsistencyWindow, consistency_for
+from staff import (staff_for, staff_dependent_flag, staff_dependent_for,
+                   reviews_for_staff, named_staff_summary_for, staff_card_for)
+from popular_services import popular_services_for
+from languages import languages_for
 app.include_router(auth_router)
 app.include_router(contact_router)
 
@@ -232,6 +237,13 @@ def _parse_weights(weights: str | None) -> list[float] | None:
     if all(v == 0 for v in values):
         raise HTTPException(422, "at least one weight must be above zero")
     return values
+
+
+def _window(value: str) -> ConsistencyWindow:
+    try:
+        return ConsistencyWindow(value)
+    except ValueError:
+        raise HTTPException(422, "consistency_window must be 6m, 1y, 3y or anytime")
 
 
 @app.get("/health")
@@ -471,6 +483,7 @@ def rankings_nearby(
     status: str = Query("any", pattern="^(open|closed|any)$"),
     radius_km: float = Query(NEARBY_RADIUS_KM, gt=0, le=30),
     limit: int = Query(NEARBY_LIMIT, ge=1, le=50),
+    consistency_window: str = Query("1y", description="6m, 1y, 3y or anytime"),
 ):
     """Ranked salons just OUTSIDE the chosen city, nearest first.
 
@@ -487,6 +500,7 @@ def rankings_nearby(
     including `category_scores`, so the same card renders them.
     """
     w = _parse_weights(weights)
+    cw = _window(consistency_window)
     city = (city or "").strip()
     if not city:
         raise HTTPException(400, "A city is required to find nearby salons.")
@@ -535,6 +549,16 @@ def rankings_nearby(
         nearby.sort(key=lambda x: x["distance_km"])
         nearby = nearby[:limit]
         _attach_category_scores(cur, nearby, level_used, shown)
+        cons = consistency_for(cur, [r["place_id"] for r in nearby], cw, sub["service_code"])
+        # One staff query, not two: the flag and the summary are the same scan.
+        staff_card = staff_card_for(cur, [r["place_id"] for r in nearby])
+        pop = popular_services_for(cur, [r["place_id"] for r in nearby])
+        for r in nearby:
+            card = staff_card.get(r["place_id"], {})
+            r["consistency"] = cons.get(r["place_id"])
+            r["staff_dependent"] = card.get("staff_dependent", False)
+            r["popular_services"] = pop.get(r["place_id"])
+            r["named_staff"] = card.get("named_staff", {"count": 0, "top": []})
 
     return {
         "requested": {"code": sub["code"], "name": sub["name"]},
@@ -559,6 +583,7 @@ def rankings(
                         description="open = operating; closed = Google lists it as permanently "
                                     "or temporarily closed. No opening hours are held, so this is "
                                     "business status, not time of day."),
+    consistency_window: str = Query("1y", description="6m, 1y, 3y or anytime"),
 ):
     """Ranked, available-but-not-ranked and safety-concern providers, in database order.
 
@@ -586,6 +611,7 @@ def rankings(
     status filters narrow the list without renumbering it.
     """
     w = _parse_weights(weights)
+    cw = _window(consistency_window)
     city = (city or "").strip()
     with cursor() as cur:
         sub = _sub_service_or_404(cur, sub_service_code)
@@ -606,6 +632,16 @@ def rankings(
         # lets a reader compare two salons on the results page itself.
         #
         _attach_category_scores(cur, rows, level_used, shown)
+        cons = consistency_for(cur, [r["place_id"] for r in rows], cw, sub["service_code"])
+        # One staff query, not two: the flag and the summary are the same scan.
+        staff_card = staff_card_for(cur, [r["place_id"] for r in rows])
+        pop = popular_services_for(cur, [r["place_id"] for r in rows])
+        for r in rows:
+            card = staff_card.get(r["place_id"], {})
+            r["consistency"] = cons.get(r["place_id"])
+            r["staff_dependent"] = card.get("staff_dependent", False)
+            r["popular_services"] = pop.get(r["place_id"])
+            r["named_staff"] = card.get("named_staff", {"count": 0, "top": []})
 
     return {
         # Kept as it was: every existing caller reads this.
@@ -641,7 +677,7 @@ def search_providers(q: str = "", limit: int = Query(50, ge=1, le=200)):
 
 
 @app.get("/providers/{place_id}")
-def provider(place_id: str):
+def provider(place_id: str, consistency_window: str = Query("1y", description="6m, 1y, 3y or anytime")):
     """Details, safety, gates and vetoes, and a score per service with eight category scores.
 
     Seven weighted categories plus Overall Verdict, which is reported only.
@@ -759,12 +795,20 @@ def provider(place_id: str):
             (place_id,),
         )
         sentiment_totals = {r["polarity"]: r["n"] for r in cur.fetchall()}
+        consistency = consistency_for(cur, [place_id], _window(consistency_window))[place_id]
+        staff_reputation = staff_for(cur, [place_id])[place_id]
+        # From the list just fetched, not a second query.
+        staff_reputation["staff_dependent"] = staff_dependent_flag(staff_reputation["staff"])
+        popular_services = popular_services_for(cur, [place_id])[place_id]
+        languages = languages_for(cur, [place_id])[place_id]
 
     for s in services_:
         s["category_scores"] = by_service.get(s["sub_service_code"], [])
 
     return {**details, "safety": safety, "gates_and_vetoes": gates, "services": services_,
-            "evidence_services": evidence_services, "sentiment_totals": sentiment_totals}
+            "evidence_services": evidence_services, "sentiment_totals": sentiment_totals,
+            "consistency": consistency, "staff_reputation": staff_reputation,
+            "popular_services": popular_services, "languages": languages}
 
 
 # Evidence ordering. The key is validated by the Query pattern below and the
@@ -833,45 +877,17 @@ def sentiment(place_id: str):
         return cur.fetchall()
 
 
-@app.get("/providers/{place_id}/staff-mentions")
-def staff_mentions(place_id: str):
-    """Staff members named in this salon's reviews, with how often and how
-    positively.
+@app.get("/providers/{place_id}/staff/{staff_name}/reviews")
+def staff_reviews(place_id: str, staff_name: str):
+    """The reviews naming one staff member at one business, newest first.
 
-    staging.staff_names -- 4,585 rows, evidence_id -> name -- is the real
-    output of a name-extraction pass, but extract.evidence_item's own
-    staff_name column was never filled from it, so no caller before this one
-    could reach it. Joined here rather than copied into that column, so a
-    re-run of the same extraction is the only thing that could make this
-    endpoint stale, not a second write path to keep in sync.
-
-    One salon in three has at least one name here (121 of 549) -- this is
-    real but genuinely patchy coverage, not a property of the salon. An
-    empty list means the extraction did not catch a name on this salon's
-    reviews, not that none were mentioned.
+    An unknown name returns an empty list rather than a 404: the name comes
+    from a list this same API produced, so "no reviews" is the useful answer
+    and a 404 would only invite the caller to treat a typo differently from
+    a genuinely quiet week.
     """
     with cursor() as cur:
-        cur.execute(
-            """
-            -- Counted per REVIEW at review level (overall_sentiment), so a
-            -- staff member praised in a 5-star review is never shown as a
-            -- negative mention because one sub-point was mis-tagged.
-            select sn.staff_name,
-                   count(distinct se.review_id) as mentions,
-                   count(distinct se.review_id) filter (where ra.overall_sentiment = 'positive') as positive,
-                   count(distinct se.review_id) filter (where ra.overall_sentiment = 'negative') as negative,
-                   max(r.published_at) as last_mentioned
-            from staging.staff_names sn
-            join staging.evidence_item se on se.evidence_id::text = sn.evidence_id::text
-            join raw.review r on r.review_id = se.review_id
-            left join extract.review_assessment ra on ra.review_id = se.review_id
-            where se.place_id = %s and sn.staff_name is not null
-            group by sn.staff_name
-            order by mentions desc
-            """,
-            (place_id,),
-        )
-        return cur.fetchall()
+        return {"reviews": reviews_for_staff(cur, place_id, staff_name)}
 
 
 @app.get("/providers/{place_id}/sub-point-proof")
@@ -1028,6 +1044,10 @@ def evidence(
     # Only reviews that name a staff member (have a staff_name). Combines with
     # any polarity, so "positive + named" is positive reviews that name staff.
     only_named: bool = False,
+    # One of the three detected languages. Narrows to reviews written in it;
+    # omitted, nothing is hidden — 'other' and undetected reviews still show
+    # under All, because the filter is for finding, not for quietly dropping.
+    language: str | None = Query(None, pattern="^(english|sinhala|english_sinhala_mix)$"),
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     sort: str = Query("recent", pattern="^(recent|longest)$"),
@@ -1069,7 +1089,7 @@ def evidence(
                    -- through staging and attached per review (all names for the
                    -- review, comma-joined). This mapping is exact: every name
                    -- genuinely appears in its review text.
-                   sn.staff_name
+                   sn.staff_name, r.source_language
             from extract.evidence_item e
             join raw.review r on r.review_id = e.review_id
             left join extract.review_assessment ra on ra.review_id = e.review_id
@@ -1099,6 +1119,8 @@ def evidence(
               and (not %s or e.polarity <> 'mention')
               -- Named-staff filter, independent of sentiment.
               and (not %s or sn.staff_name is not null)
+              -- Language filter, independent of every other one.
+              and (%s::text is null or r.source_language = %s)
             order by {order}
             limit %s offset %s
             """.format(order=_EVIDENCE_ORDER[sort]),
@@ -1107,6 +1129,7 @@ def evidence(
              exclude_service_code or None, exclude_service_code or None,
              sub_service_code or None, sub_service_code or None,
              category_no, category_no,
-             polarity, polarity, hide_mention, only_named, limit, offset),
+             polarity, polarity, hide_mention, only_named, language, language,
+             limit, offset),
         )
         return cur.fetchall()

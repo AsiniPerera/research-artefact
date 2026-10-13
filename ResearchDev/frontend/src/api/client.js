@@ -58,11 +58,12 @@ export const getFramework = (opts) => get("/framework", null, opts);
  * at a broader level and say so with requested / level_used / shown — read
  * those through rankingFallback below.
  */
-export const getRankings = (code, weights, city, status, opts) =>
+export const getRankings = (code, weights, city, status, consistencyWindow, opts) =>
   get(`/rankings/${encodeURIComponent(code)}`, {
     weights: weights?.join(","),
     city,
     status,
+    consistency_window: consistencyWindow,
   }, opts);
 
 /**
@@ -71,11 +72,12 @@ export const getRankings = (code, weights, city, status, opts) =>
  * Returns { requested, city, level_used, shown, nearby[] } where each nearby
  * row is a ranked row plus `distance_km`.
  */
-export const getNearbyRankings = (code, weights, city, status, opts) =>
+export const getNearbyRankings = (code, weights, city, status, consistencyWindow, opts) =>
   get(`/rankings/${encodeURIComponent(code)}/nearby`, {
     weights: weights?.join(","),
     city,
     status,
+    consistency_window: consistencyWindow,
   }, opts);
 
 /**
@@ -109,11 +111,16 @@ export function rankingFallback(data) {
 export const searchProviders = (q, opts) => get("/providers", { q }, opts);
 
 /** Provider details: safety, gates_and_vetoes[], services[] with category_scores. */
-export const getProvider = (placeId, opts) =>
-  get(`/providers/${encodeURIComponent(placeId)}`, null, opts);
+export const getProvider = (placeId, opts, consistencyWindow) =>
+  get(`/providers/${encodeURIComponent(placeId)}`, { consistency_window: consistencyWindow }, opts);
 
 /** Sentiment split per service x category, over the same evidence each score
     used. Flat rows: { service_code, category_no, polarity, n }. */
+/** The reviews naming one staff member at one business, newest first. */
+export const getStaffReviews = (placeId, staffName, opts) =>
+  get(`/providers/${encodeURIComponent(placeId)}/staff/`
+    + `${encodeURIComponent(staffName)}/reviews`, null, opts);
+
 export const getSentiment = (placeId, opts) =>
   get(`/providers/${encodeURIComponent(placeId)}/sentiment`, null, opts);
 
@@ -131,8 +138,6 @@ export const getSubPointProof = (placeId, opts) =>
 /** Staff members named in this salon's reviews, with mention count and
     sentiment split. Coverage is real but patchy -- an empty list means
     extraction caught no name here, not that none were mentioned. */
-export const getStaffMentions = (placeId, opts) =>
-  get(`/providers/${encodeURIComponent(placeId)}/staff-mentions`, null, opts);
 
 /** Evidence rows for a provider. Filters: sub_service_code, category_no, polarity, limit, offset. */
 export const getEvidence = (placeId, filters = {}, opts) =>
