@@ -12188,7 +12188,8 @@ span.chip-staff-dependent:hover { background: transparent; color: var(--champagn
 /* What a business is most reviewed for. margin-top clears the badges stacked
    above it on a card; nowrap keeps the longest pair name ("Mostly Wedding,
    Events & Occasions and Hair") from breaking across lines inside the pill. */
-.chip-popular-services {
+.chip-popular-services,
+.chip-specialism {
   display: inline-flex;
   align-items: center;
   margin-top: .3rem;
@@ -14036,9 +14037,6 @@ span.chip-staff-dependent:hover { background: transparent; color: var(--champagn
 @media (max-width: 700px) {
   .cat-score-list { grid-template-columns: 1fr; }
 }
-
-.csl-sub9 { display: flex; gap: 1rem; margin-top: .25rem; flex-wrap: wrap; }
-.csl-sub9-part { font-size: .75rem; color: var(--muted); }
 
 .weight-consistency { display: flex; flex-direction: column; gap: .35rem; margin-top: 1rem; }
 /* Priorities panel at full length: no height cap and no inner scroll, so all

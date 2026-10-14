@@ -1,20 +1,30 @@
 -- 13_ranking_v6.sql
--- Framework v6: ranking functions with Category 9 (from category9_window)
--- and without Category 3 or 8 (weight 0 in ref.framework_category).
+-- Ranking functions, duration-scoped.
 --
--- Weighted categories: 1, 2, 4, 5, 6, 7, 9 — seven in total.
--- Categories 1-7 from score.category_score; 9 from score.category9_window.
--- Category 9 fixed at weight 2 (Medium). Missing/short user weights
--- default to 2 (Medium), so all-defaults = seven equal shares of 1/7.
+-- Weighted categories: 1, 2, 4, 5, 6, 7 — six, now that Category 9 is
+-- weight 0 (16_category9_weight_zero.sql). user_weight defaults to 2
+-- (Medium) for any category the reader doesn't set, so all-defaults = six
+-- equal shares of 1/6.
 --
--- p_window ('6m','1y','3y','all') selects the Category 9 time window.
+-- p_window ('6m','1y','3y','all') now selects which duration-scoped rows of
+-- score.category_score and score.trust_score this reads
+-- (17_window_scoped_scores.sql widened both to carry window_code) — every
+-- category and the final score, not just Category 9's old display.
 -- Two-argument calls still work (p_weights defaults to null, p_window
 -- defaults to '1y').
 --
 -- Order: ranked first, then safety (clear → caution → concern),
 -- then score descending, then evidence weight descending.
 --
--- Prerequisite: 12_framework_v6_category9.sql applied.
+-- Group-level safety is worst-wins, not alphabetical: ranked on severity
+-- (clear 0 < caution 1 < safety concern 2) and mapped back to text, so a
+-- concern on one sub-service is never reported as clear for the whole
+-- group. (Previously min(t.safety_status), which let 'clear' beat 'safety
+-- concern' alphabetically; fixed in 14_ranking_safety_fix.sql, folded in
+-- here since this file's body is being replaced anyway.)
+--
+-- Prerequisite: 16_category9_weight_zero.sql and 17_window_scoped_scores.sql
+-- applied.
 -- Safe to re-run (DROP IF EXISTS + CREATE OR REPLACE).
 
 begin;
@@ -41,14 +51,12 @@ begin
   return query
   with w as (
     -- Weighted categories only (f.weight > 0, the real column on
-    -- ref.framework_category): 1,2,4,5,6,7 from the table, plus 9. Category 3
-    -- and 8 have weight 0. user_weight is a different number: the reader's
-    -- own importance level for each category (1-7 default to 2, Medium;
-    -- Category 9 fixed at 2) and is what the ranking actually multiplies by.
+    -- ref.framework_category): 1,2,4,5,6,7 today. Categories 3, 8 and 9 all
+    -- have weight 0. user_weight is a different number: the reader's own
+    -- importance level for each category, defaulting to 2 (Medium), and is
+    -- what the ranking actually multiplies by.
     select f.category_no,
-           case when f.category_no <= 7
-                then coalesce(p_weights[f.category_no], 2)::numeric
-                else 2 end as user_weight
+           coalesce(p_weights[f.category_no], 2)::numeric as user_weight
     from ref.framework_category f
     where f.weight > 0
   ),
@@ -59,23 +67,11 @@ begin
     join w on w.category_no = c.category_no, run
     where c.scoring_run_id = run.id
       and c.sub_service_code = p_sub_service
-      and c.category_no <= 7
-  ),
-  cat9 as (
-    select cw.place_id, 9 as category_no, cw.score
-    from score.category9_window cw, run
-    where cw.scoring_run_id = run.id
-      and cw.sub_service_code = p_sub_service
-      and cw.window_code = p_window
-  ),
-  allcats as (
-    select * from cat17
-    union all
-    select * from cat9
+      and c.window_code = p_window
   ),
   s as (
     select a.place_id, sum(a.score * w.user_weight) / nullif(sum(w.user_weight), 0) as base
-    from allcats a join w using (category_no)
+    from cat17 a join w using (category_no)
     group by a.place_id
   ),
   rows as (
@@ -87,6 +83,7 @@ begin
            case t.safety_status when 'clear' then 0 when 'caution' then 1 else 2 end as safety_order
     from s
     join score.trust_score t on t.place_id = s.place_id and t.sub_service_code = p_sub_service
+                              and t.window_code = p_window
     join raw.provider p on p.place_id = s.place_id, run
     where t.scoring_run_id = run.id
   )
@@ -123,9 +120,7 @@ begin
     -- user_weight: the reader's own importance level, not f.weight (the
     -- structural flag below that only decides which categories take part).
     select f.category_no,
-           case when f.category_no <= 7
-                then coalesce(p_weights[f.category_no], 2)::numeric
-                else 2 end as user_weight
+           coalesce(p_weights[f.category_no], 2)::numeric as user_weight
     from ref.framework_category f
     where f.weight > 0
   ),
@@ -145,25 +140,12 @@ begin
     join members m on m.sub_service_code = c.sub_service_code
     join w on w.category_no = c.category_no, run
     where c.scoring_run_id = run.id
-      and c.category_no <= 7
+      and c.window_code = p_window
     group by c.place_id, c.category_no
-  ),
-  cat9 as (
-    select cw.place_id, 9 as category_no, avg(cw.score) as score
-    from score.category9_window cw
-    join members m on m.sub_service_code = cw.sub_service_code, run
-    where cw.scoring_run_id = run.id
-      and cw.window_code = p_window
-    group by cw.place_id
-  ),
-  allcats as (
-    select * from cat17
-    union all
-    select * from cat9
   ),
   s as (
     select a.place_id, sum(a.score * w.user_weight) / nullif(sum(w.user_weight), 0) as base
-    from allcats a join w using (category_no)
+    from cat17 a join w using (category_no)
     group by a.place_id
   ),
   g as (
@@ -177,10 +159,20 @@ begin
                 else avg(t.range_high) end as range_high,
            sum(t.evidence_weight) as evidence_weight,
            bool_or(t.rank_status = 'ranked') as any_ranked,
-           min(t.safety_status) as safety_status
+           -- Worst-wins: ranked on severity, not spelling, so a concern on
+           -- one sub-service carries to the whole group.
+           case max(case t.safety_status
+                      when 'clear'   then 0
+                      when 'caution' then 1
+                      else 2 end)
+             when 0 then 'clear'
+             when 1 then 'caution'
+             else 'safety concern'
+           end as safety_status
     from score.trust_score t
     join members m on m.sub_service_code = t.sub_service_code, run
     where t.scoring_run_id = run.id
+      and t.window_code = p_window
     group by t.place_id
   ),
   rows as (
@@ -193,7 +185,7 @@ begin
            case g.safety_status when 'clear' then 0 when 'caution' then 1 else 2 end as safety_order
     from s
     join g on g.place_id = s.place_id
-    join score.trust_score t on t.place_id = s.place_id
+    join score.trust_score t on t.place_id = s.place_id and t.window_code = p_window
     join members m on m.sub_service_code = t.sub_service_code
     join raw.provider p on p.place_id = s.place_id, run
     where t.scoring_run_id = run.id

@@ -30,8 +30,9 @@ request, which is why re-weighting never needs a re-score.
 Nothing about the framework is hard-coded. Which categories carry weight, which
 sub-points are computed or safety, and which are gates or vetoes are all read
 from ref.framework_category and ref.sub_point, so a change made in
-02_reference_data.sql flows through without touching this file. The one
-exception is REPLY_SP below, which names the four owner-reply parts directly.
+01_schema_and_reference_data.sql flows through without touching this file.
+The one exception is REPLY_SP below, which names the four owner-reply parts
+directly.
 
 Run 05_tiers_and_scoring_schema.sql in the Supabase SQL Editor first. Then, in
 this folder:
@@ -95,15 +96,12 @@ P = {
     'min_before_reviews_for_promise': 10,
     'min_after_reviews_for_promise': 10,
     'stance_score': {'accepts / apologises': 1.0, 'accepts and disputes (mixed)': 0.75, 'disputes the report': 0.5, 'neither accepts nor disputes': 0.25},
-    # Category 9, Service Expertise & Consistency. Both parts are computed
-    # here by rule, not read from review text, so neither carries a
-    # confidence, a recency weight or a specificity weight.
-    'cat9_windows': {'6m': 6, '1y': 12, '3y': 36, 'all': None},
-    'cat9_default_window': '1y',          # the value stored in score.category_score
-    'cat9_min_reviews_per_period': 3,     # 9.1: a period counts at 3 reviews
-    'cat9_min_periods': 2,                # 9.1: needs two periods to compare
-    'cat9_shrink_k': 20,                  # 9.1: pulls a thin spread toward 0.5
-    'cat9_min_service_reviews': 5,        # 9.2: below this, no evidence
+    # Category 9's remaining part, 9.2 service specialism (9.1 consistency is
+    # removed -- see section 3b). Computed by rule, not read from review
+    # text, so it carries no confidence, recency weight or specificity
+    # weight. The duration windows it uses are DURATION_WINDOWS, further
+    # down, the same ones every category now uses.
+    'cat9_min_service_reviews': 5,        # below this, no evidence
     # Filled from ref.sub_point.is_safety below, so the framework decides this
     # rather than a list that has to be kept in step with it. Stored in
     # score.scoring_run.parameters, which score.v_provider_caution reads back.
@@ -147,8 +145,8 @@ ev = q("""
 # ---------------- the framework decides the shape of the scoring ----------------
 fc = q("select category_no, name, weight from ref.framework_category order by category_no")
 spx = q("select code, category_no, is_score, is_reported_only, is_computed, is_safety from ref.sub_point order by category_no, sort_order")
-WEIGHTED = [int(c) for c in fc.loc[fc['weight'] > 0, 'category_no']]        # 1 .. 7
-REPORTED = [int(c) for c in fc.loc[fc['weight'] <= 0, 'category_no']]       # 8, Overall Verdict
+WEIGHTED = [int(c) for c in fc.loc[fc['weight'] > 0, 'category_no']]        # 1,2,4,5,6,7,9 today
+REPORTED = [int(c) for c in fc.loc[fc['weight'] <= 0, 'category_no']]       # 3,8 today
 ALL_CATS = WEIGHTED + REPORTED
 # The category whose sub-points are computed from owner replies rather than from
 # review text, and the sub-points inside it that are. REPLY_SP must be defined
@@ -333,227 +331,249 @@ for pid, (k, b) in kept_broken.items():
     if k + b:
         reply_parts.setdefault(pid, [[], 0.0, 0])[0].append((A0 + k) / (A0 + B0 + k + b))
 
-# ================= 3b. Category 9: consistency and expertise =================
-# Both parts are computed, so they never appear in `sc` and therefore never
-# reach the 80% ranking range -- that range is built only from statements read
-# from review text.
+# ================= 3b. Category 9's remaining part: service specialism (9.2) =====
+# 9.1 (consistency) is removed. Filtering reviews by duration answers "is
+# quality holding up" more directly than a dedicated computed category did,
+# and duration filtering is now universal (section 4 below) rather than
+# something only Category 9 did. Category 9's weight is 0
+# (16_category9_weight_zero.sql) -- reported-only, the same treatment as
+# Categories 3 and 8 -- and nothing is coded to 9.1 or 9.2 in review text
+# (both are is_computed), so the generic per-category loop in section 4
+# leaves it at the neutral prior, 0.5, on every row, same as any
+# reported-only category with nothing coded to it.
+#
+# 9.2 (specialism) survives as a display-only figure: how much of a
+# business's service-attributed evidence, within the reader's chosen
+# window, concerns one particular service. Read back by
+# backend/api/service_specialism.py the same way popular_services reads its
+# own badge -- no weight, no ranking effect. Computed fresh inside the
+# per-window loop below, from that window's filtered evidence, so the
+# specialism tag reflects whichever duration the reader selected too.
 CAT9 = 9
-HAS_CAT9 = CAT9 in set(ALL_CATS)        # false until 12_ has been run
-WINDOWS = P['cat9_windows']
+HAS_CAT9 = CAT9 in set(ALL_CATS)        # false only if ref.framework_category has no row 9 at all
 
 # Reused by `sc` below. Both columns are NOT NULL in the schema, so these are
 # plain bool today; fillna makes the guard survive a nullable column.
 NOFAULT = ev['reviewer_fault'].fillna(False).astype(bool)
 NOCHECK = ev['needs_manual_check'].fillna(False).astype(bool)
 
-# --- 9.1 consistency: business-wide, every Category 1 statement -------------
-# Business level deliberately: at service level only 26 business x service
-# pairs had enough reviews in two periods, against 120 businesses here.
-# It measures VARIATION, not level -- Category 1 measures level, and a
-# steadily mediocre salon scores high here and low there.
-c1 = ev[ev['sp'].str.startswith('1.')
-        & ev['polarity'].isin(['positive', 'negative', 'mixed'])
-        & ~NOFAULT & ~NOCHECK]
-# One row per (business, review) carrying that review's WORST Category 1
-# statement, so a review counts once however many points it makes.
-# Worst code: positive 0 / mixed 1 / negative 2 (higher = worse).
-# Value mapping: worst 0 → 1.0 (good), 1 → 0.5 (mixed), 2 → 0.0 (bad).
-w9 = (c1.assign(w=c1['polarity'].map({'positive': 0, 'mixed': 1, 'negative': 2}))
-        .groupby(['place_id', 'review_id'], as_index=False)
-        .agg(w=('w', 'max'), age_m=('age_m', 'min')))
-w9['val'] = w9['w'].map({0: 1.0, 1: 0.5, 2: 0.0})
-# Three periods, not four: P1 and P2 merged, the pre-registered fallback.
-# They must not overlap, or a recent review lands in several and hides the
-# change the measure exists to find.
-w9['period'] = np.where(w9['age_m'] < 12, 1, np.where(w9['age_m'] < 36, 2, 3))
-
-per9 = (w9.groupby(['place_id', 'period'])
-          .agg(n=('val', 'size'), share=('val', 'mean')).reset_index())
-per9 = per9[per9['n'] >= P['cat9_min_reviews_per_period']]
-
-cat9_consistency = {}                   # pid -> (score, reviews behind it)
-for pid, g in per9.groupby('place_id'):
-    if len(g) < P['cat9_min_periods']:
-        continue
-    raw = 1.0 - float(g['share'].max() - g['share'].min())
-    n_eff = int(g['n'].sum())
-    cat9_consistency[pid] = (0.5 + (raw - 0.5) * n_eff / (n_eff + P['cat9_shrink_k']), n_eff)
-
-# --- 9.2 expertise: per business x service, per window ----------------------
-# Share of the business's SERVICE-ATTRIBUTED reviews that concern this service.
-# Attributed, not all text reviews: only 29% of evidence names a service, so
-# dividing by every review reads 0.075 for the median salon and measures
-# tagging coverage rather than specialisation.
-attr9 = ev[ev['polarity'].isin(['positive', 'negative', 'mixed'])
-           & ~NOFAULT & ~NOCHECK & ev['svc'].notna()]
-
-cat9_expertise = {}                     # (pid, service, window) -> (score, n)
-for wc, months in WINDOWS.items():
-    a = attr9 if months is None else attr9[attr9['age_m'] <= months]
-    biz_n = a.groupby('place_id')['review_id'].nunique()
-    svc_n = a.groupby(['place_id', 'svc'])['review_id'].nunique()
-    for (pid, sv), n in svc_n.items():
-        if n < P['cat9_min_service_reviews']:
-            continue
-        cat9_expertise[(pid, sv, wc)] = ((1.0 + n) / (2.0 + int(biz_n[pid])), int(n))
-
-n_pairs9 = len(set((p, sv) for p, sv, _ in cat9_expertise))
-print('Category 9: 9.1 on {:,} businesses, 9.2 on {:,} business x service pairs'
-      .format(len(cat9_consistency), n_pairs9))
-
 cat9_rows = []                          # -> score.category9_window
 
-# ================= 4. Category and trust scores per provider x sub-service =================
-# Reported-only sub-points are included: `overall` carries 10,296 of the 44,526
-# evidence rows, and category 8 is meant to be shown even though it is never
-# weighted. Computed sub-points are excluded because they are not read from
-# review text at all.
-sc = ev[(ev['is_score'] | ev['is_reported_only']) & ~ev['is_computed'] & ~ev['sp'].isin(REPLY_SP)
-        & ev['polarity'].isin(['positive', 'negative', 'mixed'])
-        # Rule A4 and the manual-check flag, applied here as well as on the
-        # safety line. Both columns are NOT NULL today (0 fault rows, 655
-        # manual-check, 1.5%); fillna keeps this correct if that ever changes.
-        & ~NOFAULT & ~NOCHECK].copy()
-sc['w0'] = sc['confidence'].map(P['confidence_weight']) * np.power(0.5, sc['age_m'].clip(lower=0) / P['recency_half_life_months'])
-sc['pos'] = sc['polarity'].map({'positive': 1.0, 'mixed': 0.5, 'negative': 0.0})
-sc['neg'] = (1 - sc['pos']) * np.where(sc['severity'] == 'damage', P['damage_multiplier'], 1.0)
-SW = P['specificity_weight']; TRAIT = set(P['provider_trait_categories'])
-lo_q, hi_q = (1 - P['range_level']) / 2, 1 - (1 - P['range_level']) / 2
-cat_rows = []; trust_rows = []
-dropped_no_targets = []        # businesses whose evidence names no service at all
+# ================= 4. Category and trust scores, per duration window =================
+# The reader's chosen duration (6m / 1y / 3y / anytime) decides which
+# reviews exist at all for every category below, the service-specific
+# scores and the final ranking -- a hard inclusion rule, not a recency
+# weight on top of the full history. Anchored to TODAY, today's real
+# calendar date, not ref_date (the latest review IN THE DATA, which can lag
+# behind it -- 2026-09-17 against an actual today of 2026-10-14 as this
+# comment is written): the requirement is reviews from the last 6 months as
+# of today, not as of whenever this corpus was last updated.
+#
+# ref_date and the smooth recency half-life decay above are untouched and
+# still apply WITHIN whichever window is selected -- a review from month 5
+# of a 6-month window still counts less than one from last week. The two
+# mechanisms answer different questions: this section decides IN or OUT,
+# recency decay decides how much a statement that got IN still counts.
+#
+# Gates, vetoes and safety status are NOT re-filtered per window (sections 1
+# and 2 above, computed once already): a different business rule -- report
+# independence and a fixed 24-month staleness period -- not the reader's
+# display preference, and inert regardless today (0 gates or vetoes ever
+# fire). Category 3's reply-based scoring (reply_parts, commitment_rows,
+# above) is likewise computed once, unwindowed: it is reported-only, never
+# ranked, and an owner's reply answers a complaint that can predate the
+# reader's chosen window by its very nature.
+TODAY = pd.Timestamp(pd.Timestamp.now().date())
+DURATION_WINDOWS = {'6m': 6, '1y': 12, '3y': 36, 'all': None}
 
-for pid, g in sc.groupby('place_id'):
-    pe = ev.loc[ev['place_id'] == pid]
-    # Sub-services named in the evidence, UNION those implied by the
-    # service_code and service_category_code present. The union, not the named
-    # set alone: a business with one named sub-service still offers the rest,
-    # and preferring `named` would stop scoring those others entirely — on the
-    # current corpus that drops 74% of the pairs and 73 ranked rows.
-    #
-    # A named sub-service therefore only ADDS precision: it is what lets a
-    # statement reach the 1.00 specificity rung for its own sub-service.
-    named = set(pe['sub'].dropna())
-    svcs_present = set(pe['svc'].dropna().unique())
-    cats_present = set(pe['cat'].dropna().unique())
-    inferred = set()
-    for ss, sv in sub2svc.items():
-        if sv in svcs_present:
-            inferred.add(ss)
-        elif sub2cat.get(ss) in cats_present:
-            inferred.add(ss)
-    targets = sorted(inferred | named)
-    if not targets:
-        # Evidence exists for this business but names no service, no service
-        # category and no sub-service, so there is nothing to attach a score
-        # to. Printed rather than passed over in silence: these businesses
-        # disappear from every ranking, and the count belongs in the run log.
-        dropped_no_targets.append(pid)
-        continue
-    sub = g['sub'].to_numpy(dtype=object); svc = g['svc'].to_numpy(dtype=object); cat = g['cat'].to_numpy(dtype=object)
-    cno = g['category_no'].to_numpy(); w0 = g['w0'].to_numpy(); pos = g['pos'].to_numpy(); neg = g['neg'].to_numpy()
-    rid = g['review_id'].to_numpy()
-    trait = np.isin(cno, list(TRAIT))
-    # Reported-only categories are scored and stored, but they are not part of
-    # base_score, so they must not lend it precision either.
-    weighted = np.isin(cno, WEIGHTED)
-    sub_none = pd.isna(sub); svc_none = pd.isna(svc); cat_none = pd.isna(cat)
-    for s in targets:
-        s_svc, s_cat = sub2svc[s], sub2cat[s]
-        spec = np.where(sub == s, SW['same_sub_service'],
-               np.where(sub_none & (svc == s_svc), SW['same_service'],
-               np.where(sub_none & svc_none & (cat_none | (cat == s_cat)), SW['provider_level'],
-               np.where(trait, SW['other_service_provider_trait'], SW['other_service_outcome']))))
-        w = w0 * spec
-        use = w > 0
-        Pw, Nw = w * pos, w * neg
-        # Every category, weighted and reported alike, scored from its own
-        # evidence as a Beta posterior. No evidence leaves the Beta(1,1) prior,
-        # which is 0.5 — neutral, not bad.
-        scores = {}
-        for c in ALL_CATS:
-            m = use & (cno == c)
-            pc, nc = Pw[m].sum(), Nw[m].sum()
-            scores[c] = ((A0 + pc) / (A0 + B0 + pc + nc), pc + nc, int(m.sum()))
+n_missing_date = int(ev['d'].isna().sum())
+if n_missing_date:
+    print(f"{n_missing_date:,} evidence rows have no publication date: "
+          f"excluded from 6m/1y/3y, included in 'all' if otherwise eligible.")
 
-        # Category 3 = mean of the parts that have evidence: 3.1-3.4 from owner
-        # replies (provider-wide) and 3.5, which scores[c] now holds alone.
-        for c in REPLY_CATS:
-            parts, r_w, r_n = reply_parts.get(pid, ([], 0.0, 0))
-            ev_sc, ev_w, ev_n = scores[c]
-            got = parts + ([ev_sc] if ev_w > 0 else [])
-            scores[c] = (float(np.mean(got)), float(r_w + ev_w), int(r_n + ev_n)) if got else (0.5, 0.0, 0)
 
-        # Category 9 = mean of the parts with evidence, per window. 9.1 is
-        # business-wide so it repeats across every service of a business;
-        # 9.2 belongs to this service. The default window's value is what
-        # reaches score.category_score and the overall score.
+def duration_mask(d, months):
+    """Which rows of date column `d` fall in the last `months` months,
+    anchored to TODAY. months=None (the 'all' window) admits every row,
+    including a missing date; a bounded window excludes a missing date,
+    since membership in it cannot be determined."""
+    if months is None:
+        return pd.Series(True, index=d.index)
+    return d.notna() & (d >= TODAY - pd.DateOffset(months=months)) & (d <= TODAY)
+
+
+cat_rows = []
+trust_frames = []
+dropped_no_targets = defaultdict(list)   # window_code -> [place_id, ...]
+
+for window_code, months in DURATION_WINDOWS.items():
+    evw = ev[duration_mask(ev['d'], months)]
+
+    # Reported-only sub-points are included: `overall` carries 10,296 of the
+    # 44,526 evidence rows, and category 8 is meant to be shown even though
+    # it is never weighted. Computed sub-points are excluded because they
+    # are not read from review text at all.
+    sc = evw[(evw['is_score'] | evw['is_reported_only']) & ~evw['is_computed'] & ~evw['sp'].isin(REPLY_SP)
+             & evw['polarity'].isin(['positive', 'negative', 'mixed'])
+             # Rule A4 and the manual-check flag, applied here as well as on
+             # the safety line. Both columns are NOT NULL today (0 fault
+             # rows, 655 manual-check, 1.5%); fillna keeps this correct if
+             # that ever changes.
+             & ~NOFAULT.loc[evw.index] & ~NOCHECK.loc[evw.index]].copy()
+    sc['w0'] = sc['confidence'].map(P['confidence_weight']) * np.power(0.5, sc['age_m'].clip(lower=0) / P['recency_half_life_months'])
+    sc['pos'] = sc['polarity'].map({'positive': 1.0, 'mixed': 0.5, 'negative': 0.0})
+    sc['neg'] = (1 - sc['pos']) * np.where(sc['severity'] == 'damage', P['damage_multiplier'], 1.0)
+    SW = P['specificity_weight']; TRAIT = set(P['provider_trait_categories'])
+    lo_q, hi_q = (1 - P['range_level']) / 2, 1 - (1 - P['range_level']) / 2
+
+    # 9.2 for this window: share of the business's SERVICE-ATTRIBUTED
+    # evidence, within this window, that concerns one service. Attributed,
+    # not all text reviews: only 29% of evidence names a service, so
+    # dividing by every review reads 0.075 for the median salon and measures
+    # tagging coverage rather than specialisation.
+    attr9 = evw[evw['polarity'].isin(['positive', 'negative', 'mixed'])
+                & ~NOFAULT.loc[evw.index] & ~NOCHECK.loc[evw.index] & evw['svc'].notna()]
+    biz_n9 = attr9.groupby('place_id')['review_id'].nunique()
+    svc_n9 = attr9.groupby(['place_id', 'svc'])['review_id'].nunique()
+    cat9_expertise = {}             # (place_id, service) -> (score, n), this window only
+    for (pid, sv), n in svc_n9.items():
+        if n < P['cat9_min_service_reviews']:
+            continue
+        cat9_expertise[(pid, sv)] = ((1.0 + n) / (2.0 + int(biz_n9[pid])), int(n))
+
+    trust_rows = []
+    for pid, g in sc.groupby('place_id'):
+        pe = evw.loc[evw['place_id'] == pid]
+        # Sub-services named in the evidence, UNION those implied by the
+        # service_code and service_category_code present. The union, not the
+        # named set alone: a business with one named sub-service still
+        # offers the rest, and preferring `named` would stop scoring those
+        # others entirely.
         #
-        # Evidence weight is 0.0 on purpose: these are counts of reviews, not
-        # weighted statements, and the two must not be added together. The one
-        # consumer, the group roll-up in 13_ranking_v6.sql, then falls to
-        # avg(score), which is the right treatment for a computed category.
-        if HAS_CAT9:
-            c9 = cat9_consistency.get(pid)
-            for wc in WINDOWS:
-                e9 = cat9_expertise.get((pid, s_svc, wc))
-                parts9 = [x[0] for x in (c9, e9) if x is not None]
-                val9 = float(np.mean(parts9)) if parts9 else 0.5
-                cat9_rows.append((pid, s, wc,
-                                  round(c9[0], 4) if c9 else None,
+        # A named sub-service therefore only ADDS precision: it is what lets
+        # a statement reach the 1.00 specificity rung for its own sub-service.
+        named = set(pe['sub'].dropna())
+        svcs_present = set(pe['svc'].dropna().unique())
+        cats_present = set(pe['cat'].dropna().unique())
+        inferred = set()
+        for ss, sv in sub2svc.items():
+            if sv in svcs_present:
+                inferred.add(ss)
+            elif sub2cat.get(ss) in cats_present:
+                inferred.add(ss)
+        targets = sorted(inferred | named)
+        if not targets:
+            # Evidence exists for this business in this window but names no
+            # service, no service category and no sub-service, so there is
+            # nothing to attach a score to. A business can also land here
+            # simply because none of its evidence falls inside a short
+            # window -- that is the duration filter doing its job, not a
+            # defect, and is why this is tracked per window rather than once.
+            dropped_no_targets[window_code].append(pid)
+            continue
+        sub = g['sub'].to_numpy(dtype=object); svc = g['svc'].to_numpy(dtype=object); cat = g['cat'].to_numpy(dtype=object)
+        cno = g['category_no'].to_numpy(); w0 = g['w0'].to_numpy(); pos = g['pos'].to_numpy(); neg = g['neg'].to_numpy()
+        rid = g['review_id'].to_numpy()
+        trait = np.isin(cno, list(TRAIT))
+        # Reported-only categories are scored and stored, but they are not
+        # part of base_score, so they must not lend it precision either.
+        weighted = np.isin(cno, WEIGHTED)
+        sub_none = pd.isna(sub); svc_none = pd.isna(svc); cat_none = pd.isna(cat)
+        for s in targets:
+            s_svc, s_cat = sub2svc[s], sub2cat[s]
+            spec = np.where(sub == s, SW['same_sub_service'],
+                   np.where(sub_none & (svc == s_svc), SW['same_service'],
+                   np.where(sub_none & svc_none & (cat_none | (cat == s_cat)), SW['provider_level'],
+                   np.where(trait, SW['other_service_provider_trait'], SW['other_service_outcome']))))
+            w = w0 * spec
+            use = w > 0
+            Pw, Nw = w * pos, w * neg
+            # Every category, weighted and reported alike, scored from its
+            # own evidence as a Beta posterior. No evidence leaves the
+            # Beta(1,1) prior, which is 0.5 — neutral, not bad. Category 9
+            # always lands here, since 9.1/9.2 are never coded in `sc`.
+            scores = {}
+            for c in ALL_CATS:
+                m = use & (cno == c)
+                pc, nc = Pw[m].sum(), Nw[m].sum()
+                scores[c] = ((A0 + pc) / (A0 + B0 + pc + nc), pc + nc, int(m.sum()))
+
+            # Category 3 = mean of the parts that have evidence: 3.1-3.4 from
+            # owner replies (provider-wide, unwindowed) and 3.5, which
+            # scores[c] now holds alone.
+            for c in REPLY_CATS:
+                parts, r_w, r_n = reply_parts.get(pid, ([], 0.0, 0))
+                ev_sc, ev_w, ev_n = scores[c]
+                got = parts + ([ev_sc] if ev_w > 0 else [])
+                scores[c] = (float(np.mean(got)), float(r_w + ev_w), int(r_n + ev_n)) if got else (0.5, 0.0, 0)
+
+            # 9.2's figure for this service, written under every sub-service
+            # of it (it is computed at the service grain, category9_window is
+            # keyed at the sub-service grain). score_9_1 is always null now;
+            # `score` mirrors score_9_2 so a reader of this column directly
+            # sees the same figure rather than a stale blend.
+            if HAS_CAT9:
+                e9 = cat9_expertise.get((pid, s_svc))
+                cat9_rows.append((pid, s, window_code,
+                                  None,
                                   round(e9[0], 4) if e9 else None,
-                                  round(val9, 4)))
-                if wc == P['cat9_default_window']:
-                    scores[CAT9] = (val9, 0.0, len(parts9))
+                                  round(e9[0], 4) if e9 else None))
 
-        for c in ALL_CATS:
-            cat_rows.append((pid, s, c, round(float(scores[c][0]), 4), round(float(scores[c][1]), 3), int(scores[c][2])))
+            for c in ALL_CATS:
+                cat_rows.append((pid, s, c, round(float(scores[c][0]), 4), round(float(scores[c][1]), 3), int(scores[c][2]), window_code))
 
-        # Equal weights over the WEIGHTED categories only, 1/7 each. Category 8
-        # (Overall Verdict) is stored above but never enters the mean.
-        base = float(np.mean([scores[c][0] for c in WEIGHTED]))
-        t = tier[s]
-        # A gate not named in gate_min_tier applies from tier 1 up.
-        #
-        # INERT: gates_applied is always empty under the current framework
-        # (see the comment above the gv_rows loop), so g_applied is always []
-        # and pen is always 0. trust below equals base on every row today.
-        g_applied = [x for x in gates_applied.get(pid, []) if t >= P['gate_min_tier'].get(x, 1)]
-        pen = P['gate_penalty'] * len(g_applied)
-        trust = max(0.0, base - pen)
-        # Precision rests on evidence about this service itself, and only on the
-        # categories the score is actually built from.
-        own = use & weighted & (spec >= SW['same_service'])
-        if own.any():                                                         # one review = one unit of evidence, however many points it makes
-            od = pd.DataFrame({'rid': rid[own], 'P': Pw[own], 'N': w[own] * (1 - pos[own]), 'w': w[own]}).groupby('rid').agg(P=('P', 'sum'), N=('N', 'sum'), w=('w', 'max'))
-            share = od['P'] / (od['P'] + od['N'])
-            Pt, Nt = float((od['w'] * share).sum()), float((od['w'] * (1 - share)).sum())
-        else:
-            Pt, Nt = 0.0, 0.0
-        a, b = A0 + Pt, B0 + Nt
-        ql, qh = beta.ppf(lo_q, a, b), beta.ppf(hi_q, a, b); mu = a / (a + b)
-        width = float(qh - ql)
-        low, high = max(0.0, trust - (mu - ql)), min(1.0, trust + (qh - mu))
-        st = safety.get(pid, ('clear',))[0]
-        if st == 'safety concern': rank_status = 'not ranked: safety concern'
-        elif width < P['max_range_width_by_tier'][t]: rank_status = 'ranked'
-        else: rank_status = 'available but not ranked'
-        badges = '; '.join([f'gate {x}' for x in g_applied] +
-                           [f'badge {r[1]}' for r in gv_rows if r[0] == pid and r[3] == 'badge' and t >= P['gate_min_tier'].get(r[1], 1)]) or None
-        trust_rows.append([pid, s, t, round(base, 4), round(pen, 2), round(trust, 4), round(low, 4), round(high, 4), round(width, 4),
-                           round(float(Pt + Nt), 3), int(len(set(rid[own]))), badges, st, rank_status, None])
+            # Equal weights over the WEIGHTED categories only, 1/7 each.
+            # Category 8 (Overall Verdict) is stored above but never enters
+            # the mean; Category 9 is weight 0 so it is not in WEIGHTED at all.
+            base = float(np.mean([scores[c][0] for c in WEIGHTED]))
+            t = tier[s]
+            # A gate not named in gate_min_tier applies from tier 1 up.
+            #
+            # INERT: gates_applied is always empty under the current
+            # framework (see the comment above the gv_rows loop), so
+            # g_applied is always [] and pen is always 0. trust below equals
+            # base on every row today.
+            g_applied = [x for x in gates_applied.get(pid, []) if t >= P['gate_min_tier'].get(x, 1)]
+            pen = P['gate_penalty'] * len(g_applied)
+            trust = max(0.0, base - pen)
+            # Precision rests on evidence about this service itself, and
+            # only on the categories the score is actually built from.
+            own = use & weighted & (spec >= SW['same_service'])
+            if own.any():                                                         # one review = one unit of evidence, however many points it makes
+                od = pd.DataFrame({'rid': rid[own], 'P': Pw[own], 'N': w[own] * (1 - pos[own]), 'w': w[own]}).groupby('rid').agg(P=('P', 'sum'), N=('N', 'sum'), w=('w', 'max'))
+                share = od['P'] / (od['P'] + od['N'])
+                Pt, Nt = float((od['w'] * share).sum()), float((od['w'] * (1 - share)).sum())
+            else:
+                Pt, Nt = 0.0, 0.0
+            a, b = A0 + Pt, B0 + Nt
+            ql, qh = beta.ppf(lo_q, a, b), beta.ppf(hi_q, a, b); mu = a / (a + b)
+            width = float(qh - ql)
+            low, high = max(0.0, trust - (mu - ql)), min(1.0, trust + (qh - mu))
+            st = safety.get(pid, ('clear',))[0]
+            if st == 'safety concern': rank_status = 'not ranked: safety concern'
+            elif width < P['max_range_width_by_tier'][t]: rank_status = 'ranked'
+            else: rank_status = 'available but not ranked'
+            badges = '; '.join([f'gate {x}' for x in g_applied] +
+                               [f'badge {r[1]}' for r in gv_rows if r[0] == pid and r[3] == 'badge' and t >= P['gate_min_tier'].get(r[1], 1)]) or None
+            trust_rows.append([pid, s, t, round(base, 4), round(pen, 2), round(trust, 4), round(low, 4), round(high, 4), round(width, 4),
+                               round(float(Pt + Nt), 3), int(len(set(rid[own]))), badges, st, rank_status, None, window_code])
 
-if dropped_no_targets:
-    print(f'Businesses with evidence but no scorable service: {len(dropped_no_targets)}')
-    for pid in dropped_no_targets:
-        print(f'  dropped (no target sub-service): {pid}')
+    # rank inside each sub-service, for this window only: clear above caution, then by trust score
+    tr_w = pd.DataFrame(trust_rows, columns=['place_id', 'sub', 'tier', 'base', 'pen', 'trust', 'low', 'high', 'width', 'ew', 'nrev', 'badges', 'safety', 'status', 'rank', 'window_code'])
+    rk = tr_w[tr_w['status'] == 'ranked'].copy()
+    rk['clear'] = (rk['safety'] == 'clear')
+    rk = rk.sort_values(['sub', 'clear', 'trust', 'ew'], ascending=[True, False, False, False])
+    rk['rank'] = rk.groupby('sub').cumcount() + 1
+    tr_w.loc[rk.index, 'rank'] = rk['rank']
+    trust_frames.append(tr_w)
+    print(f"[{window_code}] provider x sub-service rows: {len(tr_w):,}  "
+          f"({tr_w['status'].value_counts().to_dict()})")
 
-# rank inside each sub-service: clear above caution, then by trust score
-tr = pd.DataFrame(trust_rows, columns=['place_id', 'sub', 'tier', 'base', 'pen', 'trust', 'low', 'high', 'width', 'ew', 'nrev', 'badges', 'safety', 'status', 'rank'])
-rk = tr[tr['status'] == 'ranked'].copy()
-rk['clear'] = (rk['safety'] == 'clear')
-rk = rk.sort_values(['sub', 'clear', 'trust', 'ew'], ascending=[True, False, False, False])
-rk['rank'] = rk.groupby('sub').cumcount() + 1
-tr.loc[rk.index, 'rank'] = rk['rank']
+for window_code, pids in dropped_no_targets.items():
+    if pids:
+        print(f'[{window_code}] businesses with evidence but no scorable service in this window: {len(pids)}')
+
+tr = pd.concat(trust_frames, ignore_index=True)
 
 # ================= 5. Write =================
 with conn, conn.cursor() as cur:
@@ -561,11 +581,22 @@ with conn, conn.cursor() as cur:
     run = cur.fetchone()[0]
     execute_values(cur, "insert into score.gate_veto_status values %s", [(run, r[0], r[1], r[2], r[3], int(r[4]), int(r[5]), r[6], r[7], r[8]) for r in gv_rows], page_size=2000)
     execute_values(cur, "insert into score.provider_safety values %s", [(run, pid, v[0], int(v[1]), int(v[2]), v[3]) for pid, v in safety.items()], page_size=2000)
-    execute_values(cur, "insert into score.category_score values %s", [(run,) + r for r in cat_rows], page_size=5000)
-    execute_values(cur, "insert into score.trust_score values %s",
+    # Explicit column lists on these two: 17_window_scoped_scores.sql appends
+    # window_code with ALTER TABLE, and relying on whatever order that leaves
+    # the columns in would be fragile. Named here instead.
+    execute_values(cur,
+                   "insert into score.category_score "
+                   "(scoring_run_id, place_id, sub_service_code, category_no, "
+                   " score, evidence_weight, evidence_count, window_code) values %s",
+                   [(run,) + r for r in cat_rows], page_size=5000)
+    execute_values(cur,
+                   "insert into score.trust_score "
+                   "(scoring_run_id, place_id, sub_service_code, tier, base_score, gate_penalty, "
+                   " trust_score, range_low, range_high, range_width, evidence_weight, evidence_reviews, "
+                   " badges, safety_status, rank_status, rank_in_service, window_code) values %s",
                    [(run, r['place_id'], r['sub'], int(r['tier']), float(r['base']), float(r['pen']), float(r['trust']), float(r['low']), float(r['high']),
                      float(r['width']), float(r['ew']), int(r['nrev']), (None if pd.isna(r['badges']) else r['badges']), r['safety'], r['status'],
-                     None if pd.isna(r['rank']) else int(r['rank'])) for r in tr.to_dict('records')], page_size=5000)
+                     (None if pd.isna(r['rank']) else int(r['rank'])), r['window_code']) for r in tr.to_dict('records')], page_size=5000)
     execute_values(cur, "insert into score.commitment_outcome values %s", [(run,) + r for r in commitment_rows], page_size=2000)
     if HAS_CAT9:
         execute_values(cur,

@@ -8,7 +8,7 @@ import { splitBadges } from "../api/client";
 import { CATEGORY_INFO, isShownCategory } from "../constants/categories";
 
 const isCardCategory = (no) => isShownCategory(no) && Number(no) !== 3;
-const CARD_ORDER = [1, 9, 7, 2, 5, 6, 4];
+const CARD_ORDER = [1, 7, 2, 5, 6, 4];
 
 /** 0–1 score → 0–100 for display. */
 const pct = (x) => Math.round(Number(x ?? 0) * 100);

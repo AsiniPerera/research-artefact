@@ -12,11 +12,11 @@ import { CATEGORY_INFO } from "../constants/categories";
 // that list from `no`, never from position. Labels and tags come from
 // constants/categories.js, so every screen uses the same wording.
 //
-// Nine categories in the framework. Category 8 (Overall Verdict) is never
-// shown. Category 3 (Management Responsiveness) is reported only: weight 0,
-// shown on profiles but not ranked. Category 9 (Service Expertise &
-// Consistency) is fixed at Medium weight — computed from review data, not
-// adjustable.
+// Seven categories here, one short of the framework's nine: Category 8
+// (Overall Verdict) is never shown, and Category 9 (Service Expertise &
+// Consistency) has no category entry at all any more -- see
+// constants/categories.js for why. Category 3 (Management Responsiveness)
+// is reported only: weight 0, shown on profiles but not ranked.
 export const CATEGORIES = [
   { no: 1, key: "quality_of_work" },
   { no: 2, key: "consultation_aftercare" },
@@ -25,17 +25,14 @@ export const CATEGORIES = [
   { no: 5, key: "staff_customer_service" },
   { no: 6, key: "value_price_honesty" },
   { no: 7, key: "safety_hygiene" },
-  { no: 9, key: "service_expertise_consistency" },
 ].map((c) => ({ ...c, label: CATEGORY_INFO[c.no].name, tag: CATEGORY_INFO[c.no].description }));
 
-/* Category 3 is reported only (weight 0) — shown on profiles but not ranked.
-   Category 9 is fixed at Medium (weight 2) — it measures consistency and
-   specialisation from review data and is not something a customer chooses.
-   Both are excluded from the priorities panel sliders.
+/* Category 3 is reported only (weight 0) — shown on profiles but not
+   ranked, so it has no importance slider in this panel.
 
-   CATEGORIES stays the full eight: it is what the descriptive screens read,
+   CATEGORIES stays the full seven: it is what the descriptive screens read,
    and shortening it there would under-report the framework. */
-const UNWEIGHTABLE = new Set([3, 9]);
+const UNWEIGHTABLE = new Set([3]);
 
 /** The categories the priorities panel offers. */
 const WEIGHTABLE_CATEGORIES = CATEGORIES.filter((c) => !UNWEIGHTABLE.has(c.no));
@@ -92,6 +89,10 @@ const indexOf = (value) => {
   return i === -1 ? LEVELS.findIndex((l) => l.value === DEFAULT_LEVEL) : i;
 };
 
+// This used to be "Category 9's row": the window picker lived in that
+// category's slot because 9.2 (specialism) was the only thing it affected.
+// It now scopes every category and the final ranking -- see
+// 06_run_scoring.py section 4 -- so it is its own row, not a category's.
 const CONSISTENCY_WINDOWS = [
   { value: "6m", label: "6 months", lvl: "poor" },
   { value: "1y", label: "1 year", lvl: "fair" },
@@ -100,12 +101,22 @@ const CONSISTENCY_WINDOWS = [
 ];
 export const DEFAULT_CONSISTENCY_WINDOW = "1y";
 
-/* Panel order: the categories the user can weight, plus Category 9 which shows
-   the window selector (6m / 1y / 3y / Anytime) instead of importance buttons.
-   Category 9 is in CATEGORIES (for profiles) and UNWEIGHTABLE (no importance
-   slider), so it needs its own lookup against CATEGORIES. */
-const CAT9_ROW = CATEGORIES.find((c) => c.no === 9);
-const PANEL_ORDER = [1, 9, 7, 2, 5, 6, 4];
+/* Not a category: only reviews published in the chosen period are used for
+   every score and the final ranking (06_run_scoring.py section 4). It also
+   decides which window's data the specialism tag on the profile is
+   computed from. Given its own row, keyed by the 'window' sentinel in
+   PANEL_ORDER rather than a category_no, since there is no category left
+   for it to borrow a slot from. */
+const WINDOW_ROW = {
+  key: "duration_window",
+  label: "Review period",
+  tag: "Only reviews from this period count toward any score",
+  isWindow: true,
+};
+
+/* Panel order: the categories the user can weight, plus the review-period
+   row in its own slot (the 'window' sentinel, not a category_no). */
+const PANEL_ORDER = [1, "window", 7, 2, 5, 6, 4];
 
 export function WeightLevels({ weights, onChange, consistencyWindow, onConsistencyWindowChange }) {
   const [showAll, setShowAll] = useState(true);
@@ -115,8 +126,7 @@ export function WeightLevels({ weights, onChange, consistencyWindow, onConsisten
      visitor has put away. */
   const rows = PANEL_ORDER
     .map((k) => {
-      if (k === 9) return (CAT9_ROW && onConsistencyWindowChange)
-        ? { ...CAT9_ROW, isWindow: true } : null;
+      if (k === "window") return onConsistencyWindowChange ? WINDOW_ROW : null;
       return WEIGHTABLE_CATEGORIES.find((c) => c.no === k);
     })
     .filter(Boolean);
