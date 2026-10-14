@@ -1011,10 +1011,6 @@ function ServiceScores({ service, categoryName, categoryTrait, sentimentBy, subP
                 <span className="csl-bar-fill" style={{ width: `${s}%` }} />
               </div>
               <span className="csl-blurb">{CATEGORY_BLURB[r.category_no]}</span>
-              {/* No 9.1/9.2 sub-line here any more: Category 9 ranks on 9.1
-                  alone now, so csl-score above already IS 9.1 -- a sub-line
-                  repeating it would say the same number twice. 9.2 moved to
-                  SpecialismBadge, shown as a profile chip instead. */}
             </li>
           );
         })}
@@ -1109,8 +1105,8 @@ function EvidenceList({ placeId, filters, salonName }) {
     renders identity, gates/safety, every service's score tiles
     (ServiceScores) and the filtered review browser (EvidenceList).
     consistencyWindow carries the 6m/1y/3y/anytime choice from wherever the
-    reader opened the profile from, so Category 9's figures match what they
-    were looking at. */
+    reader opened the profile from, so every category score and the
+    specialism badge match what they were looking at. */
 export function SalonDetail({ salonId, onBack, consistencyWindow = "1y" }) {
   const [provider, setProvider] = useState(null);
   const [categories, setCategories] = useState([]);
