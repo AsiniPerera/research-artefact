@@ -385,6 +385,8 @@ cat9_rows = []                          # -> score.category9_window
 # reader's chosen window by its very nature.
 TODAY = pd.Timestamp(pd.Timestamp.now().date())
 DURATION_WINDOWS = {'6m': 6, '1y': 12, '3y': 36, 'all': None}
+print(f'Duration filter anchored to TODAY = {TODAY.date()} (this machine\'s clock, '
+      f'not the newest review in the data).')
 
 n_missing_date = int(ev['d'].isna().sum())
 if n_missing_date:
@@ -514,10 +516,13 @@ for window_code, months in DURATION_WINDOWS.items():
             # sees the same figure rather than a stale blend.
             if HAS_CAT9:
                 e9 = cat9_expertise.get((pid, s_svc))
+                # `score` is NOT NULL; score_9_2 stays null when there's no
+                # evidence for this sub-service, but `score` falls back to
+                # the neutral prior rather than violating the constraint.
                 cat9_rows.append((pid, s, window_code,
                                   None,
                                   round(e9[0], 4) if e9 else None,
-                                  round(e9[0], 4) if e9 else None))
+                                  round(e9[0], 4) if e9 else 0.5))
 
             for c in ALL_CATS:
                 cat_rows.append((pid, s, c, round(float(scores[c][0]), 4), round(float(scores[c][1]), 3), int(scores[c][2]), window_code))
