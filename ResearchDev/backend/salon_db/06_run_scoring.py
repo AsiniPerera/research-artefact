@@ -1,32 +1,47 @@
-"""Step 6: scoring. Reads the evidence from the database, calculates the scores, writes the score tables.
+"""Step 6: scoring. Reads the evidence, calculates the scores, writes the score tables.
 
-Framework v5: SEVEN weighted categories plus Overall Verdict.
+The one place a score is produced. The API only serves what this writes, so a
+number shown beside a salon comes from a run of this file and nothing else.
+
+NINE categories, seven of which carry weight:
 
   1 Quality of the Result                              from review evidence
   2 Consultation, Care & Aftercare                     from review evidence
-  3 Management Responsiveness & Continuous Improvement owner replies (3.1-3.4) + customer evidence (3.5)
+  3 Management Responsiveness & Continuous Improvement owner replies (3.1-3.4)
+                                                       + customer evidence (3.5)
+                                                       REPORTED ONLY, weight 0
   4 Customer Trust & Recommendation                    from review evidence
   5 Staff & Customer Service                           from review evidence
   6 Value & Price Honesty                              from review evidence
   7 Safety, Hygiene & Facilities                       from review evidence
-  8 Overall Verdict                                    REPORTED ONLY
+  8 Overall Verdict                                    REPORTED ONLY, weight 0
+  9 Service Expertise & Consistency                    computed by rule, not
+                                                       read from review text
 
-base_score is the equal-weight mean of categories 1-7. Category 8 is scored and
-stored so the app can show it, but it is excluded from the mean and from the
-user's weights, which are seven numbers: `overall` summarises the other seven
-and would double-count if it sat beside them.
+base_score is the equal-weight mean over whichever categories carry weight, so
+it is the mean of 1, 2, 4, 5, 6, 7 and 9. Categories 3 and 8 are scored and
+stored so the app can show them, and excluded from the mean: 8 summarises the
+others and would double-count, and 3 is reported only.
 
-Nothing about the framework is hard-coded here. The weighted categories, which
-sub-points are computed, which are safety, and which are gates or vetoes are all
-read from ref.framework_category and ref.sub_point, so a change made in
-02_reference_data.sql flows through without touching this file.
+The reader's own weights are NOT applied here. This writes one score per
+category and the ranking functions in 13_ranking_v6.sql combine them per
+request, which is why re-weighting never needs a re-score.
 
-Run 05_tiers_and_scoring_schema.sql in the Supabase SQL Editor first. Then, in this folder:
+Nothing about the framework is hard-coded. Which categories carry weight, which
+sub-points are computed or safety, and which are gates or vetoes are all read
+from ref.framework_category and ref.sub_point, so a change made in
+02_reference_data.sql flows through without touching this file. The one
+exception is REPLY_SP below, which names the four owner-reply parts directly.
+
+Run 05_tiers_and_scoring_schema.sql in the Supabase SQL Editor first. Then, in
+this folder:
     python 06_run_scoring.py
-It asks for the database password (typing is hidden). Safe to re-run: each run is stored as a new scoring run
-and the ranking view always shows the latest one.
+It asks for the database password unless DATABASE_URL is set; typing is hidden.
+Safe to re-run: every run is stored as a new scoring run and the ranking always
+reads the latest, so a bad run is undone by running it again rather than by
+repairing rows.
 
-Needs: psycopg2-binary, pandas, numpy, scipy  (all included with Anaconda except psycopg2-binary).
+Needs: psycopg2-binary, pandas, numpy, scipy (all with Anaconda except psycopg2-binary).
 """
 import os, sys, json, getpass, re
 from collections import defaultdict
@@ -47,10 +62,15 @@ P = {
     'window_months': 24,                 # gate / veto / safety evidence window and expiry
     'min_days_apart': 7,                 # independence of two reports
     'gate_penalty': 0.15,
-    # Gates only bite where the service calls for them. Framework v5 marks no
-    # sub-point as a gate, so this is empty and no penalty is ever applied; a
-    # gate added to ref.sub_point but not listed here defaults to tier 1, i.e.
-    # it applies everywhere.
+    # The tier a gate starts applying from, per sub-point code. A gate only
+    # bites where the service is irreversible enough for it to matter.
+    #
+    # INERT: no sub-point in ref.sub_point is marked is_gate, so no gate is
+    # ever detected, gates_applied is always empty and gate_penalty is always
+    # 0. The machinery is kept because it is part of the framework and a gate
+    # added to ref.sub_point starts working with no change here — such a gate
+    # is not listed in this dict, so it defaults to tier 1 and applies
+    # everywhere, which is the safe direction.
     'gate_min_tier': {},
     'range_level': 0.80,
     'max_range_width_by_tier': {1: 0.50, 2: 0.45, 3: 0.40, 4: 0.35, 5: 0.30},
@@ -59,11 +79,15 @@ P = {
     'recency_half_life_months': 24,      # an item this old counts half
     'specificity_weight': {'same_sub_service': 1.0, 'same_service': 0.75, 'provider_level': 0.5, 'other_service_provider_trait': 0.25, 'other_service_outcome': 0.0},
     # Categories that describe the SALON rather than one service, so evidence
-    # from another service still says something about them. Framework v5:
-    # 3 management responsiveness, 4 customer trust, 5 staff & customer service,
-    # 6 value & price honesty, 7 safety, hygiene & facilities. Categories 1
-    # (quality of work) and 2 (consultation, care & aftercare) are service
-    # outcomes and do not travel.
+    # from another service still says something about them at quarter weight:
+    # 3 management responsiveness, 4 customer trust, 5 staff & customer
+    # service, 6 value & price honesty, 7 safety, hygiene & facilities. A dirty
+    # salon is dirty whichever service you booked.
+    #
+    # Categories 1 (quality of the result) and 2 (consultation, care &
+    # aftercare) are outcomes of one service and do not travel. Category 9 is
+    # absent because it never passes through the specificity ladder at all: it
+    # is computed from review counts further down, not weighted per statement.
     'provider_trait_categories': [3, 4, 5, 6, 7],
     'prior': [1.0, 1.0],                 # Beta(1,1): no evidence = neutral 0.5
     'category3_method': 'v5',
@@ -89,6 +113,9 @@ A0, B0 = P['prior']
 
 
 def connect():
+    # DATABASE_URL first (set by backend/api/set_db_password.py, or exported
+    # directly); the password prompt below is the fallback for a machine that
+    # has never been set up.
     url = os.environ.get('DATABASE_URL')
     if url:
         return psycopg2.connect(url)
@@ -174,6 +201,12 @@ def independent_reports(g):
     return g
 
 
+# INERT under the current framework: no sub-point in ref.sub_point is marked
+# is_gate or is_veto, so this loop's input is always empty, gates_applied and
+# veto_applied are never populated, and neither the 'safety concern' status
+# below nor the gate penalty further down ever fires. Kept because the
+# framework still defines gates and vetoes as a possibility, and a sub-point
+# marked either way in ref.sub_point starts working with no change here.
 gv_rows = []; gates_applied = defaultdict(list); veto_applied = set(); veto_caution = set()
 for (pid, sp), g in qual[qual['is_gate'] | qual['is_veto']].groupby(['place_id', 'sp']):
     g = independent_reports(g)
@@ -201,11 +234,14 @@ for pid, g in saf.groupby('place_id'):
 for pid in veto_caution:
     s = safety.get(pid, ('clear', 0, 0, None))
     safety[pid] = ('caution', s[1], s[2], (s[3] + '; ' if s[3] else '') + 'single veto-type report')
+# INERT: veto_applied is always empty (see the comment above the gv_rows
+# loop), so this branch never runs and no business ever carries the
+# 'safety concern' status under the current framework.
 for pid in veto_applied:
     s = safety.get(pid, ('clear', 0, 0, None))
     safety[pid] = ('safety concern', s[1], s[2], 'veto applied: 2 or more independent reports')
 
-# ================= 3. Category 3, parts 3.1-3.4 (provider-wide, framework v5) =================
+# ================= 3. Category 3, parts 3.1-3.4 (provider-wide) =================
 # A complaint is a review with text whose overall_sentiment is not positive,
 # weighted 0.5 ** (age_months / 24). Part 3.5 is customer evidence, scored per
 # sub-service in section 4.
@@ -256,6 +292,17 @@ def promise_points(issue):
 
 
 def promise_outcome(pid, reply_date, issue):
+    """Did complaints about the promised issue fall after the reply? One of
+    'kept', 'broken', 'no clear change' or 'not testable'.
+
+    'not testable' when the reply named no issue this maps to, or when there
+    are fewer than the minimum reviews on either side of the reply to compare
+    a share against — a change seen in three reviews is not a trend.
+    Otherwise: the share of reviews on that issue drops after the reply ->
+    kept; it does not drop and at least two negative reviews land in the
+    after-window -> broken; anything else -> no clear change. A single
+    after-window complaint is not enough to call a promise broken.
+    """
     pts = promise_points(issue)
     if pd.isna(reply_date) or not pts:
         return 'not testable'
@@ -466,6 +513,10 @@ for pid, g in sc.groupby('place_id'):
         base = float(np.mean([scores[c][0] for c in WEIGHTED]))
         t = tier[s]
         # A gate not named in gate_min_tier applies from tier 1 up.
+        #
+        # INERT: gates_applied is always empty under the current framework
+        # (see the comment above the gv_rows loop), so g_applied is always []
+        # and pen is always 0. trust below equals base on every row today.
         g_applied = [x for x in gates_applied.get(pid, []) if t >= P['gate_min_tier'].get(x, 1)]
         pen = P['gate_penalty'] * len(g_applied)
         trust = max(0.0, base - pen)
