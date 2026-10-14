@@ -373,23 +373,34 @@ sc['neg'] = (1 - sc['pos']) * np.where(sc['severity'] == 'damage', P['damage_mul
 SW = P['specificity_weight']; TRAIT = set(P['provider_trait_categories'])
 lo_q, hi_q = (1 - P['range_level']) / 2, 1 - (1 - P['range_level']) / 2
 cat_rows = []; trust_rows = []
+dropped_no_targets = []        # businesses whose evidence names no service at all
 
 for pid, g in sc.groupby('place_id'):
     pe = ev.loc[ev['place_id'] == pid]
-    targets = sorted(x for x in pe['sub'].dropna().unique())
-    # If no sub_service_code in evidence, infer target sub-services from
-    # service_code and service_category_code that ARE present.
+    # Sub-services named in the evidence, UNION those implied by the
+    # service_code and service_category_code present. The union, not the named
+    # set alone: a business with one named sub-service still offers the rest,
+    # and preferring `named` would stop scoring those others entirely — on the
+    # current corpus that drops 74% of the pairs and 73 ranked rows.
+    #
+    # A named sub-service therefore only ADDS precision: it is what lets a
+    # statement reach the 1.00 specificity rung for its own sub-service.
+    named = set(pe['sub'].dropna())
+    svcs_present = set(pe['svc'].dropna().unique())
+    cats_present = set(pe['cat'].dropna().unique())
+    inferred = set()
+    for ss, sv in sub2svc.items():
+        if sv in svcs_present:
+            inferred.add(ss)
+        elif sub2cat.get(ss) in cats_present:
+            inferred.add(ss)
+    targets = sorted(inferred | named)
     if not targets:
-        svcs_present = set(pe['svc'].dropna().unique())
-        cats_present = set(pe['cat'].dropna().unique())
-        inferred = set()
-        for ss, sv in sub2svc.items():
-            if sv in svcs_present:
-                inferred.add(ss)
-            elif sub2cat.get(ss) in cats_present:
-                inferred.add(ss)
-        targets = sorted(inferred)
-    if not targets:
+        # Evidence exists for this business but names no service, no service
+        # category and no sub-service, so there is nothing to attach a score
+        # to. Printed rather than passed over in silence: these businesses
+        # disappear from every ranking, and the count belongs in the run log.
+        dropped_no_targets.append(pid)
         continue
     sub = g['sub'].to_numpy(dtype=object); svc = g['svc'].to_numpy(dtype=object); cat = g['cat'].to_numpy(dtype=object)
     cno = g['category_no'].to_numpy(); w0 = g['w0'].to_numpy(); pos = g['pos'].to_numpy(); neg = g['neg'].to_numpy()
@@ -479,6 +490,11 @@ for pid, g in sc.groupby('place_id'):
                            [f'badge {r[1]}' for r in gv_rows if r[0] == pid and r[3] == 'badge' and t >= P['gate_min_tier'].get(r[1], 1)]) or None
         trust_rows.append([pid, s, t, round(base, 4), round(pen, 2), round(trust, 4), round(low, 4), round(high, 4), round(width, 4),
                            round(float(Pt + Nt), 3), int(len(set(rid[own]))), badges, st, rank_status, None])
+
+if dropped_no_targets:
+    print(f'Businesses with evidence but no scorable service: {len(dropped_no_targets)}')
+    for pid in dropped_no_targets:
+        print(f'  dropped (no target sub-service): {pid}')
 
 # rank inside each sub-service: clear above caution, then by trust score
 tr = pd.DataFrame(trust_rows, columns=['place_id', 'sub', 'tier', 'base', 'pen', 'trust', 'low', 'high', 'width', 'ew', 'nrev', 'badges', 'safety', 'status', 'rank'])

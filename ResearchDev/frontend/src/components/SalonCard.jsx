@@ -40,6 +40,11 @@ function bandKey(v) {
  */
 export function SalonCard({ salon, onSelect, ratedFor }) {
   const rank = salon.rank_no;
+  /* A salon reaches this card either ranked or merely listed. Only a ranked one
+     has a rank_no, so the two must be told apart on the card itself: the score
+     and its range are shown for both, and without the chip below an unranked
+     salon reads as though it had earned its position. */
+  const ranked = salon.rank_status === "ranked";
   const score = pct(salon.personal_score);
   const open = () => onSelect?.(salon.place_id);
   const favorites = useFavorites();
@@ -58,7 +63,11 @@ export function SalonCard({ salon, onSelect, ratedFor }) {
       {/* ── Top row: identity (left) · score + actions (right) ── */}
       <div className="scd-top">
         <div className="scd-id">
-          <span className="sr-only">Rank {rank}</span>
+          {/* rank_no is null for an unranked salon, which would otherwise read
+              as "Rank " with nothing after it. */}
+          <span className="sr-only">
+            {rank != null ? `Rank ${rank}` : "Available but not ranked"}
+          </span>
           <button type="button" className="salon-name" onClick={open}>
             {salon.provider_name}
           </button>
@@ -71,6 +80,12 @@ export function SalonCard({ salon, onSelect, ratedFor }) {
               </>
             )}
           </p>
+          {!ranked && (
+            <span className="scd-unranked"
+                  title="This salon offers the service, but there is not enough review evidence about it to place it in the ranking.">
+              Available but Not Ranked
+            </span>
+          )}
         </div>
 
         <div className="scd-side">

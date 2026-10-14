@@ -13489,6 +13489,45 @@ span.chip-staff-dependent:hover { background: transparent; color: var(--champagn
 .scd-meta-sep  { color: rgba(201,168,108,.55); }
 .scd-meta-kind { color: rgba(201,168,108,.80); }
 
+/* The card still shows a score and a range for a salon that is listed but not
+   ranked, so this says which it is. Outlined rather than filled: it is a
+   statement about how much evidence there is, not a warning about the salon. */
+.scd-unranked {
+  display: inline-flex;
+  align-items: center;
+  margin-top: .4rem;
+  padding: .22rem .5rem;
+  border: 1px dashed var(--line);
+  border-radius: var(--pill);
+  color: var(--muted);
+  background: transparent;
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: default;
+}
+
+/* Where the ranked salons stop inside one combined grid. The rule carries the
+   sentence, so the change of section is legible without counting cards. */
+.salon-grid-divider {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin: .5rem 0 .15rem;
+  color: var(--muted);
+  font-size: .68rem;
+  letter-spacing: .04em;
+}
+.salon-grid-divider::before,
+.salon-grid-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.salon-grid-divider span { flex: 0 1 auto; text-align: center; }
+
 /* ── Score + actions ───────────────────────────────────── */
 .scd-side { display: flex; align-items: center; gap: 1.25rem; flex: 0 0 auto; }
 .scd-score { text-align: right; }
