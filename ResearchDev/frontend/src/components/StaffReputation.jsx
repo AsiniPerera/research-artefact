@@ -1,3 +1,5 @@
+/* Rendered on SalonDetail, fed by the staff_reputation block the provider
+   endpoint returns. */
 import { useState } from "react";
 import { StaffReviewsDrawer } from "./StaffReviewsDrawer";
 

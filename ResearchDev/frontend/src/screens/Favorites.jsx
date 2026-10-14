@@ -1,3 +1,4 @@
+/* Reached from the heart icon in the nav (App.jsx). */
 import { useFavorites } from "../hooks/useFavorites";
 import { removeFavorite } from "../lib/favorites";
 import { IconHeart, IconArrow } from "../components/Icons";

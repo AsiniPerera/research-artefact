@@ -1,3 +1,5 @@
+/* The signed-in user's own profile: name, avatar, email (read-only). Reached
+   from AccountMenu. */
 import { useState, useEffect, useRef } from "react";
 import { getMe, updateMe } from "../api/client";
 import { CATEGORIES } from "../components/WeightLevels";

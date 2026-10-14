@@ -1,3 +1,7 @@
+/* Shared nav-icon-button shell, used by AccountMenu and NotificationsMenu
+   (both mounted in App.jsx's header). Owns open/close state and the
+   click-away/Escape handling; the two callers supply only the icon and the
+   panel contents. */
 import { useEffect, useRef, useState } from "react";
 
 /**

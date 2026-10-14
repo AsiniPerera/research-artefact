@@ -1,3 +1,7 @@
+/* The main ranking screen: service picker (ServicesNav) + filters
+   (QuickFilters) + priorities (WeightLevels) on one side, the ranked list
+   (Results) on the other. Owns the filter/weight state and the useRanking
+   call; everything else here renders from it. */
 import { useEffect, useMemo, useState } from "react";
 import { QuickFilters } from "../components/QuickFilters";
 import { ServicesNav } from "../components/ServicesNav";

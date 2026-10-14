@@ -1,3 +1,5 @@
+/* Rendered by Results.jsx above the ranked list, driven by the `fallback`
+   object Results derives from the API response's level_used/shown/requested. */
 import { IconInfo } from "./Icons";
 
 /**

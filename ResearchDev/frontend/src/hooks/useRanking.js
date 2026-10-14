@@ -1,3 +1,4 @@
+/* Used by Rankings.jsx to drive the Results list. */
 import { useEffect, useState } from "react";
 import { getRankings } from "../api/client";
 

@@ -1,3 +1,5 @@
+/* The explainer screen, reached from the footer. Walks through how a review
+   becomes a score: read, sorted into categories, weighted by the reader. */
 import { CATEGORY_INFO } from "../constants/categories";
 
 const STEPS = [
@@ -6,8 +8,8 @@ const STEPS = [
     body: "Every review is read for what it says about the salon: the result, the care, the staff, the price, the cleanliness. Owner replies to complaints are read too. The star rating is never used to decide what a review means.",
   },
   {
-    title: "Seven categories, each with its own score",
-    body: "What reviews say is sorted into seven categories, listed below. Each salon gets a score in each category, so you can see what it does well and where it falls short.",
+    title: "Eight categories, each with its own score",
+    body: "What reviews say is sorted into eight categories, listed below. Each salon gets a score in each category, so you can see what it does well and where it falls short.",
   },
   {
     title: "You choose what matters",

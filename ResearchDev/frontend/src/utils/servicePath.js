@@ -1,3 +1,4 @@
+/* Used by Results.jsx for the breadcrumb above the ranked list. */
 import {
   GROUPS, GROUP_BY_ID, LEAF_LABELS, SERVICE_FAMILIES,
 } from "../constants/taxonomy";

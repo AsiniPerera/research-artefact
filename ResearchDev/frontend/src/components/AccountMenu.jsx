@@ -1,3 +1,5 @@
+/* Mounted in App.jsx's header, next to NotificationsMenu. Built on NavMenu for
+   the open/close shell. */
 import { NavMenu } from "./NavMenu";
 import { IconUser, IconLogIn, IconUserPlus } from "./Icons";
 

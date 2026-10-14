@@ -1,14 +1,17 @@
 /* ============================================================
    Salon Service Taxonomy v9 — Sri Lanka
-   4 categories → 17 services → 51 sub-services.
-   Beard & Shave (MG.BEARD) moved under Hair; Gents' Grooming removed as a top-level category.
+   4 top-level categories → 17 services → 51 sub-services. (ref.dim_service
+   also carries a fifth category code, MG, Gents' Grooming — its services
+   are folded into Hair below, so it is not one of DOMAINS.)
+   Beard & Shave (MG.BEARD) sits under Hair; there is no standalone
+   "Gents' Grooming" top-level category in this file.
 
-   SOURCE OF TRUTH: backend/salon_db/02_reference_data.sql
-   ("taxonomy v9", framework "final-38 (frozen 2026-10-04)"). Every `id` and
-   `label` below is copied verbatim from ref.service_category / ref.service /
-   ref.sub_service. This file is a mirror, not a second opinion — if the two
-   ever disagree, the SQL wins and this file is wrong. The taxonomy is frozen
-   per projectInfo.md, so nothing here is to be added, renamed or merged.
+   SOURCE OF TRUTH: backend/salon_db/02_reference_data.sql and the migrations
+   after it. Every `id` and `label` below is copied verbatim from
+   ref.service_category / ref.service / ref.sub_service. This file is a
+   mirror, not a second opinion — if the two ever disagree, the database wins
+   and this file is wrong. The taxonomy is frozen, so nothing here is to be
+   added, renamed or merged.
 
    `id`      — the v9 code (HR, HR.CUT, HR.CUT.01), the join key with the
                database and with extraction output.

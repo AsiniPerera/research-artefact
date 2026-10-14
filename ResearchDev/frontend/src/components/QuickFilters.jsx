@@ -1,3 +1,4 @@
+/* Rendered by Rankings.jsx above the Results list. */
 import { SelectMenu } from "./SelectMenu";
 import { IconClock, IconPin } from "./Icons";
 import { CITIES } from "../constants/cities";

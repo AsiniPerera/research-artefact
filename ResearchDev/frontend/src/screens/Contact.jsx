@@ -1,3 +1,6 @@
+/* The contact form, reached from the nav/footer. Posts to
+   backend/api/contact.py; attributed to the signed-in user automatically if
+   there is a valid token, anonymous otherwise. */
 import { useState } from "react";
 import { SelectMenu } from "../components/SelectMenu";
 import { submitInquiry } from "../api/client";

@@ -1,3 +1,6 @@
+/* The ranked list itself, rendered by Rankings.jsx with the API response as
+   `data`. Paginates ranked + reviewed-but-unranked together, shows the
+   nearby-salons section beneath them, and the no-feedback-yet tail last. */
 import { useState, useEffect, Fragment } from "react";
 import { SalonCard } from "../components/SalonCard";
 import { FallbackNotice } from "../components/FallbackNotice";

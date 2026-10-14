@@ -1,3 +1,6 @@
+/* Rendered by Results.jsx (one per row in the ranking grid) and by
+   SalonDetail's nearby-salons list. `salon` is one row of the API's
+   ranked/available_but_not_ranked arrays, already carrying category_scores. */
 import { IconHeart, IconAlert } from "./Icons";
 import { useFavorites } from "../hooks/useFavorites";
 import { toggleFavorite } from "../lib/favorites";

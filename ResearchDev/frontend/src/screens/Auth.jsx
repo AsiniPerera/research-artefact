@@ -1,3 +1,6 @@
+/* Sign-in / sign-up, opened as a modal from the header (App.jsx). One
+   component for both modes, switched by the `mode` prop and keyed off COPY
+   below for the text that differs between them. */
 import { useState } from "react";
 import logoMark from "../assets/images/logo/logo-mark.png";
 import authBg   from "../assets/images/Auth/bridal.jpg";

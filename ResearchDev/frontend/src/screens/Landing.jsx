@@ -1,3 +1,4 @@
+/* The marketing homepage shown to a signed-out visitor, reached at "/". */
 import { useEffect, useRef, useState } from "react";
 import { SERVICE_FAMILIES, SUB_SERVICES } from "../constants/taxonomy";
 import {

@@ -1,3 +1,6 @@
+/* The search screen reached from the header's name search (App.jsx). Looks up
+   providers by name, independent of the ranking flow — no service, city or
+   weights involved, just a name match. */
 import { useEffect, useState } from "react";
 import { searchProviders } from "../api/client";
 

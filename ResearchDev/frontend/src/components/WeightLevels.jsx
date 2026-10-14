@@ -1,3 +1,6 @@
+/* The priorities panel (rendered in Rankings.jsx) plus the shared constants
+   other screens read from it: CATEGORIES (About.jsx's category list),
+   toWeightList (the API call), and the consistency-window options. */
 import { useState } from "react";
 import { CATEGORY_INFO } from "../constants/categories";
 
@@ -9,10 +12,11 @@ import { CATEGORY_INFO } from "../constants/categories";
 // that list from `no`, never from position. Labels and tags come from
 // constants/categories.js, so every screen uses the same wording.
 //
-// Framework v6: nine categories. Category 8 (Overall Verdict) is never shown.
-// Category 3 (Management Responsiveness) is reported only: weight 0, shown on
-// profiles but not ranked. Category 9 (Service Expertise & Consistency) is
-// fixed at Medium weight — computed from review data, not adjustable.
+// Nine categories in the framework. Category 8 (Overall Verdict) is never
+// shown. Category 3 (Management Responsiveness) is reported only: weight 0,
+// shown on profiles but not ranked. Category 9 (Service Expertise &
+// Consistency) is fixed at Medium weight — computed from review data, not
+// adjustable.
 export const CATEGORIES = [
   { no: 1, key: "quality_of_work" },
   { no: 2, key: "consultation_aftercare" },

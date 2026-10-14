@@ -1,3 +1,8 @@
+/* The salon profile screen, opened from a SalonCard in Results or from
+   search. Shows every scored category (including Category 3, reported-only,
+   which the ranking card hides), the evidence behind each one, owner-reply
+   quality, staff reputation and the gates/safety record — everything the
+   card summarises into one number and a handful of chips. */
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { SelectMenu } from "../components/SelectMenu";
 import { IconChevron } from "../components/Icons";
@@ -82,6 +87,8 @@ function namedStaffIn(points, reviewText, salonName) {
   return out;
 }
 
+/** The evidence list itself: one card per review (after groupByReview), each
+    with its polarity badge, quote and the staff names found in it. */
 function EvidenceRows({ rows, salonName }) {
   const groups = groupByReview(rows);
   return (
@@ -465,6 +472,10 @@ function collapseCategory(cat, groups) {
   };
 }
 
+/** trust_score rows for one category heading -> one row per service, with
+    same-score members collapsed into a group by scoreSignature (see
+    collapseCategory for why identical scores still need to be told apart by
+    rank and evidence before collapsing). */
 function groupServices(rows) {
   const byService = new Map();     // Map keeps the API's order
   for (const r of rows) {
@@ -553,6 +564,10 @@ function SubPointProofList({ categoryNo, subPointBy }) {
   );
 }
 
+/** The evidence drawer opened under one category score: own-service rows
+    always, plus provider-level ("wide") and other-service rows only when
+    isTrait says the category is a salon-wide trait the specificity ladder
+    lets travel (see 06_run_scoring.py's provider_trait_categories). */
 function CategoryEvidence({ placeId, serviceCode, categoryCode, categoryNo, label, serviceLabel, isTrait, subPointBy }) {
   const [own, setOwn] = useState([]);
   const [wide, setWide] = useState([]);
@@ -943,6 +958,10 @@ function ServiceScoreList({ services, categoryName, categoryTrait, sentimentBy, 
 }
 
 
+/** One service's row in the detail list: its score tiles (ServiceScoreList's
+    children), opened to show CategoryEvidence for whichever score the reader
+    clicks. `members` carries the sibling services collapsed into this row by
+    groupServices, so the summary can name all of them. */
 function ServiceScores({ service, categoryName, categoryTrait, sentimentBy, subPointBy, displayName, members, placeId, filters }) {
   const rows = categoryScoreRows(service.category_scores)
     .filter((r) => isShownCategory(r.category_no))
@@ -1017,6 +1036,9 @@ function ServiceScores({ service, categoryName, categoryTrait, sentimentBy, subP
   );
 }
 
+/** The paged "browse all reviews" list, filtered by DetailFilters' chips.
+    Independent of the per-category drawers above it: this is every review
+    matching the filters, not the evidence behind one score. */
 function EvidenceList({ placeId, filters, salonName }) {
   const [rows, setRows] = useState([]);
   const [offset, setOffset] = useState(0);
@@ -1075,12 +1097,11 @@ function EvidenceList({ placeId, filters, salonName }) {
           never shortened.
 
           review_text FIRST, evidence_text only as a fallback. That order
-          matters: evidence_text is the extraction's justification span and
-          run 4 capped it at 100 characters, so it arrives cut mid-word
-          ("...my all time trusted beau"). Quoting it was showing visitors a
-          truncated sentence and calling it a customer's words. The full
-          review is in raw.review and the API now returns it, so the quote is
-          whole. */}
+          matters: evidence_text is the extraction's justification span,
+          capped at 100 characters, so it arrives cut mid-word ("...my all
+          time trusted beau") and would read as a truncated sentence quoted
+          as the customer's own words. review_text, from raw.review, is the
+          whole review and is what gets quoted whenever it is present. */}
       <EvidenceRows rows={rows} salonName={salonName} />
 
       {loading && <p className="loading-text">Loading evidence</p>}
@@ -1093,6 +1114,12 @@ function EvidenceList({ placeId, filters, salonName }) {
   );
 }
 
+/** The salon profile page. Loads getProvider and getFramework once, then
+    renders identity, gates/safety, every service's score tiles
+    (ServiceScores) and the filtered review browser (EvidenceList).
+    consistencyWindow carries the 6m/1y/3y/anytime choice from wherever the
+    reader opened the profile from, so Category 9's figures match what they
+    were looking at. */
 export function SalonDetail({ salonId, onBack, consistencyWindow = "1y" }) {
   const [provider, setProvider] = useState(null);
   const [categories, setCategories] = useState([]);
@@ -1135,10 +1162,10 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "1y" }) {
   const p = provider.provider ?? provider;
   const name = p.name ?? p.provider_name;
   const gates = provider.gates_and_vetoes ?? [];
-  /* Taxonomy v9 folded Beard & Shave into Hair and dropped the standalone
-     "Gents' Grooming" category, but the database still tags those services
-     under the old category. Remap on read so the detail filters match the
-     rest of the app — no "Gents' Grooming" chip. */
+  /* The taxonomy folds Beard & Shave under Hair and has no standalone
+     "Gents' Grooming" category, but evidence rows still carry that category
+     tag. Remapped on read so the detail filters match the rest of the app —
+     no "Gents' Grooming" chip. */
   const services = (provider.services ?? []).map((s) =>
     /gents|grooming|barber/i.test(s.category ?? "")
       ? { ...s, category: "Hair" }

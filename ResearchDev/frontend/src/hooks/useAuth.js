@@ -1,3 +1,5 @@
+/* Session state for App.jsx: the token and user object, persisted to
+   localStorage so a refresh does not sign the reader out. */
 import { useState, useEffect, useCallback } from "react";
 import { getMe } from "../api/client";
 

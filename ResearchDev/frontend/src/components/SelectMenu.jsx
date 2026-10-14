@@ -1,3 +1,4 @@
+/* Used by QuickFilters for the city and status pills. */
 import { Fragment, useEffect, useRef, useState } from "react";
 import { IconChevron } from "./Icons";
 
