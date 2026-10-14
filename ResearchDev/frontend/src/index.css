@@ -1267,8 +1267,8 @@ button { border-radius: var(--r-sm); }
   color: var(--ink);
 }
 .hero-strip span { display: inline-flex; align-items: baseline; gap: 1.1rem; }
-/* The separator between service names. It was a star glyph; a 1px rule
-   divides just as clearly and adds no voice of its own. */
+/* The separator between service names: a 1px rule divides just as clearly
+   as a glyph would, and adds no voice of its own. */
 .hero-strip i {
   width: 12px;
   height: 1px;
@@ -2207,7 +2207,7 @@ button { border-radius: var(--r-sm); }
     inset 0 1px 0 rgba(255, 255, 255, 0.90);
 }
 
-/* No giant quote glyph. Italic serif reads as quotation; mark was 1/3 of card. */
+/* No giant quote glyph: italic serif reads as quotation on its own. */
 .tm-quote {
   font-family: var(--font-display);
   font-size: 1.12rem;
@@ -3113,7 +3113,8 @@ input[type="range"]:focus-visible::-moz-range-thumb {
   border-color: var(--slate);
   box-shadow: 0 0 0 3px rgba(150, 105, 47, 0.16);
 }
-/* The old checked state shifted a brown border that no longer exists. */
+/* No border tint on checked: the toggle switch itself (track and icon both
+   turn --slate, below) already carries the on-state. */
 .qf-toggle:has(input:checked) { border-color: transparent; }
 
 /* The segmented control carried its OWN border, fill and shadow — a 12px

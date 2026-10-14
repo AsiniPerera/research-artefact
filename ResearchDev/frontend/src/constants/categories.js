@@ -1,4 +1,4 @@
-/* Framework v6: nine categories. Categories 1-7 and 9 are scored.
+/* Nine categories in the framework. Categories 1-7 and 9 are scored.
    Category 8, Overall Verdict, is stored but never shown.
    Category 3 is reported only (weight 0) — shown on profiles but not ranked.
    Category 9 is fixed at Medium weight — no user slider.

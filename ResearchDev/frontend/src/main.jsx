@@ -1,3 +1,4 @@
+/* Vite's entry point: mounts App into #root. Nothing else lives here. */
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";

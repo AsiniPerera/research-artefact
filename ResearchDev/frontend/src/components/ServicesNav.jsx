@@ -1,3 +1,4 @@
+/* The top-level service picker, mounted in App.jsx above the main content. */
 import { useEffect, useRef, useState } from "react";
 import { DOMAINS, groupsFor } from "../constants/taxonomy";
 import { CLOSE_GRACE_MS } from "./flyoutPlacement";

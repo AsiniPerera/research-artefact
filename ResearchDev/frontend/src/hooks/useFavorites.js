@@ -1,3 +1,4 @@
+/* Thin React binding over lib/favorites' module-level store. */
 import { useSyncExternalStore } from "react";
 import { subscribe, getSnapshot } from "../lib/favorites";
 

@@ -1,8 +1,10 @@
+/* The marketing/explainer screen, reached from the footer or nav. */
 import { CATEGORIES } from "../components/WeightLevels";
 import { IconArrow } from "../components/Icons";
 
-/* The seven categories, taken from the priority panel so the two lists
-   cannot disagree. Overall Verdict is stored but never shown. */
+/* The eight scored-and-shown categories, taken from the priority panel so the
+   two lists cannot disagree. Category 8, Overall Verdict, is stored but never
+   shown and so is not in CATEGORIES either. */
 
 /* Images are optional and matched by filename — drop one in and it appears,
    no code change. Same glob the landing page uses, so the two never disagree

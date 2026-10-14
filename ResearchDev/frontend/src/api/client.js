@@ -36,9 +36,10 @@ async function get(path, params, { signal } = {}) {
     ranked_providers / providers_with_evidence per sub-service. */
 export const getServices = (opts) => get("/services", null, opts);
 
-/** The eight framework categories with default_weight, `weighted` and their
-    customer questions. Seven are weighted; the eighth, Overall Verdict, is
-    reported only and comes back with default_weight 0 and weighted false. */
+/** The nine framework categories with default_weight, `weighted` and their
+    customer questions. Seven are weighted; Category 3 (Management
+    Responsiveness) and Category 8 (Overall Verdict) are reported only and
+    come back with default_weight 0 and weighted false. */
 export const getFramework = (opts) => get("/framework", null, opts);
 
 /**
@@ -49,7 +50,8 @@ export const getFramework = (opts) => get("/framework", null, opts);
  *   city     optional city filter
  *   status   "open" | "closed" | "any" — Google business status, not opening hours
  * Returns { sub_service, weights, ranked[], available_but_not_ranked[] }. The API also
- * returns safety_concern[], which is always empty in v5 and is not read here.
+ * returns safety_concern[], which collects a veto-based status no sub-point in
+ * the current framework can produce, so it is always empty and is not read here.
  *
  * When nothing can be ranked at the sub-service asked for, the API may answer
  * at a broader level and say so with requested / level_used / shown — read

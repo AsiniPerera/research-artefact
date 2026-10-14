@@ -50,8 +50,8 @@ export const PRESETS = {
     safety_hygiene:         2,
   },
 
-  /* Clean & safe. Safety, Hygiene & Facilities is one category in v5, so this
-     preset is a single clear tilt rather than the spread it needed before. */
+  /* Clean & safe. Safety, Hygiene & Facilities is one category, so this
+     preset is a single clear tilt. */
   hygiene: {
     quality_of_work:        2,
     consultation_aftercare: 2,

@@ -1,3 +1,6 @@
+/* The signed-in account's home screen, reached from the nav (App.jsx). Shows
+   Upcoming and Booking history, both stated as not yet available rather than
+   populated with invented data, since no booking backend exists. */
 import { useState } from "react";
 import { IconCalendar, IconHistory, IconUser } from "../components/Icons";
 

@@ -1,3 +1,6 @@
+/* The app shell: header, nav and the screen router. Every screen is mounted
+   here; this file owns which one is showing and the state that crosses
+   screens (auth, favorites, the URL). */
 import { useState, useEffect, useRef } from "react";
 import logoMark from "./assets/images/logo/logo-mark.png";
 import { AccountMenu } from "./components/AccountMenu";

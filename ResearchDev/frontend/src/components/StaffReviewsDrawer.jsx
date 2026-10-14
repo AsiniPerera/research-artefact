@@ -1,3 +1,4 @@
+/* Opened from StaffReputation when a staff member's row is clicked. */
 import { useEffect, useState } from "react";
 import { getStaffReviews } from "../api/client";
 
