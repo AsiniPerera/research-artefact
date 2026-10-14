@@ -13506,7 +13506,7 @@ span.chip-staff-dependent:hover { background: transparent; color: var(--champagn
 .scd-cats {
   list-style: none; margin: .85rem 0 0; padding: .85rem 0 0;
   border-top: 1px solid rgba(201,168,108,.14);
-  display: grid; grid-template-columns: repeat(7, 1fr); gap: 0;
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 0;
 }
 .scd-chip {
   position: relative;

@@ -1,6 +1,8 @@
 /* The priorities panel (rendered in Rankings.jsx) plus the shared constants
-   other screens read from it: CATEGORIES (About.jsx's category list),
-   toWeightList (the API call), and the consistency-window options. */
+   other screens read from it: CATEGORIES (About.jsx's category list) and
+   toWeightList (the API call). The review-period control lives in
+   QuickFilters.jsx now -- it narrows which reviews are read, it is not a
+   priority to weigh. */
 import { useState } from "react";
 import { CATEGORY_INFO } from "../constants/categories";
 
@@ -89,47 +91,20 @@ const indexOf = (value) => {
   return i === -1 ? LEVELS.findIndex((l) => l.value === DEFAULT_LEVEL) : i;
 };
 
-// This used to be "Category 9's row": the window picker lived in that
-// category's slot because 9.2 (specialism) was the only thing it affected.
-// It now scopes every category and the final ranking -- see
-// 06_run_scoring.py section 4 -- so it is its own row, not a category's.
-const CONSISTENCY_WINDOWS = [
-  { value: "6m", label: "6 months", lvl: "poor" },
-  { value: "1y", label: "1 year", lvl: "fair" },
-  { value: "3y", label: "3 years", lvl: "good" },
-  { value: "anytime", label: "Anytime", lvl: "excellent" },
-];
-export const DEFAULT_CONSISTENCY_WINDOW = "1y";
+/* Panel order: the six categories the user can weight. The review-period
+   control used to have its own slot here (it was a stand-in for Category
+   9's row before that); it now lives in QuickFilters, beside the other
+   query constraints (city, availability) it belongs with — it narrows which
+   reviews are read, it is not a priority to weigh. */
+const PANEL_ORDER = [1, 7, 2, 5, 6, 4];
 
-/* Not a category: only reviews published in the chosen period are used for
-   every score and the final ranking (06_run_scoring.py section 4). It also
-   decides which window's data the specialism tag on the profile is
-   computed from. Given its own row, keyed by the 'window' sentinel in
-   PANEL_ORDER rather than a category_no, since there is no category left
-   for it to borrow a slot from. */
-const WINDOW_ROW = {
-  key: "duration_window",
-  label: "Review period",
-  tag: "Only reviews from this period count toward any score",
-  isWindow: true,
-};
-
-/* Panel order: the categories the user can weight, plus the review-period
-   row in its own slot (the 'window' sentinel, not a category_no). */
-const PANEL_ORDER = [1, "window", 7, 2, 5, 6, 4];
-
-export function WeightLevels({ weights, onChange, consistencyWindow, onConsistencyWindowChange }) {
+export function WeightLevels({ weights, onChange }) {
   const [showAll, setShowAll] = useState(true);
   /* Collapsed rows are UNMOUNTED, not hidden. The weights live in the page
      above, so nothing set is lost by folding them away — and three range
      inputs left in the tree would keep taking tab stops from a control the
      visitor has put away. */
-  const rows = PANEL_ORDER
-    .map((k) => {
-      if (k === "window") return onConsistencyWindowChange ? WINDOW_ROW : null;
-      return WEIGHTABLE_CATEGORIES.find((c) => c.no === k);
-    })
-    .filter(Boolean);
+  const rows = PANEL_ORDER.map((no) => WEIGHTABLE_CATEGORIES.find((c) => c.no === no)).filter(Boolean);
   const shown = showAll ? rows : rows.slice(0, PREVIEW_COUNT);
 
   return (
@@ -137,11 +112,9 @@ export function WeightLevels({ weights, onChange, consistencyWindow, onConsisten
       <p className="weight-heading">How important is each to you?</p>
       <ul className="weight-list">
         {shown.map((row) => {
-          const { key, label, tag, isWindow } = row;
-          const options = isWindow ? CONSISTENCY_WINDOWS : LEVELS;
-          const idx = isWindow
-            ? Math.max(0, CONSISTENCY_WINDOWS.findIndex((w) => w.value === consistencyWindow))
-            : indexOf(weights[key] ?? DEFAULT_LEVEL);
+          const { key, label, tag } = row;
+          const options = LEVELS;
+          const idx = indexOf(weights[key] ?? DEFAULT_LEVEL);
           const id = `w-${key}`;
 
           return (
@@ -160,9 +133,7 @@ export function WeightLevels({ weights, onChange, consistencyWindow, onConsisten
                     aria-checked={i === idx}
                     className={`lvl-opt ${i === idx ? "is-on" : ""}`}
                     data-lvl={l.lvl}
-                    onClick={() => (isWindow
-                      ? onConsistencyWindowChange(l.value)
-                      : onChange({ ...weights, [key]: l.value }))}
+                    onClick={() => onChange({ ...weights, [key]: l.value })}
                   >
                     {l.label}
                   </button>

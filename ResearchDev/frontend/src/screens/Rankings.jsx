@@ -3,9 +3,9 @@
    (Results) on the other. Owns the filter/weight state and the useRanking
    call; everything else here renders from it. */
 import { useEffect, useMemo, useState } from "react";
-import { QuickFilters } from "../components/QuickFilters";
+import { QuickFilters, DEFAULT_CONSISTENCY_WINDOW } from "../components/QuickFilters";
 import { ServicesNav } from "../components/ServicesNav";
-import { WeightLevels, toWeightList, DEFAULT_CONSISTENCY_WINDOW } from "../components/WeightLevels";
+import { WeightLevels, toWeightList } from "../components/WeightLevels";
 import { Results } from "./Results";
 import { useRanking } from "../hooks/useRanking";
 import { getServices, getNearbyRankings } from "../api/client";
@@ -182,6 +182,8 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
           isDefault={!filters.city && filters.availability === DEFAULT_FILTERS.availability}
           includeNearby={includeNearby}
           onIncludeNearbyChange={setIncludeNearby}
+          consistencyWindow={cw}
+          onConsistencyWindowChange={(v) => setWeights({ ...weights, consistency_window: v })}
         />
       </header>
 
@@ -208,8 +210,6 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
               <WeightLevels
                 weights={weights}
                 onChange={setWeights}
-                consistencyWindow={cw}
-                onConsistencyWindowChange={(v) => setWeights({ ...weights, consistency_window: v })}
               />
             </section>
           </div>
