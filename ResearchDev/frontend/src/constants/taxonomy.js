@@ -6,8 +6,8 @@
    Beard & Shave (MG.BEARD) sits under Hair; there is no standalone
    "Gents' Grooming" top-level category in this file.
 
-   SOURCE OF TRUTH: backend/salon_db/02_reference_data.sql and the migrations
-   after it. Every `id` and `label` below is copied verbatim from
+   SOURCE OF TRUTH: backend/salon_db/01_schema_and_reference_data.sql and the
+   migrations after it. Every `id` and `label` below is copied verbatim from
    ref.service_category / ref.service / ref.sub_service. This file is a
    mirror, not a second opinion — if the two ever disagree, the database wins
    and this file is wrong. The taxonomy is frozen, so nothing here is to be

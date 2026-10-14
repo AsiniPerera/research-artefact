@@ -27,7 +27,7 @@ select category_no, polarity, count(*) from extract.v_evidence group by 1, 2 ord
 --    at least 7 days apart. Near-copy checks are not applied yet.
 --    Framework v5 marks NO sub-point as a gate or a veto, so this returns no rows.
 --    It is kept because the rule is still implemented and driven off is_gate /
---    is_veto: mark a sub-point in 02_reference_data.sql and this answers again.
+--    is_veto: mark a sub-point in 01_schema_and_reference_data.sql and this answers again.
 with q as (
   select e.place_id, e.sub_point_code, r.published_at::date as d
   from extract.evidence_item e
