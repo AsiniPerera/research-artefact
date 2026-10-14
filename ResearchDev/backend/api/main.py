@@ -331,8 +331,15 @@ def health():
 
 
 @app.get("/services")
-def services():
-    """Taxonomy tree with ranked / evidenced provider counts per sub-service."""
+def services(consistency_window: str = Query("1y", description="6m, 1y, 3y or anytime")):
+    """Taxonomy tree with ranked / evidenced provider counts per sub-service.
+
+    trust_score carries one row per place x sub-service x window now, so the
+    join below must pick one window -- left unfiltered, ranked_providers and
+    providers_with_evidence would sum across all four and over-count by
+    roughly 4x.
+    """
+    cw = _window(consistency_window)
     with cursor() as cur:
         cur.execute(
             f"""
@@ -346,11 +353,13 @@ def services():
             join ref.sub_service ss on ss.code = d.sub_service_code
             left join score.trust_score t
                    on t.sub_service_code = d.sub_service_code and t.scoring_run_id = {_LATEST_RUN}
+                  and t.window_code = %s
             group by d.category_code, d.category, d.service_code, d.service,
                      d.sub_service_code, d.sub_service, d.tier,
                      c.sort_order, s.sort_order, ss.sort_order
             order by c.sort_order, s.sort_order, ss.sort_order
-            """
+            """,
+            (cw,),
         )
         rows = cur.fetchall()
 
