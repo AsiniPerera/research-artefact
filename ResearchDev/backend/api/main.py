@@ -1070,6 +1070,10 @@ def reply_quality(place_id: str):
 def evidence(
     place_id: str,
     service_code: str | None = None,
+    # Inert: extract.evidence_item.sub_service_code is null on every row, so
+    # this filter matches nothing. Kept because the column and the filter are
+    # both correct -- the attribution is what is missing -- and the service
+    # level above is the finest the evidence actually carries today.
     sub_service_code: str | None = None,
     # Evidence filed against no service at all -- what a score rests on when
     # nothing service-specific exists, and not otherwise listable.

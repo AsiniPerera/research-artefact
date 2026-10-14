@@ -117,7 +117,7 @@ export function About({ onExplore }) {
         <p className="about-kicker">The framework</p>
         <h2>What gets measured</h2>
         <p className="about-note">
-          {CATEGORIES.length} categories. The vocabulary is fixed and closed — extraction
+          Seven weighted quality categories. The vocabulary is fixed and closed — extraction
           can only ever return one of these, which is what keeps scores comparable between
           salons. You set how much each of them counts; none of them is weighted for you.
         </p>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { SalonCard } from "../components/SalonCard";
 import { FallbackNotice } from "../components/FallbackNotice";
 import { rankingFallback } from "../api/client";
@@ -119,7 +119,13 @@ export function Results({
   // Merge ≥1-feedback salons into the ranked list — user wants one combined list
   const allRanked = [...ranked, ...hasReviews];
   const pageCount = Math.ceil(allRanked.length / PER_PAGE);
-  const current = allRanked.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+  const pageStart = (page - 1) * PER_PAGE;
+  const current = allRanked.slice(pageStart, pageStart + PER_PAGE);
+  /* Where the ranked salons stop. `allRanked` is ranked-then-listed, so the
+     boundary is a fixed index into it, which keeps the divider in the right
+     place on whichever page it happens to fall. Null when one side is empty:
+     a divider between a list and nothing says nothing. */
+  const dividerAt = ranked.length > 0 && hasReviews.length > 0 ? ranked.length : null;
   const path = servicePath(filters);
 
   return (
@@ -166,13 +172,22 @@ export function Results({
         )
       ) : (
         <div className="salon-grid">
-          {current.map((row) => (
-            <SalonCard
-              key={row.place_id}
-              salon={row}
-              onSelect={onSelectSalon}
-              ratedFor={fallback && fallback.level !== "none" ? fallback.shown?.name : null}
-            />
+          {current.map((row, i) => (
+            <Fragment key={row.place_id}>
+              {pageStart + i === dividerAt && (
+                <div className="salon-grid-divider" role="separator">
+                  <span>
+                    Below: salons that offer this service but have too little
+                    review evidence to be ranked
+                  </span>
+                </div>
+              )}
+              <SalonCard
+                salon={row}
+                onSelect={onSelectSalon}
+                ratedFor={fallback && fallback.level !== "none" ? fallback.shown?.name : null}
+              />
+            </Fragment>
           ))}
         </div>
       )}
