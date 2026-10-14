@@ -1,4 +1,9 @@
-"""Contact inquiry routes."""
+"""Contact form submissions.
+
+Mounted on the API in main.py alongside the auth router. This is the only
+route in the service that WRITES, so it opens its own connection: the shared
+pool in main.py sets every session read-only.
+"""
 
 import os
 from contextlib import contextmanager
@@ -7,6 +12,8 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from fastapi import APIRouter, Header
 from pydantic import BaseModel, EmailStr
+
+from auth import _verify_token
 
 router = APIRouter(prefix="/contact", tags=["contact"])
 
@@ -38,22 +45,23 @@ class ContactBody(BaseModel):
 
 @router.post("/inquiries")
 def submit_inquiry(body: ContactBody, authorization: str = Header(default="")):
-    """Save a contact form submission. Links to the logged-in user if a valid
-    Bearer token is present, otherwise stores it anonymously."""
+    """Save a contact form submission, attributed to the signed-in user if there
+    is one.
 
-    # Try to extract user_id from token without hard-failing if absent/invalid
+    Signing in is optional here, so no token means an anonymous inquiry. A token
+    that IS present must carry a valid signature: `sub` decides which account the
+    inquiry is filed against, so an unverified claim would let any caller
+    attribute an inquiry to someone else. A bad token is rejected rather than
+    quietly downgraded to anonymous, which would hide a forged one.
+    """
     user_id = None
     scheme, _, token = authorization.partition(" ")
     if scheme.lower() == "bearer" and token:
-        try:
-            import hmac, hashlib, base64, json, time as _time
-            _SECRET = os.environ.get("JWT_SECRET", "change-me-in-production-please")
-            header, payload, sig = token.split(".")
-            pad = 4 - len(payload) % 4
-            claims = json.loads(base64.urlsafe_b64decode(payload + "=" * (pad % 4)))
-            user_id = claims.get("sub")
-        except Exception:
-            pass
+        # auth._verify_token checks the HMAC with compare_digest and raises 401.
+        # Imported rather than reimplemented: the copy that lived here decoded
+        # the payload without ever checking the signature.
+        claims = _verify_token(token)
+        user_id = claims.get("sub")
 
     with _db() as (_, cur):
         cur.execute(
