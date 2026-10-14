@@ -8,9 +8,13 @@
 -- Run ONCE. Do NOT run inside a scoring run.
 --
 -- NOTE: The live database check constraint on ref.framework_category is
--- CHECK (category_no >= 1 AND category_no <= 10) (from backend/schema.sql),
--- which already allows category 9. 01_schema.sql says "between 1 and 8" but
--- that was never applied to the live database. No constraint change needed.
+-- CHECK (category_no >= 1 AND category_no <= 10), which already allows
+-- category 9 -- that range was never the one this repo's own schema file
+-- defined (archive/backend_old/schema.sql, an earlier, unrelated design,
+-- also says "between 1 and 10" but for a different reason: it never had a
+-- category 9 either). 01_schema_and_reference_data.sql's own constraint
+-- says "between 1 and 8", which was never applied to the live database.
+-- No constraint change needed here either way.
 
 -- ===================================================================
 -- STEP 0  —  Back up the tables that will change.
