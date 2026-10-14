@@ -41,16 +41,25 @@ export const WEIGHTABLE_CATEGORIES = CATEGORIES.filter((c) => !UNWEIGHTABLE.has(
     contract is named where it is relied on. */
 export const WEIGHT_COUNT = 7;
 
+/** The level a category sits at until the reader moves it: Medium. */
+const DEFAULT_LEVEL = 2;
+
 /** { key: weight } → seven weights in category_no order, as the API expects.
  *
- *  The API contract is unchanged: seven numbers. A category the panel does not
- *  offer keeps the 1 it is filled with, so it still counts, at neutral. Built
- *  from WEIGHTABLE_CATEGORIES rather than CATEGORIES so a preset carrying a
- *  value for an unweightable category cannot set a weight behind the reader's
- *  back — what is not on screen cannot be silently in effect. */
+ *  The API contract is seven numbers. Built from WEIGHTABLE_CATEGORIES rather
+ *  than CATEGORIES so a preset carrying a value for an unweightable category
+ *  cannot set a weight behind the reader's back — what is not on screen cannot
+ *  be silently in effect.
+ *
+ *  Anything the panel does not set falls to DEFAULT_LEVEL, which is the same
+ *  value the panel displays for an untouched row and the same value
+ *  rank_providers substitutes for a missing weight. All three have to agree,
+ *  or the ranking is computed from numbers the reader was never shown. */
 export function toWeightList(weights) {
-  const list = Array(WEIGHT_COUNT).fill(1);
-  for (const { no, key } of WEIGHTABLE_CATEGORIES) list[no - 1] = weights[key] ?? 1;
+  const list = Array(WEIGHT_COUNT).fill(DEFAULT_LEVEL);
+  for (const { no, key } of WEIGHTABLE_CATEGORIES) {
+    list[no - 1] = weights[key] ?? DEFAULT_LEVEL;
+  }
   return list;
 }
 
@@ -68,22 +77,11 @@ export const LEVELS = [
   { value: 8, label: "Very high", lvl: "excellent" },
 ];
 
-/* Exported so the About page can describe the real seven rather than keeping
-   its own copy — it had drifted to a stale six, which is exactly what a
-   second hand-maintained list does. */
-
-/** Every key that carries a weight — all seven. Kept as its own export so a
-    caller never has to derive it from CATEGORIES, and so reintroducing an
-    exception later is a change in one place. */
-export const WEIGHTED_KEYS = CATEGORIES.map((c) => c.key);
-
 /* Four, then the rest. Seven categories in a 340px rail is still a column of
    sliders taller than the viewport, and the first thing the page asks of
    someone becomes a scroll. Four is enough to show what the control IS —
    a label, a track, a named level — and to make clear there are more. */
 const PREVIEW_COUNT = 4;
-
-const DEFAULT_LEVEL = 2;
 
 const indexOf = (value) => {
   const i = LEVELS.findIndex((l) => l.value === value);

@@ -443,8 +443,8 @@ for pid, g in sc.groupby('place_id'):
         #
         # Evidence weight is 0.0 on purpose: these are counts of reviews, not
         # weighted statements, and the two must not be added together. The one
-        # consumer, the group roll-up at 08:231, then falls to avg(score),
-        # which is the right treatment for a computed category.
+        # consumer, the group roll-up in 13_ranking_v6.sql, then falls to
+        # avg(score), which is the right treatment for a computed category.
         if HAS_CAT9:
             c9 = cat9_consistency.get(pid)
             for wc in WINDOWS:
