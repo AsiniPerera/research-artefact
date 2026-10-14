@@ -4518,10 +4518,10 @@ details p { font-size: 0.72rem; color: var(--muted); margin-top: 0.3rem; }
   display: block;
 }
 
-/* The eight categories, numbered. An ordered list because they ARE presented
+/* The seven categories, numbered. An ordered list because they ARE presented
    in a fixed order everywhere else in the app; the numbers are the same ones
-   the priorities panel shows them in — seven weighted, then Overall Verdict,
-   which is reported only and has no slider. */
+   the priorities panel shows them in — six weighted, plus Management
+   Response (Category 3), which is reported only and has no slider. */
 .about-cats {
   list-style: none;
   display: grid;
