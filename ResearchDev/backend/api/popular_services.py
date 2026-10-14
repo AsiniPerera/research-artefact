@@ -1,6 +1,8 @@
 """What a business is actually reviewed for.
 
-Display only: read from existing evidence, changes no score and no rank.
+Helper for main.py, which calls popular_services_for once per response and
+attaches the result to every ranking row and to a provider profile. Display
+only: it reads existing evidence and changes no score and no rank.
 
 The share is of CATEGORY MENTIONS, not of reviews. A review that talks about
 both a haircut and a facial counts under each, so the denominator is the sum
@@ -12,12 +14,12 @@ POPULAR_SERVICES_SINGLE_SHARE = 0.60     # one dominant category
 POPULAR_SERVICES_PAIR_SHARE = 0.80       # top two combined
 POPULAR_SERVICES_TOP_N = 3
 
-# The `case` below merges MG into HR. Taxonomy v9 folded Beard & Shave into
-# Hair and dropped the standalone "Gents' Grooming" category, but the evidence
-# is still tagged MG, and ref.service_category still carries the name. Without
-# the merge this badge would be the one place in the app still naming a
-# category v9 removed. SalonDetail does the same remap on read; the counts are
-# merged rather than dropped because the reviews are real Hair work.
+# The `case` merges MG into HR. The taxonomy folds Beard & Shave under Hair and
+# has no standalone "Gents' Grooming" category, but evidence rows still carry
+# the MG tag and ref.service_category still holds that name, so without the
+# merge this badge would be the one place in the app naming a category the
+# taxonomy does not have. SalonDetail remaps the same way on read. The counts
+# merge rather than drop because the reviews are real Hair work.
 _SQL = """
 with r as (
     select e.place_id, e.review_id,

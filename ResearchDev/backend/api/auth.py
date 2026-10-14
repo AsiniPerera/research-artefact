@@ -1,8 +1,17 @@
-"""Auth routes: sign-up, sign-in, sign-out, profile get/update.
+"""Accounts: sign up, sign in, read and update a profile.
 
-JWT is stored client-side (localStorage). Tokens never expire by default;
-add exp to the payload and check it in _require_user if you want sessions
-to time out.
+Mounted on the API in main.py. These routes WRITE, so they open their own
+connection: the shared pool in main.py sets every session read-only. The
+ranking side of the API needs no account, so nothing here gates it.
+
+HS256 is implemented here with hmac rather than pulled from a JWT library,
+which keeps the dependency list to what the scoring stack already needs.
+_verify_token is the only place a signature is checked, and contact.py imports
+it rather than parsing tokens itself.
+
+The token carries no `exp` and nothing checks expiry, so a token stays valid
+until JWT_SECRET changes. Rotating that secret is what ends every session.
+Passwords are bcrypt hashes; the plaintext is never stored or logged.
 """
 
 import os
@@ -29,6 +38,8 @@ def _get_conn():
 
 @contextmanager
 def _db():
+    """A write connection that commits on a clean exit and rolls back on any
+    exception, so a failed signup cannot leave a half-written row."""
     conn = _get_conn()
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
@@ -53,12 +64,28 @@ def _b64url_decode(s: str) -> bytes:
     return base64.urlsafe_b64decode(s + "=" * (pad % 4))
 
 def _make_token(user_id: int, email: str) -> str:
+    """Sign `{sub, email, iat}` with JWT_SECRET and return `header.payload.sig`.
+
+    `sub` is the user id every authenticated route trusts, so the signature is
+    what stops a caller choosing their own. The email rides along to save a
+    lookup on the client; the id is what the database is queried by.
+    """
     header  = _b64url(json.dumps({"alg": "HS256", "typ": "JWT"}).encode())
     payload = _b64url(json.dumps({"sub": user_id, "email": email, "iat": int(time.time())}).encode())
     sig     = _b64url(hmac.new(_SECRET.encode(), f"{header}.{payload}".encode(), hashlib.sha256).digest())
     return f"{header}.{payload}.{sig}"
 
 def _verify_token(token: str) -> dict:
+    """The token's claims, or 401 if the signature does not match.
+
+    The only place a token is checked, so every route that trusts `sub` must
+    come through here. The comparison is hmac.compare_digest rather than `==`:
+    a plain comparison returns early on the first wrong byte and leaks how much
+    of a guessed signature was right.
+
+    Any malformed token lands in the same 401 as a bad signature — telling a
+    caller which part failed only helps them iterate.
+    """
     try:
         header, payload, sig = token.split(".")
         expected = _b64url(hmac.new(_SECRET.encode(), f"{header}.{payload}".encode(), hashlib.sha256).digest())
@@ -97,6 +124,12 @@ class ProfileUpdateBody(BaseModel):
 
 @router.post("/signup")
 def signup(body: SignUpBody):
+    """Create an account and return a token, so signing up also signs you in.
+
+    409 on a duplicate email rather than a generic error: the client shows
+    "already registered" and offers sign-in instead. Email is lowercased on the
+    way in so the uniqueness check and later sign-ins agree on one spelling.
+    """
     if len(body.password) < 8:
         raise HTTPException(status_code=422, detail="Password must be at least 8 characters")
 
@@ -119,6 +152,17 @@ def signup(body: SignUpBody):
 
 @router.post("/signin")
 def signin(body: SignInBody):
+    """Exchange an email and password for a token.
+
+    An unknown email and a wrong password return the same message, so the text
+    of the response does not say which addresses have accounts.
+
+    The timing still does: `not user` short-circuits before bcrypt.checkpw, so
+    an unknown email answers in a fraction of the time a known one takes. Any
+    caller measuring the round trip can enumerate registered addresses. Closing
+    it means hashing against a dummy value on the miss, which is a behaviour
+    change rather than a comment, and is recorded here rather than fixed.
+    """
     with _db() as (_, cur):
         cur.execute(
             "SELECT id, full_name, email, password_hash FROM app_users WHERE email = %s",
@@ -135,6 +179,12 @@ def signin(body: SignInBody):
 
 @router.get("/me")
 def me(claims: dict = Depends(_require_user)):
+    """The signed-in user's profile, read by `sub` from the verified token.
+
+    404 when the token verifies but the row is gone — a deleted account whose
+    token is still in a browser. The token cannot be revoked on its own, so
+    this is what the client sees in that case.
+    """
     with _db() as (_, cur):
         cur.execute(
             "SELECT id, full_name, email, avatar_url, created_at FROM app_users WHERE id = %s",
@@ -148,6 +198,14 @@ def me(claims: dict = Depends(_require_user)):
 
 @router.put("/me")
 def update_me(body: ProfileUpdateBody, claims: dict = Depends(_require_user)):
+    """Update the signed-in user's own name or avatar.
+
+    Only the fields actually sent are written, so a client may patch one
+    without clearing the other, and 422 rather than a no-op update when it
+    sends neither. The column names come from this function, never from the
+    request, and the row is always the token's own `sub` — a caller cannot
+    name the account to edit.
+    """
     updates, values = [], []
     if body.full_name is not None:
         updates.append("full_name = %s"); values.append(body.full_name.strip())
