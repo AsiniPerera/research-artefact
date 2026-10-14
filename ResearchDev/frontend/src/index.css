@@ -3735,26 +3735,6 @@ input[type="range"]:focus-visible::-moz-range-thumb {
   line-height: 1.5;
 }
 
-.confidence-bars { display: flex; flex-direction: column; gap: 0.3rem; margin-top: 0.6rem; }
-.confidence-row {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.72rem;
-  color: var(--muted);
-}
-.confidence-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-
-.weak-spot {
-  font-size: 0.72rem;
-  color: var(--warn);
-  background: var(--gold-50);
-  border-left: 2px solid var(--gold-300);
-  padding: 0.4rem 0.6rem;
-  border-radius: var(--r-sm);   /* same corner as info-banner's callout */
-  margin-top: 0.6rem;
-}
-
 details summary {
   font-size: 0.72rem;
   color: var(--muted);
@@ -4125,15 +4105,6 @@ details p { font-size: 0.72rem; color: var(--muted); margin-top: 0.3rem; }
   border-radius: var(--radius);
 }
 
-/* ── Map ─────────────────────────────────────────────────── */
-.map-container {
-  height: 300px;
-  border-radius: var(--r);   /* same corner as the cards below it */
-  overflow: hidden;
-  margin-bottom: 1.5rem;
-  border: 1px solid var(--line);
-}
-
 /* ── Salon detail ────────────────────────────────────────── */
 .salon-detail { max-width: 760px; margin: 0 auto; }
 .back-link { margin-bottom: 2rem; }
@@ -4162,31 +4133,11 @@ details p { font-size: 0.72rem; color: var(--muted); margin-top: 0.3rem; }
   grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem 2.5rem;
 }
+/* The score tiles stack: a donut with its label beneath. The rule further down
+   that styles the donut era sets no direction, so the column comes from here
+   and the grid of eight tiles depends on it. */
 .score-row { display: flex; flex-direction: column; gap: 0.45rem; }
-.score-row-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 0.5rem;
-}
 .score-label { font-size: 0.8rem; font-weight: 500; color: var(--ink); }
-.score-value {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--gold);
-  font-variant-numeric: tabular-nums;
-}
-.score-track { height: 4px; background: var(--line); border-radius: var(--pill); overflow: hidden; }
-.score-fill {
-  height: 100%;
-  border-radius: var(--pill);
-  background: var(--gold);
-  transition: width 0.6s var(--ease);
-}
-.score-evidence { font-size: 0.72rem; letter-spacing: 0.02em; }
-.score-evidence--ok  { color: var(--ok); }
-.score-evidence--mid { color: var(--gold-600); }
-.score-evidence--low { color: var(--bad); }
 
 .detail-foot { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--line-soft); }
 .detail-benchmark { font-size: 0.75rem; color: var(--faint); line-height: 1.65; max-width: 58ch; }
@@ -5775,9 +5726,6 @@ select:focus,
   color: var(--gold);
 }
 
-.score-fill,
-.confidence-dot { background-color: var(--lux-gold); }
-
 .page-btn--active {
   border-color: var(--lux-navy-900);
   background: var(--lux-navy-900);
@@ -6146,8 +6094,6 @@ body {
 .promo-code,
 .weight-tag { border-color: #ead5cc; background: var(--card); color: var(--gold); }
 .fit-ring { background: conic-gradient(var(--lux-gold) calc(var(--pct) * 1%), var(--card) 0); }
-.score-fill,
-.confidence-dot { background-color: var(--lux-gold); }
 
 .cta-band {
   background:
@@ -6912,8 +6858,6 @@ body {
 }
 
 .fit-ring { background: conic-gradient(var(--amore-rose) calc(var(--pct) * 1%), var(--card) 0); }
-.score-fill,
-.confidence-dot { background-color: var(--amore-rose); }
 
 .page-btn--active,
 .segmented button.is-active,
@@ -8063,10 +8007,7 @@ select {
   transform: translateY(-50%);
 }
 
-.score-track { background: rgba(255, 248, 244, .08); border-radius: 999px; overflow: hidden; }
-.score-fill { background: linear-gradient(90deg, #a47d4b, var(--champagne-300)); border-radius: 999px; }
 .score-label { color: var(--body); }
-.score-value { color: var(--champagne-300); font-variant-numeric: tabular-nums; }
 
 /* Evidence: quoted review text, set like a pull quote. */
 .evidence-filters { margin: 1rem 0 1.25rem; gap: .6rem; }
@@ -11456,23 +11397,6 @@ select {
 }
 
 /* ── The reviews behind a category score, opened in place ─────────────── */
-.score-evidence--btn {
-  display: inline-flex;
-  align-items: center;
-  gap: .28rem;
-  padding: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  cursor: pointer;
-  text-align: left;
-}
-.score-evidence--btn:hover { color: var(--champagne); text-decoration: underline; }
-.score-evidence--btn:focus-visible { outline: 2px solid var(--champagne); outline-offset: 2px; border-radius: 4px; }
-.score-evidence-caret { display: inline-flex; transition: transform .18s ease; }
-.score-evidence--btn.is-open { color: var(--champagne); }
-.score-evidence--btn.is-open .score-evidence-caret { transform: rotate(180deg); }
-
 .cat-drawer {
   margin-top: 1rem;
   padding: .9rem 1rem 1rem;
@@ -11489,9 +11413,6 @@ select {
 }
 .cat-drawer .evidence-list { gap: .6rem; }
 
-@media (prefers-reduced-motion: reduce) {
-  .score-evidence-caret { transition: none; }
-}
 
 /* ── "Browse all reviews": the review browser, folded away by default ─── */
 .all-reviews-summary {
@@ -11566,7 +11487,6 @@ select {
   align-items: center;
   gap: .85rem;
 }
-.score-row-body { min-width: 0; }
 .score-label { display: block; }
 
 .donut { flex: 0 0 auto; display: block; overflow: visible; }
@@ -11680,8 +11600,6 @@ select {
   color: var(--ink-700);
   overflow-wrap: anywhere;
 }
-.score-row .score-evidence { font-size: .7rem; }
-.score-row .score-evidence--btn { gap: .15rem; }
 .donut-score { font-size: .95rem; }
 
 /* Below the width where eight fit, fold to four then two rather than
@@ -12350,11 +12268,6 @@ span.chip-staff-dependent:hover { background: transparent; color: var(--champagn
 .staff-review-outcome.mixed    { background: #9db8d6; }
 .staff-review-outcome.negative { background: var(--bad); }
 .staff-review-text { margin: 0; font-size: .82rem; line-height: 1.5; overflow-wrap: anywhere; }
-
-.named-staff-summary {
-  margin-top: .4rem; font-size: .75rem; color: var(--muted);
-  display: flex; gap: .4rem; flex-wrap: wrap;
-}
 
 @media (prefers-reduced-motion: reduce) {
   .staff-drawer, .staff-drawer-scrim { transition: none; }
@@ -13629,7 +13542,6 @@ span.chip-staff-dependent:hover { background: transparent; color: var(--champagn
 .scd-chip[data-band="average"]   { --band: #E8D4A8; }
 .scd-chip[data-band="below"],
 .scd-chip[data-band="poor"]      { --band: #E08A8A; }
-.scd-chip[data-band="monitored"] { --band: #E08A8A; }
 .scd-chip[data-band] .scd-chip-num { color: var(--band); }
 
 /* ── Advisory notice ───────────────────────────────────── */
