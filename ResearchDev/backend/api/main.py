@@ -1,8 +1,16 @@
 """Beauty service ranking API (FastAPI + psycopg2, read-only).
 
-Reads the Supabase database built by backend/salon_db. Ranking order comes
-from score.rank_providers and is passed through untouched: this API never
-re-scores or re-orders providers. Every query is parameterised.
+The last step in the pipeline. backend/salon_db builds the database and
+06_run_scoring.py writes the score tables; this serves them to the frontend
+and computes nothing of its own.
+
+Ranking order comes from score.rank_providers and score.rank_providers_group
+and is passed through untouched — the SQL applies the reader's weights and
+decides the order, so a score shown beside a salon is the score the database
+produced. Nothing here re-scores or re-sorts.
+
+Every session is read-only and every query is parameterised. The two routers
+that write, auth and contact, open their own connections for that reason.
 
 Run from backend/api:
     uvicorn main:app --reload        # http://127.0.0.1:8000, docs at /docs
@@ -116,7 +124,9 @@ class _Pool:
                 try:
                     conn, idle_since = self.idle.get_nowait()
                 except queue.Empty:
-                    return self._prepare(self._connect(), probe=False)   # brand new: just connected
+                    # Freshly opened, so the socket is known good and the
+                    # probe would only cost a round trip.
+                    return self._prepare(self._connect(), probe=False)
                 if conn.closed or conn.info.transaction_status == TRANSACTION_STATUS_UNKNOWN:
                     self._drop(conn)
                     continue
@@ -130,6 +140,13 @@ class _Pool:
             raise HTTPException(503, f"Database connection failed: {_reason(exc)}")
 
     def put(self, conn, broken: bool = False):
+        """Return a connection to the pool, or drop it if it is broken.
+
+        The slot is released either way, so a dropped connection frees capacity
+        for a new one rather than shrinking the pool for the life of the
+        process. The idle time is stamped here, which is what `get` later reads
+        to decide whether the socket needs proving.
+        """
         if broken or conn.closed:
             self._drop(conn)
         else:
@@ -145,6 +162,11 @@ _pool: _Pool | None = None
 
 
 def _get_pool() -> _Pool:
+    """The process-wide pool, built on first use.
+
+    Built lazily so the app can start without a database and answer /health
+    with a reason, rather than failing at import and leaving nothing to ask.
+    """
     global _pool
     if _pool is None:
         url = os.environ.get("DATABASE_URL")
@@ -172,6 +194,8 @@ def cursor():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Close the pooled connections on shutdown so Supabase does not hold
+    sessions open for a process that has gone."""
     yield
     if _pool is not None:
         _pool.close()
@@ -199,6 +223,12 @@ _LATEST_RUN = "(select max(scoring_run_id) from score.scoring_run)"
 
 
 def _sub_service_or_404(cur, code: str) -> dict:
+    """The ref.dim_service row for `code`, or 404.
+
+    Every ranking route starts here, so an unknown code fails once with a clear
+    message instead of returning an empty ranking that reads as "no salons
+    offer this".
+    """
     cur.execute(
         "select sub_service_code as code, sub_service as name, tier, service_code, service,"
         " category_code, category from ref.dim_service where sub_service_code = %s",
@@ -210,21 +240,39 @@ def _sub_service_or_404(cur, code: str) -> dict:
     return row
 
 
-# Framework v6: nine categories, but the API contract stays at SEVEN weights
-# (categories 1-7). Category 3 is reported only (weight forced to 0).
-# Category 8 (Overall Verdict) is never weighted. Category 9 (Service Expertise
-# & Consistency) is fixed at 2 (Medium) — the ranking functions handle this
-# internally. The weights vector the client sends is seven numbers, categories
-# 1 to 7 in order; the ranking function reads positions 1-7 from it and adds
-# Category 9 at a fixed 2.
+# The framework holds nine categories; the client sends SEVEN numbers, one per
+# category from 1 to 7, in category_no order. Postgres arrays are 1-indexed, so
+# position i of that list is category i and rank_providers reads
+# p_weights[category_no] straight off it.
+#
+# Three categories are not the client's to set. Category 3 is reported only and
+# forced to 0 below. Category 8, Overall Verdict, carries weight 0 in
+# ref.framework_category and never enters a ranking. Category 9 is computed
+# from review counts rather than chosen, so the ranking functions hold it at 2
+# (Medium) whatever arrives here.
+#
+# Which categories actually count is read from ref.framework_category at query
+# time, not fixed here, so the length of this contract is the only thing the
+# API has to know.
 WEIGHTED_CATEGORIES = 7
 
 
 def _parse_weights(weights: str | None) -> list[float] | None:
-    """'1,1,…' → seven non-negative numbers in category_no order, or None for equal.
+    """'1,1,…' → seven non-negative numbers in category_no order, or None.
 
-    Category 3 is forced to 0 (reported only) regardless of what the client
-    sends. The ranking functions add Category 9 at a fixed weight of 2.
+    None means "no preference", which the ranking functions read as Medium for
+    every category. Returning None rather than a list of equal numbers keeps
+    the default in one place: the SQL.
+
+    Category 3 is forced to 0 whatever the client sends, because it is reported
+    only. That also means a request weighting nothing but Category 3 ends up
+    all-zero and is rejected below, which is the honest answer: there is no
+    ranking that request could produce.
+
+    422 on a wrong count, a non-number, a negative, or all zeroes. A count that
+    is merely wrong is worth an error rather than padding — a client sending six
+    numbers has a different idea of the contract, and silently filling the
+    seventh would rank on a weight nobody chose.
     """
     if not weights:
         return None
@@ -262,6 +310,14 @@ def _window(value: str) -> str:
 
 @app.get("/health")
 def health():
+    """Whether the API is up and whether it can reach the database.
+
+    Always 200 when the process is running, with `database` carrying the real
+    answer and `detail` the reason it cannot connect. A 503 here would be
+    indistinguishable from the API itself being down, which is the one thing
+    this endpoint exists to tell apart. `scoring_run_id` names the run every
+    other response is read from.
+    """
     try:
         with cursor() as cur:
             cur.execute(f"select {_LATEST_RUN} as scoring_run_id")
@@ -643,15 +699,18 @@ def rankings(
     concern, whatever the score) rather than removal. No safety notice is shown
     to the customer; safety is presented through the Category 7 score.
     `safety_status` and `safety_reason` stay in each row for reference only.
-    No sub-point acts as a veto in v5, so the `safety_concern` list below is
-    always empty; it is kept so an older client does not break.
+    `safety_concern` is always empty: it collects the rank_status that only a
+    veto produces, and no sub-point in the framework is marked as a veto. The
+    key stays in the response so a client reading it finds a list rather than
+    nothing.
 
     Scores are held per sub-service, and for some sub-services no provider has
     enough review evidence to be ranked at all. Rather than answer "no salons",
     the search widens a step at a time — the sub-service, then the service above
     it, then the category — and stops at the first level that can rank anyone.
-    `level_used` says which level that was and `shown` names it, so the app can
-    tell the user plainly; `requested` is always what they asked for.
+    `level_used` names the level that answered and `shown` names the thing it
+    ranked, so the app can say so plainly; `requested` is always what the
+    reader asked for.
 
     Widening is decided on the filtered list, because that is what the user sees:
     if nothing is ranked in their city, the broader service is tried in their
@@ -686,7 +745,8 @@ def rankings(
             r["named_staff"] = card.get("named_staff", {"count": 0, "top": []})
 
     return {
-        # Kept as it was: every existing caller reads this.
+        # The full sub-service row, which every client reads for its name and
+        # tier. `requested` repeats the code and name for the fallback notice.
         "sub_service": sub,
         "requested": {"code": sub["code"], "name": sub["name"]},
         "level_used": level_used,
@@ -881,7 +941,7 @@ def provider(place_id: str, consistency_window: str = Query("1y", description="6
 _EVIDENCE_ORDER = {
     "recent": "r.published_at desc, e.evidence_id",
     # Longest first. The app quotes review_text, so that is what gets measured
-    # -- not evidence_text, which run 4 capped at 100 characters and would make
+    # -- not evidence_text, which is capped at 100 characters and would make
     # almost every row tie. A row with no review text has nothing to quote, so
     # it sorts last rather than counting as length 0 among the shortest.
     "longest": ("length(coalesce(r.review_text, '')) desc, "
@@ -983,7 +1043,7 @@ def sub_point_proof(place_id: str):
 
 @app.get("/providers/{place_id}/reply-quality")
 def reply_quality(place_id: str):
-    """Category 3 parts 3.1-3.4 as scored in framework v5.
+    """The counts behind Category 3 parts 3.1 to 3.4, as the scorer reads them.
 
     A complaint is a review with text whose latest overall_sentiment is not
     positive. 3.1-3.3 count replies to complaints only; replies to positive
@@ -1126,9 +1186,8 @@ def evidence(
     Two texts come back for each row, and they are not the same thing:
 
       evidence_text  the span the extraction stored as its justification for
-                     this sub-point. Extraction run 4 capped it at 100
-                     characters, so it is usually cut mid-word and is not
-                     quotable on its own.
+                     this sub-point, capped at 100 characters, so it is usually
+                     cut mid-word and is not quotable on its own.
       review_text    the customer's review in full, from raw.review. This is
                      what the app quotes.
 

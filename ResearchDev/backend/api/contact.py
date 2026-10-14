@@ -23,6 +23,8 @@ def _get_conn():
 
 @contextmanager
 def _db():
+    """A write connection that commits on a clean exit and rolls back on any
+    exception, so a failed insert leaves no partial row."""
     conn = _get_conn()
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:

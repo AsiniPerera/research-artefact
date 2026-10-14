@@ -1,7 +1,8 @@
 """Staff named in a business's reviews, with how each is spoken about.
 
-Display only: it reads existing extraction output and changes no score,
-no rank and no stored data.
+Helper for main.py, which calls staff_card_for once per ranking response and
+staff_for when building a provider profile. Display only: it reads existing
+extraction output and changes no score, no rank and no stored data.
 
 ATTRIBUTION IS REVIEW-LEVEL. A name is attached to the review that
 mentions it, not to the individual statement, so a review reading

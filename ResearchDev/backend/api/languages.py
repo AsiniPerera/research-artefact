@@ -1,6 +1,7 @@
 """The languages a business's reviews are written in.
 
-Display only.
+Helper for main.py, which calls languages_for when building a provider
+profile. Display only: it counts reviews and changes no score and no rank.
 
 Only the three languages the detector reports reliably are counted. Reviews
 marked 'other' (89 across 64 businesses) and those with no detected language

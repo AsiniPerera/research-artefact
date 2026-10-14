@@ -1,8 +1,16 @@
-"""Ask for the Supabase database password, test it, and save DATABASE_URL to backend/api/.env.
+"""Write a working DATABASE_URL into backend/api/.env.
+
+A setup step, not part of the running service: the API and the scoring script
+both read DATABASE_URL from that file. Run it once per machine, or again after
+the database password is reset.
 
 Run from anywhere:
     python backend/api/set_db_password.py
-Typing is hidden. The password is only written to .env (git-ignored), never printed.
+
+Typing is hidden and the password is only ever written to .env, which is
+git-ignored. Both addresses are tried because the direct host resolves over
+IPv6 only, which many networks cannot reach; the session pooler answers on
+IPv4 and is the fallback.
 """
 import getpass, os, sys
 from urllib.parse import quote
