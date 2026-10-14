@@ -40,13 +40,15 @@ begin
 
   return query
   with w as (
-    -- Weighted categories only (weight > 0): 1,2,4,5,6,7 from the table,
-    -- plus 9 which also has weight > 0. Category 3 and 8 have weight 0.
-    -- User weights (1-7) default to 2 (Medium); Category 9 fixed at 2.
+    -- Weighted categories only (f.weight > 0, the real column on
+    -- ref.framework_category): 1,2,4,5,6,7 from the table, plus 9. Category 3
+    -- and 8 have weight 0. user_weight is a different number: the reader's
+    -- own importance level for each category (1-7 default to 2, Medium;
+    -- Category 9 fixed at 2) and is what the ranking actually multiplies by.
     select f.category_no,
            case when f.category_no <= 7
                 then coalesce(p_weights[f.category_no], 2)::numeric
-                else 2 end as weight
+                else 2 end as user_weight
     from ref.framework_category f
     where f.weight > 0
   ),
@@ -72,7 +74,7 @@ begin
     select * from cat9
   ),
   s as (
-    select a.place_id, sum(a.score * w.weight) / nullif(sum(w.weight), 0) as base
+    select a.place_id, sum(a.score * w.user_weight) / nullif(sum(w.user_weight), 0) as base
     from allcats a join w using (category_no)
     group by a.place_id
   ),
@@ -118,10 +120,12 @@ begin
 
   return query
   with w as (
+    -- user_weight: the reader's own importance level, not f.weight (the
+    -- structural flag below that only decides which categories take part).
     select f.category_no,
            case when f.category_no <= 7
                 then coalesce(p_weights[f.category_no], 2)::numeric
-                else 2 end as weight
+                else 2 end as user_weight
     from ref.framework_category f
     where f.weight > 0
   ),
@@ -158,7 +162,7 @@ begin
     select * from cat9
   ),
   s as (
-    select a.place_id, sum(a.score * w.weight) / nullif(sum(w.weight), 0) as base
+    select a.place_id, sum(a.score * w.user_weight) / nullif(sum(w.user_weight), 0) as base
     from allcats a join w using (category_no)
     group by a.place_id
   ),

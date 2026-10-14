@@ -1,5 +1,8 @@
 -- Beauty service quality framework: database schema
--- PostgreSQL 15+ (Supabase). Framework: final, 10 categories / 38 sub-points. Taxonomy: v9.
+-- PostgreSQL 15+ (Supabase). Creates the schemas and tables; no category or
+-- sub-point rows yet (02_reference_data.sql inserts those, and later
+-- migrations change their count — check ref.framework_category and
+-- ref.sub_point directly for what the live framework currently holds).
 -- Layout: ref (dimensions) -> raw (source data) -> extract (fact tables) -> score (rebuilt summaries)
 
 create schema if not exists ref;
