@@ -187,7 +187,7 @@ app.add_middleware(
 
 from auth import router as auth_router
 from contact import router as contact_router
-_VALID_WINDOWS = {"6m", "1y", "3y", "anytime"}
+_VALID_WINDOWS = {"6m", "1y", "3y", "anytime", "all"}
 from staff import (staff_for, staff_dependent_flag, staff_dependent_for,
                    reviews_for_staff, named_staff_summary_for, staff_card_for)
 from popular_services import popular_services_for
@@ -248,8 +248,15 @@ def _parse_weights(weights: str | None) -> list[float] | None:
 
 
 def _window(value: str) -> str:
+    """A consistency window name → the code score.category9_window stores.
+
+    "anytime" is the name the app shows and "all" is the name the database
+    uses. Both are accepted: a caller reading the stored value back, or a test
+    written against the database, should not have to translate it first.
+    """
     if value not in _VALID_WINDOWS:
-        raise HTTPException(422, "consistency_window must be 6m, 1y, 3y or anytime")
+        raise HTTPException(
+            422, "consistency_window must be 6m, 1y, 3y, anytime or all")
     return "all" if value == "anytime" else value
 
 

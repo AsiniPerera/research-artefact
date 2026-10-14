@@ -2,15 +2,19 @@
 // The ranking normalises proportionally, so these are relative importance —
 // not a fixed budget.
 //
-// SEVEN keys each, matching WEIGHTED_KEYS in WeightLevels. Framework v5's
-// eighth category, Overall Verdict, is reported only: it carries no weight, so
-// it has no key here and no preset can tilt towards it.
+// SEVEN keys each, under the same key names WeightLevels uses. Overall Verdict
+// is reported only: it carries no weight, so it has no key here and no preset
+// can tilt towards it.
+//
+// owner_responsiveness is 0 in every preset. Category 3 is reported only, and
+// the key is kept so the set stays one-per-weighted-category, but a preset must
+// not look as though it tilts towards something that cannot be weighted.
 
 export const PRESETS = {
   balanced: {
     quality_of_work:        2,
     consultation_aftercare: 2,
-    owner_responsiveness:   2,
+    owner_responsiveness:   0,
     customer_trust:         2,
     staff_customer_service: 2,
     value_price_honesty:    2,
@@ -24,7 +28,7 @@ export const PRESETS = {
   quality: {
     quality_of_work:        8,
     consultation_aftercare: 4,
-    owner_responsiveness:   1,
+    owner_responsiveness:   0,
     customer_trust:         2,
     staff_customer_service: 2,
     value_price_honesty:    1,
@@ -39,7 +43,7 @@ export const PRESETS = {
   budget: {
     quality_of_work:        4,
     consultation_aftercare: 1,
-    owner_responsiveness:   1,
+    owner_responsiveness:   0,
     customer_trust:         1,
     staff_customer_service: 2,
     value_price_honesty:    8,
@@ -51,7 +55,7 @@ export const PRESETS = {
   hygiene: {
     quality_of_work:        2,
     consultation_aftercare: 2,
-    owner_responsiveness:   2,
+    owner_responsiveness:   0,
     customer_trust:         2,
     staff_customer_service: 4,
     value_price_honesty:    1,
@@ -66,7 +70,7 @@ export const PRESETS = {
   bridal: {
     quality_of_work:        8,
     consultation_aftercare: 4,
-    owner_responsiveness:   2,
+    owner_responsiveness:   0,
     customer_trust:         4,
     staff_customer_service: 2,
     value_price_honesty:    1,
