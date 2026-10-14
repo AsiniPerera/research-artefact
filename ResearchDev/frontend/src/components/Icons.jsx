@@ -144,15 +144,6 @@ export function IconBell({ size = 16 }) {
   );
 }
 
-/* Goes deeper — the mark on a row that opens another list beside it. */
-export function IconChevronRight({ size = 13 }) {
-  return (
-    <svg {...base(size)}>
-      <path d="m9.5 6 6 6-6 6" />
-    </svg>
-  );
-}
-
 /* Disclosure — a chevron that flips when its menu opens. */
 export function IconChevron({ size = 14 }) {
   return (

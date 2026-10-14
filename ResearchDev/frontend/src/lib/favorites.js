@@ -45,7 +45,7 @@ export function getSnapshot() {
   return cache;
 }
 
-export function isFavorite(salonId) {
+function isFavorite(salonId) {
   return cache.some((f) => f.salon_id === salonId);
 }
 

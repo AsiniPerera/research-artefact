@@ -32,9 +32,6 @@ async function get(path, params, { signal } = {}) {
   return res.json();
 }
 
-/** API and database status. */
-export const getHealth = (opts) => get("/health", null, opts);
-
 /** Taxonomy tree: categories → services → sub-services, with tier and
     ranked_providers / providers_with_evidence per sub-service. */
 export const getServices = (opts) => get("/services", null, opts);

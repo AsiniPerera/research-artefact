@@ -34,12 +34,12 @@ export const CATEGORIES = [
 const UNWEIGHTABLE = new Set([3, 9]);
 
 /** The categories the priorities panel offers. */
-export const WEIGHTABLE_CATEGORIES = CATEGORIES.filter((c) => !UNWEIGHTABLE.has(c.no));
+const WEIGHTABLE_CATEGORIES = CATEGORIES.filter((c) => !UNWEIGHTABLE.has(c.no));
 
 /** How many weights the API expects — the seven weighted categories. Kept as a
     constant rather than read off CATEGORIES.length at the call site so the
     contract is named where it is relied on. */
-export const WEIGHT_COUNT = 7;
+const WEIGHT_COUNT = 7;
 
 /** The level a category sits at until the reader moves it: Medium. */
 const DEFAULT_LEVEL = 2;
@@ -70,7 +70,7 @@ export function toWeightList(weights) {
    The slider runs on the INDEX (0–3), not the value — the stops sit at even
    distances while the weights behind them double, which is why a plain
    min/max range over 1–8 would bunch the first three stops together. */
-export const LEVELS = [
+const LEVELS = [
   { value: 1, label: "Low",       lvl: "poor"      },
   { value: 2, label: "Medium",    lvl: "fair"      },
   { value: 4, label: "High",      lvl: "good"      },
@@ -88,7 +88,7 @@ const indexOf = (value) => {
   return i === -1 ? LEVELS.findIndex((l) => l.value === DEFAULT_LEVEL) : i;
 };
 
-export const CONSISTENCY_WINDOWS = [
+const CONSISTENCY_WINDOWS = [
   { value: "6m", label: "6 months", lvl: "poor" },
   { value: "1y", label: "1 year", lvl: "fair" },
   { value: "3y", label: "3 years", lvl: "good" },
