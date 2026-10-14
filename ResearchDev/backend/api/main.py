@@ -215,6 +215,7 @@ _VALID_WINDOWS = {"6m", "1y", "3y", "anytime", "all"}
 from staff import (staff_for, staff_dependent_flag, staff_dependent_for,
                    reviews_for_staff, named_staff_summary_for, staff_card_for)
 from popular_services import popular_services_for
+from service_specialism import specialism_for
 from languages import languages_for
 app.include_router(auth_router)
 app.include_router(contact_router)
@@ -245,11 +246,12 @@ def _sub_service_or_404(cur, code: str) -> dict:
 # position i of that list is category i and rank_providers reads
 # p_weights[category_no] straight off it.
 #
-# Three categories are not the client's to set. Category 3 is reported only and
-# forced to 0 below. Category 8, Overall Verdict, carries weight 0 in
-# ref.framework_category and never enters a ranking. Category 9 is computed
-# from review counts rather than chosen, so the ranking functions hold it at 2
-# (Medium) whatever arrives here.
+# Three categories are not the client's to set, and none of the three reads
+# its position in this array. Category 3 is reported only and forced to 0
+# below. Categories 8 and 9 both carry weight 0 in ref.framework_category and
+# never enter a ranking at all -- 9.1 (consistency) was removed once every
+# category became duration-filtered, and 9.2 (specialism) was never ranked,
+# only ever displayed.
 #
 # Which categories actually count is read from ref.framework_category at query
 # time, not fixed here, so the length of this contract is the only thing the
@@ -494,8 +496,12 @@ def _attach_category_scores(cur, rows, level_used, shown, window="1y"):
     weights -- weights blend the categories into the overall, they do not
     change a category's own score -- so this is stable across re-weights.
 
-    Category 9 is replaced with the chosen window's value from
-    score.category9_window, with score_9_1 and score_9_2 included.
+    `window` now scopes every category, not just Category 9: 06_run_scoring.py
+    writes a separate row per duration window for every category, and this
+    reads back whichever one the reader chose. Category 9 always comes back
+    at the neutral 0.5 (weight 0, nothing coded to it -- see
+    06_run_scoring.py section 3b); the frontend does not render a tile for
+    it, the same treatment Categories 3 and 8 already get.
     """
     if not (rows and level_used in _LEVEL_COL and shown):
         return
@@ -510,9 +516,10 @@ def _attach_category_scores(cur, rows, level_used, shown, window="1y"):
         where c.scoring_run_id = {_LATEST_RUN}
           and c.place_id = any(%s)
           and d.{_LEVEL_COL[level_used]} = %s
+          and c.window_code = %s
         group by c.place_id, c.category_no
         """,
-        (place_ids, shown["code"]),
+        (place_ids, shown["code"], window),
     )
     by_place: dict[str, list] = {}
     for cs in cur.fetchall():
@@ -521,45 +528,9 @@ def _attach_category_scores(cur, rows, level_used, shown, window="1y"):
             "score": float(cs["score"]),
             "evidence_count": cs["evidence_count"],
         })
-    cat9 = _cat9_window_scores(cur, place_ids, level_used, shown["code"], window)
-    for pid, c9 in cat9.items():
-        cats = by_place.get(pid, [])
-        cats = [c for c in cats if c["category_no"] != 9]
-        cats.append(c9)
-        by_place[pid] = cats
     for r in rows:
         r["category_scores"] = sorted(
             by_place.get(r["place_id"], []), key=lambda x: x["category_no"])
-
-
-def _cat9_window_scores(cur, place_ids, level_used, code, window):
-    """Category 9 scores from category9_window for the chosen window."""
-    cur.execute(
-        f"""
-        select cw.place_id,
-               round(avg(cw.score)::numeric, 4) as score,
-               round(avg(cw.score_9_1)::numeric, 4) as score_9_1,
-               round(avg(cw.score_9_2)::numeric, 4) as score_9_2
-        from score.category9_window cw
-        join ref.dim_service d using (sub_service_code)
-        where cw.scoring_run_id = {_LATEST_RUN}
-          and cw.place_id = any(%s)
-          and d.{_LEVEL_COL[level_used]} = %s
-          and cw.window_code = %s
-        group by cw.place_id
-        """,
-        (place_ids, code, window),
-    )
-    out = {}
-    for r in cur.fetchall():
-        out[r["place_id"]] = {
-            "category_no": 9,
-            "score": float(r["score"]) if r["score"] is not None else 0.5,
-            "score_9_1": float(r["score_9_1"]) if r["score_9_1"] is not None else None,
-            "score_9_2": float(r["score_9_2"]) if r["score_9_2"] is not None else None,
-            "evidence_count": 0,
-        }
-    return out
 
 
 def _haversine_km(lat1, lng1, lat2, lng2) -> float:
@@ -782,8 +753,11 @@ def search_providers(q: str = "", limit: int = Query(50, ge=1, le=200)):
 def provider(place_id: str, consistency_window: str = Query("1y", description="6m, 1y, 3y or anytime")):
     """Details, safety, gates and vetoes, and a score per service with category scores.
 
-    Seven weighted categories plus Overall Verdict (reported only) and
-    Category 9 (from category9_window for the chosen window, with 9.1/9.2).
+    consistency_window now scopes every category and every score here, not
+    just Category 9's old display: 06_run_scoring.py writes a separate row
+    per duration window for everything. `specialism` is the one field still
+    read from score.category9_window directly -- the old 9.2, now a
+    display-only tag with no ranking weight (backend/api/service_specialism.py).
     """
     cw = _window(consistency_window)
     with cursor() as cur:
@@ -833,46 +807,33 @@ def provider(place_id: str, consistency_window: str = Query("1y", description="6
             from score.trust_score t
             join ref.dim_service d using (sub_service_code)
             where t.place_id = %s and t.scoring_run_id = {_LATEST_RUN}
+              and t.window_code = %s
             order by t.sub_service_code
             """,
-            (place_id,),
+            (place_id, cw),
         )
         services_ = cur.fetchall()
 
+        # window_code scopes every category here now, not just Category 9 --
+        # see 06_run_scoring.py section 4. Category 9 always comes back at
+        # the neutral 0.5 (weight 0, nothing coded to it); the frontend does
+        # not render a tile for it, the same as Categories 3 and 8. The
+        # specialism figure (the old 9.2) is a separate, display-only field
+        # below (`specialism_for`), not part of this category list.
         cur.execute(
             f"""
             select c.sub_service_code, c.category_no, f.name, c.score, c.evidence_count
             from score.category_score c
             join ref.framework_category f using (category_no)
             where c.place_id = %s and c.scoring_run_id = {_LATEST_RUN}
+              and c.window_code = %s
             order by c.sub_service_code, c.category_no
             """,
-            (place_id,),
+            (place_id, cw),
         )
         by_service: dict[str, list] = {}
         for r in cur.fetchall():
             by_service.setdefault(r.pop("sub_service_code"), []).append(r)
-
-        cur.execute(
-            f"""
-            select cw.sub_service_code, cw.score, cw.score_9_1, cw.score_9_2
-            from score.category9_window cw
-            where cw.place_id = %s and cw.scoring_run_id = {_LATEST_RUN}
-              and cw.window_code = %s
-            """,
-            (place_id, cw),
-        )
-        for r in cur.fetchall():
-            ssc = r.pop("sub_service_code")
-            cats = by_service.get(ssc, [])
-            cats = [c for c in cats if c["category_no"] != 9]
-            cats.append({
-                "category_no": 9, "name": "Service Expertise & Consistency",
-                "score": r["score"], "evidence_count": 0,
-                "score_9_1": float(r["score_9_1"]) if r["score_9_1"] is not None else None,
-                "score_9_2": float(r["score_9_2"]) if r["score_9_2"] is not None else None,
-            })
-            by_service[ssc] = cats
 
         # The services this provider's EVIDENCE is actually filed under.
         #
@@ -924,6 +885,10 @@ def provider(place_id: str, consistency_window: str = Query("1y", description="6
         # From the list just fetched, not a second query.
         staff_reputation["staff_dependent"] = staff_dependent_flag(staff_reputation["staff"])
         popular_services = popular_services_for(cur, [place_id])[place_id]
+        # Display-only, from Category 9's 9.2: the one service this business is
+        # most reviewed for, among the services it offers. Not part of any
+        # score -- see 06_run_scoring.py's Category 9 block.
+        specialism = specialism_for(cur, [place_id], cw)[place_id]
         languages = languages_for(cur, [place_id])[place_id]
 
     for s in services_:
@@ -932,7 +897,7 @@ def provider(place_id: str, consistency_window: str = Query("1y", description="6
     return {**details, "safety": safety, "gates_and_vetoes": gates, "services": services_,
             "evidence_services": evidence_services, "sentiment_totals": sentiment_totals,
             "staff_reputation": staff_reputation,
-            "popular_services": popular_services, "languages": languages}
+            "popular_services": popular_services, "specialism": specialism, "languages": languages}
 
 
 # Evidence ordering. The key is validated by the Query pattern below and the
