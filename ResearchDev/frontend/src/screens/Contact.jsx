@@ -1,11 +1,9 @@
-/* The contact form, reached from the nav/footer. Posts to
+/* The contact page, reached from the nav/footer. Its chat assistant posts to
    backend/api/contact.py; attributed to the signed-in user automatically if
    there is a valid token, anonymous otherwise. */
-import { useState } from "react";
-import { SelectMenu } from "../components/SelectMenu";
-import { submitInquiry } from "../api/client";
+import { ContactChat } from "../components/ContactChat";
 import {
-  IconMail, IconClock, IconPin, IconInstagram, IconFacebook, IconArrow,
+  IconMail, IconClock, IconPin, IconInstagram, IconFacebook,
 } from "../components/Icons";
 
 /* Same filename-matched glob the other screens use, so all three agree about
@@ -75,59 +73,7 @@ function MosaicImage({ src }) {
   );
 }
 
-const REASONS = ["General enquiry", "List your salon", "Feedback", "Something went wrong"];
-
-function validateContact(form) {
-  const errs = {};
-  if (!form.name.trim())          errs.name    = "Your name is required.";
-  else if (form.name.trim().length < 2) errs.name = "Name must be at least 2 characters.";
-  if (!form.email.trim())         errs.email   = "Email address is required.";
-  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-                                  errs.email   = "Enter a valid email address.";
-  if (form.phone && !/^[\d\s\+\-\(\)]{7,15}$/.test(form.phone))
-                                  errs.phone   = "Enter a valid phone number.";
-  if (!form.message.trim())       errs.message = "Please write a message.";
-  else if (form.message.trim().length < 10)
-                                  errs.message = "Message must be at least 10 characters.";
-  return errs;
-}
-
-export function Contact({ token }) {
-  const [form, setForm] = useState({
-    name: "", email: "", phone: "", reason: REASONS[0], message: "",
-  });
-  const [fieldErrs, setFieldErrs] = useState({});
-  const [sent, setSent]           = useState(false);
-  const [loading, setLoading]     = useState(false);
-  const [apiError, setApiError]   = useState("");
-
-  const set = (k) => (e) => {
-    setForm((f) => ({ ...f, [k]: e.target.value }));
-    if (fieldErrs[k]) setFieldErrs((fe) => ({ ...fe, [k]: "" }));
-    setApiError("");
-  };
-
-  const blur = (k) => () => {
-    const errs = validateContact(form);
-    if (errs[k]) setFieldErrs((fe) => ({ ...fe, [k]: errs[k] }));
-  };
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    const errs = validateContact(form);
-    if (Object.keys(errs).length) { setFieldErrs(errs); return; }
-    setApiError("");
-    setLoading(true);
-    try {
-      await submitInquiry(form, token);
-      setSent(true);
-    } catch (err) {
-      setApiError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
+export function Contact({ token, user, onSurvey }) {
   return (
     <div className="contactpage">
       {/* ── Opening: the headline beside the picture ───────── */}
@@ -154,102 +100,8 @@ export function Contact({ token }) {
 
       {/* ── Form card + details ────────────────────────────── */}
       <div className="cp-body">
-        <section className="cp-card">
-          {sent ? (
-            <div className="cp-done">
-              <h2>Message sent</h2>
-              <p>
-                Thank you, {form.name.split(" ")[0] || "there"} — we&apos;ll be in touch
-                within one working day.
-              </p>
-              <button
-                type="button"
-                className="btn-text"
-                onClick={() => {
-                  setSent(false);
-                  setForm({ name: "", email: "", phone: "", reason: REASONS[0], message: "" });
-                }}
-              >
-                Send another
-              </button>
-            </div>
-          ) : (
-            <>
-              <h2 className="cp-card-title">Contact form</h2>
-              <p className="cp-card-sub">
-                Fill this out so we can learn more about you and what you need.
-              </p>
-
-              <form className="cp-form" onSubmit={handleSubmit} noValidate>
-
-                <div className="cp-field-wrap">
-                  <label className={`cp-field ${fieldErrs.name ? "cp-field--err" : ""}`}>
-                    <span>Name and surname</span>
-                    <input type="text" value={form.name} onChange={set("name")} onBlur={blur("name")}
-                           placeholder="Your name" autoComplete="name"
-                           aria-invalid={!!fieldErrs.name} />
-                  </label>
-                  {fieldErrs.name && <p className="cp-field-error">{fieldErrs.name}</p>}
-                </div>
-
-                <div className="cp-field-wrap">
-                  <label className={`cp-field ${fieldErrs.email ? "cp-field--err" : ""}`}>
-                    <span>Email address</span>
-                    <input type="email" value={form.email} onChange={set("email")} onBlur={blur("email")}
-                           placeholder="you@example.com" autoComplete="email"
-                           aria-invalid={!!fieldErrs.email} />
-                  </label>
-                  {fieldErrs.email && <p className="cp-field-error">{fieldErrs.email}</p>}
-                </div>
-
-                <div className="cp-field-wrap">
-                  <label className={`cp-field ${fieldErrs.phone ? "cp-field--err" : ""}`}>
-                    <span>Phone number <span className="cp-optional">(optional)</span></span>
-                    <input type="tel" value={form.phone} onChange={set("phone")} onBlur={blur("phone")}
-                           placeholder="+94 77 000 0000" autoComplete="tel"
-                           aria-invalid={!!fieldErrs.phone} />
-                  </label>
-                  {fieldErrs.phone && <p className="cp-field-error">{fieldErrs.phone}</p>}
-                </div>
-
-                <div className="cp-select">
-                  <SelectMenu
-                    label="Subject"
-                    value={form.reason}
-                    options={REASONS.map((r) => ({ value: r, label: r }))}
-                    onChange={(reason) => setForm((f) => ({ ...f, reason }))}
-                  />
-                </div>
-
-                <div className="cp-field-wrap cp-field-wrap--wide">
-                  <label className={`cp-field ${fieldErrs.message ? "cp-field--err" : ""}`}>
-                    <span>Message</span>
-                    <textarea rows={6} value={form.message} onChange={set("message")} onBlur={blur("message")}
-                              placeholder="Tell us how we can help…"
-                              aria-invalid={!!fieldErrs.message} />
-                  </label>
-                  {fieldErrs.message && <p className="cp-field-error">{fieldErrs.message}</p>}
-                  <p className="cp-char-count" aria-live="polite">
-                    {form.message.length} / 1000
-                  </p>
-                </div>
-
-                {apiError && <p className="auth-error" role="alert">{apiError}</p>}
-
-                <div className="cp-form-foot">
-                  <p className="cp-form-note">
-                    <IconClock size={14} /> We reply within one working day.
-                  </p>
-                  <button type="submit" className="btn-hero cp-send" disabled={loading}>
-                    {loading ? "Sending…" : "Send message"}
-                    <span className="btn-hero-disc" aria-hidden="true">
-                      <IconArrow size={16} />
-                    </span>
-                  </button>
-                </div>
-              </form>
-            </>
-          )}
+        <section className="cp-card cp-card--chat">
+          <ContactChat token={token} user={user} />
         </section>
 
         <aside className="cp-details">
@@ -294,6 +146,18 @@ export function Contact({ token }) {
               <IconMail size={16} />
             </a>
           </div>
+
+          {/* A second, unrelated reason someone might be here: not a question
+              for us, but feedback on the site itself. Kept apart from the
+              contact channels above rather than folded into them. */}
+          {onSurvey && (
+            <div className="cp-survey-cta">
+              <p>Already used the site? Tell us how it went.</p>
+              <button type="button" className="cp-survey-btn" onClick={onSurvey}>
+                Rate your experience
+              </button>
+            </div>
+          )}
         </aside>
       </div>
     </div>

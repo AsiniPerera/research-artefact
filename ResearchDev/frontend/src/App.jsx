@@ -8,6 +8,8 @@ import { NotificationsMenu } from "./components/NotificationsMenu";
 import { IconHeart, IconSearch, IconUserPlus } from "./components/Icons";
 import { useFavorites } from "./hooks/useFavorites";
 import { useAuth } from "./hooks/useAuth";
+import { ChatWidget } from "./components/ChatWidget";
+import { SurveyChat } from "./components/SurveyChat";
 import { Dashboard } from "./screens/Dashboard";
 import { Favorites } from "./screens/Favorites";
 import { Landing } from "./screens/Landing";
@@ -415,7 +417,7 @@ export default function App() {
           ) : route === "profile" ? (
             <Profile token={auth.token} onSignOut={() => { auth.clearSession(); go("home"); }} />
           ) : route === "contact" ? (
-            <Contact token={auth.token} />
+            <Contact token={auth.token} user={auth.user} onSurvey={() => go("survey")} />
           ) : route === "home" || route === "offers" || route === "ourservices" ? (
             <Landing
               onExplore={explore}
@@ -436,6 +438,21 @@ export default function App() {
             <Lookup query={submittedQuery} onSelectSalon={(id) => openSalon(id)} />
           ) : route === "how" ? (
             <HowItWorks />
+          ) : route === "survey" ? (
+            <article className="survey-page">
+              {/* The only way here is the "Rate your experience" card on
+                  Contact, so Back returns there rather than to Home. */}
+              <button type="button" className="btn-text back-link" onClick={() => go("contact")}>
+                ← Back
+              </button>
+              <p className="eyebrow">Research</p>
+              <h1 className="survey-title">Usability evaluation</h1>
+              <p className="survey-lede">
+                Please complete this after the tasks. Your answers are anonymous and
+                saved for the study.
+              </p>
+              <SurveyChat />
+            </article>
           ) : (
             <About onExplore={() => go("services")} />
           )}
@@ -480,6 +497,9 @@ export default function App() {
         </div>
       </footer>
       )}
+
+      {/* Chat bubble everywhere except sign-in and Contact (Contact shows the same chat inline). */}
+      {!isAuth && route !== "contact" && route !== "survey" && <ChatWidget token={auth.token} user={auth.user} />}
     </div>
   );
 }

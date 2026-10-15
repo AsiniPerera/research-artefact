@@ -250,8 +250,8 @@ function DonutDefs() {
       <defs>
         {/* Outer arc: the score, in bronze */}
         <linearGradient id="sent-positive" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%"   stopColor="#b98456" />
-          <stop offset="100%" stopColor="#82543a" />
+          <stop offset="0%"   style={{ stopColor: "var(--c-accent-light)" }} />
+          <stop offset="100%" style={{ stopColor: "var(--c-accent-strong)" }} />
         </linearGradient>
         {/* Inner arc: share of negative reviews, in sand */}
         <linearGradient id="sent-negative" x1="0" y1="0" x2="1" y2="1">
@@ -993,13 +993,13 @@ function ServiceScores({ service, categoryName, categoryTrait, sentimentBy, subP
       )}
       {badges.length > 0 && (
         <div className="badge-row">
-          {badges.map((b) => <span key={b} className="badge badge--muted">{b}</span>)}
+          {badges.map((b) => <span key={b} className="badge badge--c-muted">{b}</span>)}
         </div>
       )}
       <ul className="cat-score-list">
         {rows.map((r) => {
           const s = Math.round((r.score ?? 0) * 100);
-          const band = s >= 85 ? "Excellent" : s >= 75 ? "Very Good" : s >= 65 ? "Good" : s >= 55 ? "Average" : "Needs Improvement";
+          const band = s >= 90 ? "Excellent" : s >= 80 ? "Great" : s >= 70 ? "Good" : s >= 60 ? "Okay" : s >= 50 ? "Fair" : "Weak";
           const bandCls = s >= 85 ? "excellent" : s >= 75 ? "verygood" : s >= 65 ? "good" : s >= 55 ? "average" : "poor";
           return (
             <li key={r.category_no} className="csl-row">

@@ -1,6 +1,7 @@
 /* Rendered by Results.jsx (one per row in the ranking grid) and by
    SalonDetail's nearby-salons list. `salon` is one row of the API's
    ranked/available_but_not_ranked arrays, already carrying category_scores. */
+import { useState } from "react";
 import { IconHeart, IconAlert, IconPin } from "./Icons";
 import { useFavorites } from "../hooks/useFavorites";
 import { toggleFavorite } from "../lib/favorites";
@@ -18,11 +19,11 @@ const pct = (x) => Math.round(Number(x ?? 0) * 100);
    not just a figure. */
 function bandWord(v) {
   if (v >= 90) return "Excellent";
-  if (v >= 80) return "Very Good";
+  if (v >= 80) return "Great";
   if (v >= 70) return "Good";
-  if (v >= 60) return "Average";
-  if (v >= 50) return "Below Average";
-  return "Needs Improvement";
+  if (v >= 60) return "Okay";
+  if (v >= 50) return "Fair";
+  return "Weak";
 }
 
 /* A band key that drives the colour, so word + number share one hue. */
@@ -35,6 +36,47 @@ function bandKey(v) {
   return "poor";
 }
 
+/* Three tones, used the same way for the ring, the bars and the numbers:
+   green 70 and up, amber 50-69, red below 50. */
+const tone = (v) => (v >= 70 ? "good" : v >= 50 ? "avg" : "low");
+
+const TONE_TEXT = {
+  good: "Good: feedback is mostly positive about this.",
+  avg: "Average: feedback is mixed, or there is not much of it.",
+  low: "Below average: feedback is mostly negative, or there is very little of it.",
+};
+
+/* Hover text for one category bar: the full name, the score, what it means and
+   what the category covers. The card shows the short name; this is the long one. */
+const barTip = (no, v) =>
+  `${CATEGORY_INFO[no].name} — ${v} out of 100. ${TONE_TEXT[tone(v)]} (${CATEGORY_INFO[no].description}.)`;
+
+const joinNames = (xs) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
+
+/* A plain sentence on why this salon sits where it does: its strongest scores
+   once the reader's priorities are applied, what the reader weighted up, and its
+   weakest score if that is low. `priorities` is the seven weights in category
+   order, the same list the ranking was asked for. */
+function whyText({ position, provisional, scored, priorities }) {
+  if (provisional) {
+    return "Listed after the ranked salons: it has feedbacks about this service, but too few or too mixed to be sure of its score, so its position could change.";
+  }
+  if (scored.length === 0) return "There are no category scores to explain this position yet.";
+  const w = (no) => priorities?.[no - 1] ?? 2;
+  const strongest = [...scored].sort((a, b) => w(b.no) * b.v - w(a.no) * a.v).slice(0, 2);
+  const name = (s) => `${CATEGORY_INFO[s.no].short} (${s.v})`;
+  const lead = position === 1 ? "Ranked first" : `Ranked #${position}`;
+  const weights = scored.map((s) => w(s.no));
+  const equal = weights.every((x) => x === weights[0]);
+  const up = scored.filter((s) => w(s.no) >= 4 && w(s.no) === Math.max(...weights)).map((s) => CATEGORY_INFO[s.no].short);
+  const prio = equal
+    ? "your priorities weight every category equally"
+    : up.length ? `you gave extra weight to ${joinNames(up)}` : "of the priorities you set";
+  const weakest = [...scored].sort((a, b) => a.v - b.v)[0];
+  const weak = weakest && weakest.v < 60 ? ` Its lowest score is ${name(weakest)}.` : "";
+  return `${lead} because ${joinNames(strongest.map(name))} ${strongest.length > 1 ? "are" : "is"} among its strongest scores, and ${prio}.${weak}`;
+}
+
 /**
  * One ranked salon, laid out as a "dossier" strip: identity and score on top,
  * the category breakdown across the middle, and any advisory underneath.
@@ -42,7 +84,8 @@ function bandKey(v) {
  * ratedFor names the service the score belongs to, passed only when broader
  * than what the user asked for.
  */
-export function SalonCard({ salon, onSelect, ratedFor, position, provisional = false }) {
+export function SalonCard({ salon, onSelect, ratedFor, position, provisional = false, priorities }) {
+  const [whyOpen, setWhyOpen] = useState(false);
   const rank = salon.rank_no;
   /* A salon reaches this card either ranked or merely listed. Only a ranked one
      has a rank_no, so the two must be told apart on the card itself: the score
@@ -67,7 +110,10 @@ export function SalonCard({ salon, onSelect, ratedFor, position, provisional = f
 
   return (
     <article
-      className="salon-card sc2"
+      className="salon-card sc2 is-clickable"
+      data-id={salon.place_id}
+      /* The whole card opens the salon; controls inside it keep their own job. */
+      onClick={(e) => { if (!e.target.closest("button, a, input, label, [data-tip], .sc2-why-text")) open(); }}
       data-tier={!ranked ? undefined : (position ?? rank) === 1 ? "gold" : (position ?? rank) === 2 ? "silver" : (position ?? rank) === 3 ? "bronze" : undefined}
     >
       <div className="sc2-top">
@@ -102,7 +148,7 @@ export function SalonCard({ salon, onSelect, ratedFor, position, provisional = f
         </div>
 
         <div className="sc2-side">
-          <div className="sc2-score" title={`Range ${pct(salon.range_low)}–${pct(salon.range_high)}`}>
+          <div className="sc2-score" data-tone={tone(score)} title={`Range ${pct(salon.range_low)}–${pct(salon.range_high)}`}>
             <div className="sc2-ring" style={{ "--p": score }}>
               <span>{score}</span>
             </div>
@@ -128,13 +174,22 @@ export function SalonCard({ salon, onSelect, ratedFor, position, provisional = f
       {scored.length > 0 && (
         <ul className="sc2-bars" aria-label="Category scores">
           {scored.map(({ no, v }) => (
-            <li key={no} data-band={bandKey(v)} title={`${CATEGORY_INFO[no].name}: ${v} of 100`}>
+            <li key={no} data-band={bandKey(v)} data-tone={tone(v)} data-tip={barTip(no, v)} tabIndex={0}>
               <span className="sc2-bar-label">{CATEGORY_INFO[no].short}</span>
               <span className="sc2-bar"><i style={{ width: `${v}%` }} /></span>
               <span className="sc2-bar-num">{v}</span>
             </li>
           ))}
         </ul>
+      )}
+
+      {priorities && scored.length > 0 && (position ?? rank) != null && (
+        <div className="sc2-why">
+          <button type="button" className="sc2-why-link" aria-expanded={whyOpen} onClick={() => setWhyOpen((v) => !v)}>
+            Why #{position ?? rank}? <span aria-hidden="true">{whyOpen ? "−" : "+"}</span>
+          </button>
+          {whyOpen && <p className="sc2-why-text">{whyText({ position: position ?? rank, provisional, scored, priorities })}</p>}
+        </div>
       )}
 
       {(closed || gateBadges.length > 0) && (

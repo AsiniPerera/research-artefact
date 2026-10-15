@@ -3,6 +3,7 @@
    toWeightList (the API call). The review-period control lives in
    QuickFilters.jsx now -- it narrows which reviews are read, it is not a
    priority to weigh. */
+import { useState } from "react";
 import { CATEGORY_INFO } from "../constants/categories";
 
 // `label` is the category's name and `tag` a one-line plain-language gloss
@@ -91,41 +92,56 @@ const indexOf = (value) => {
    reviews are read, it is not a priority to weigh. */
 const PANEL_ORDER = [1, 7, 2, 5, 6, 4];
 
-/* One meter per priority: the category's full name and chosen level on one
-   line, four bars beneath, filled up to the level, each bar a button. The
-   names are the same ones the rest of the site uses (constants/categories.js),
-   so a reader meets one vocabulary. Same radio semantics as before (one of
-   four, arrow-key reachable) and the same weights out. */
+const TIP_KEY = "amore.prioritiesTipSeen";
+const tipSeen = () => { try { return localStorage.getItem(TIP_KEY) === "1"; } catch { return false; } };
+const markTipSeen = () => { try { localStorage.setItem(TIP_KEY, "1"); } catch { /* storage blocked */ } };
+
+/* One slider per priority: the category's full name and the chosen level on
+   one line, a draggable handle beneath. The level word changes as the handle
+   moves, and the ranking follows (Rankings.jsx re-ranks as the weights change).
+   A native range input, so the keyboard (arrow keys, Home, End) and screen
+   readers work without extra code. The names are the ones the rest of the site
+   uses (constants/categories.js). */
 export function WeightLevels({ weights, onChange }) {
   const rows = PANEL_ORDER.map((no) => WEIGHTABLE_CATEGORIES.find((c) => c.no === no)).filter(Boolean);
+  const [tip, setTip] = useState(() => !tipSeen());
+  const dismissTip = () => { if (tip) { setTip(false); markTipSeen(); } };
 
   return (
     <>
       <p className="meter-heading">How important is each to you?</p>
       <ul className="meter-list">
-        {rows.map(({ key, label, tag }) => {
+        {rows.map(({ key, label, tag }, n) => {
           const idx = indexOf(weights[key] ?? DEFAULT_LEVEL);
           const id = `w-${key}`;
           return (
             <li className="meter-row" key={key} title={tag}>
+              {n === 0 && tip && (
+                <div className="prio-tip" role="note">
+                  <span>Drag to set your priority — the ranking updates instantly</span>
+                  <button type="button" onClick={dismissTip} aria-label="Dismiss tip">&times;</button>
+                </div>
+              )}
               <div className="meter-head">
-                <span id={`${id}-label`} className="meter-label">{label}</span>
+                <label htmlFor={id} className="meter-label">{label}</label>
                 <span className="meter-word" aria-hidden="true">{LEVELS[idx].label}</span>
               </div>
-              <div className="meter" role="radiogroup" aria-labelledby={`${id}-label`}>
-                {LEVELS.map((l, i) => (
-                  <button
-                    key={l.value}
-                    type="button"
-                    role="radio"
-                    aria-checked={i === idx}
-                    aria-label={l.label}
-                    title={l.label}
-                    className={`meter-seg ${i <= idx ? "is-on" : ""}`}
-                    onClick={() => onChange({ ...weights, [key]: l.value })}
-                  />
-                ))}
-              </div>
+              <input
+                id={id}
+                type="range"
+                className="prio-range"
+                min={0}
+                max={LEVELS.length - 1}
+                step={1}
+                value={idx}
+                style={{ "--fill": `${(idx * 100) / (LEVELS.length - 1)}%` }}
+                aria-valuetext={LEVELS[idx].label}
+                onPointerDown={dismissTip}
+                onChange={(e) => {
+                  dismissTip();
+                  onChange({ ...weights, [key]: LEVELS[Number(e.target.value)].value });
+                }}
+              />
             </li>
           );
         })}

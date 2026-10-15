@@ -3,7 +3,7 @@
    service but whose score is not yet certain enough to rank (marked
    "Less certain"). Salons with no feedbacks about the service are left out. The
    nearby-salons section sits beneath it. */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { SalonCard } from "../components/SalonCard";
 import { FallbackNotice } from "../components/FallbackNotice";
 import { rankingFallback } from "../api/client";
@@ -28,8 +28,36 @@ export function Results({
   onSearchAllCities,
   nearby,
   audience = "",
+  priorities,
 }) {
   const [page, setPage] = useState(1);
+
+  /* When a change of priorities re-orders the list, each card glides from its old
+     place to its new one, so the reader sees what their change did. Positions are
+     measured against the grid, so scrolling between renders does not matter, and
+     a card that was not on screen before simply appears. */
+  const gridRef = useRef(null);
+  const lastTops = useRef(new Map());
+  useLayoutEffect(() => {
+    const grid = gridRef.current;
+    const next = new Map();
+    if (grid) {
+      const base = grid.getBoundingClientRect().top;
+      const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      for (const el of grid.querySelectorAll(":scope > [data-id]")) {
+        const top = el.getBoundingClientRect().top - base;
+        next.set(el.dataset.id, top);
+        const was = lastTops.current.get(el.dataset.id);
+        if (!calm && was != null && Math.abs(was - top) > 2 && el.animate) {
+          el.animate(
+            [{ transform: `translateY(${was - top}px)` }, { transform: "none" }],
+            { duration: 450, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" },
+          );
+        }
+      }
+    }
+    lastTops.current = next;
+  });
 
   // A fresh ranking is a fresh list — never strand the user on a page that no longer exists.
   useEffect(() => { setPage(1); }, [data]);
@@ -172,7 +200,7 @@ export function Results({
           </div>
         )
       ) : (
-        <div className="salon-grid">
+        <div className="salon-grid" ref={gridRef}>
           {current.map((row, i) => (
             <SalonCard
               key={row.place_id}
@@ -180,6 +208,7 @@ export function Results({
               position={ranked.length > 0 ? pageStart + i + 1 : undefined}
               provisional={ranked.length > 0 && row.rank_status !== "ranked"}
               onSelect={onSelectSalon}
+              priorities={priorities}
               ratedFor={fallback && fallback.level !== "none" ? fallback.shown?.name : null}
             />
           ))}
