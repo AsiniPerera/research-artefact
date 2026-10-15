@@ -70,7 +70,7 @@ export function Dashboard({ initialTab = "upcoming", onExplore }) {
       {tab === "history" && (
         <Empty Icon={IconHistory} title="No past bookings">
           Visits you&apos;ve completed will be listed here, newest first — so you can
-          rebook a service, or review the salon while it&apos;s fresh.
+          rebook a service, or give feedback on the salon while it&apos;s fresh.
         </Empty>
       )}
 

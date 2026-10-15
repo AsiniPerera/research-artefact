@@ -1,11 +1,12 @@
 /* Rendered by Results.jsx (one per row in the ranking grid) and by
    SalonDetail's nearby-salons list. `salon` is one row of the API's
    ranked/available_but_not_ranked arrays, already carrying category_scores. */
-import { IconHeart, IconAlert } from "./Icons";
+import { IconHeart, IconAlert, IconPin } from "./Icons";
 import { useFavorites } from "../hooks/useFavorites";
 import { toggleFavorite } from "../lib/favorites";
 import { splitBadges } from "../api/client";
 import { CATEGORY_INFO, isShownCategory } from "../constants/categories";
+import { AUDIENCE } from "../constants/audience";
 
 const isCardCategory = (no) => isShownCategory(no) && Number(no) !== 3;
 const CARD_ORDER = [1, 7, 2, 5, 6, 4];
@@ -41,7 +42,7 @@ function bandKey(v) {
  * ratedFor names the service the score belongs to, passed only when broader
  * than what the user asked for.
  */
-export function SalonCard({ salon, onSelect, ratedFor }) {
+export function SalonCard({ salon, onSelect, ratedFor, position, provisional = false }) {
   const rank = salon.rank_no;
   /* A salon reaches this card either ranked or merely listed. Only a ranked one
      has a rank_no, so the two must be told apart on the card itself: the score
@@ -58,56 +59,61 @@ export function SalonCard({ salon, onSelect, ratedFor }) {
     .filter((c) => isCardCategory(c.category_no))
     .sort((a, b) => CARD_ORDER.indexOf(a.category_no) - CARD_ORDER.indexOf(b.category_no));
   const closed = salon.permanently_closed || salon.temporarily_closed;
+
+  const scored = catScores.map((c) => ({ no: c.category_no, v: pct(c.score) }));
+  const feedbacks = salon.reviews_total ?? 0;
+  const written = salon.total_feedbacks ?? 0;
+  const about = salon.evidence_reviews ?? 0;
+
   return (
     <article
-      className="salon-card salon-card--row salon-card--dossier"
-      data-tier={rank === 1 ? "gold" : rank === 2 ? "silver" : rank === 3 ? "bronze" : undefined}
+      className="salon-card sc2"
+      data-tier={!ranked ? undefined : (position ?? rank) === 1 ? "gold" : (position ?? rank) === 2 ? "silver" : (position ?? rank) === 3 ? "bronze" : undefined}
     >
-      {/* ── Top row: identity (left) · score + actions (right) ── */}
-      <div className="scd-top">
-        <div className="scd-id">
+      <div className="sc2-top">
+        <div className="sc2-id">
           {/* rank_no is null for an unranked salon, which would otherwise read
               as "Rank " with nothing after it. */}
           <span className="sr-only">
-            {rank != null ? `Rank ${rank}` : "Available but not ranked"}
+            {position != null ? `Position ${position}${provisional ? ", less certain" : ""}` : rank != null ? `Rank ${rank}` : "Available but not ranked"}
           </span>
-          <button type="button" className="salon-name" onClick={open}>
-            {salon.provider_name}
-          </button>
-          <p className="scd-meta">
-            <span className="scd-meta-city">{salon.city || "Colombo District"}</span>
-            {ratedFor && (
-              <>
-                <span className="scd-meta-sep" aria-hidden="true">/</span>
-                <span className="scd-meta-kind">Rated for {ratedFor}</span>
-              </>
+          <div className="sc2-namerow">
+            {(position ?? (ranked ? rank : null)) != null && (
+              <span className="sc2-rank" aria-hidden="true">{position ?? rank}</span>
             )}
-          </p>
-          {!ranked && (
-            <span className="scd-unranked"
-                  title="This salon offers the service, but there is not enough review evidence about it to place it in the ranking.">
-              Available but Not Ranked
-            </span>
-          )}
-        </div>
-
-        <div className="scd-side">
-          <div className="scd-score">
-            <p className="scd-score-main">{score}<span className="scd-score-pct">%</span></p>
-            <p className="scd-score-bench">
-              [{pct(salon.range_low)}–{pct(salon.range_high)} benchmark]
-            </p>
+            <button type="button" className="sc2-name" onClick={open}>{salon.provider_name}</button>
+            {provisional && (
+              <span className="sc2-prov"
+                    title="We have feedbacks about this service, but too few or too mixed to be sure of this score, so this position could change.">
+                Less certain
+              </span>
+            )}
           </div>
 
-          <span className="scd-divider" aria-hidden="true" />
+          <p className="sc2-meta">
+            <IconPin size={13} />
+            <span>{salon.city || "Colombo District"}</span>
+            {salon.audience && <span className="sc2-meta-dot sc2-aud" title={AUDIENCE[salon.audience]?.hint}>{AUDIENCE[salon.audience]?.label}</span>}
+            {ratedFor && <span className="sc2-meta-dot">Rated for {ratedFor}</span>}
+            {feedbacks > 0 && <span className="sc2-meta-dot">{feedbacks} feedbacks</span>}
+            {written > 0 && <span className="sc2-meta-dot">{written} with comments</span>}
+            <span className="sc2-meta-dot">{about > 0 ? `${about} about this service` : "none about this service"}</span>
+          </p>
+        </div>
 
-          <div className="scd-actions">
-            <button type="button" className="scd-view" onClick={open}>
-              View salon
-            </button>
+        <div className="sc2-side">
+          <div className="sc2-score" title={`Range ${pct(salon.range_low)}–${pct(salon.range_high)}`}>
+            <div className="sc2-ring" style={{ "--p": score }}>
+              <span>{score}</span>
+            </div>
+            <p className="sc2-band">{bandWord(score)}</p>
+            <p className="sc2-range">{pct(salon.range_low)}–{pct(salon.range_high)}</p>
+          </div>
+          <div className="sc2-actions">
+            <button type="button" className="sc2-view" onClick={open}>View salon</button>
             <button
               type="button"
-              className={`scd-fav ${saved ? "scd-fav--on" : ""}`}
+              className={`sc2-fav ${saved ? "is-on" : ""}`}
               onClick={() => toggleFavorite({ salon_id: salon.place_id, name: salon.provider_name })}
               aria-pressed={saved}
               aria-label={saved ? `Remove ${salon.provider_name} from favorites` : `Save ${salon.provider_name} to favorites`}
@@ -119,25 +125,18 @@ export function SalonCard({ salon, onSelect, ratedFor }) {
         </div>
       </div>
 
-      {/* ── Category breakdown ── */}
-      {catScores.length > 0 && (
-        <ul className="scd-cats" aria-label="Category scores">
-          {catScores.map((c) => {
-            const v = pct(c.score);
-            const band = bandKey(v);
-            return (
-              <li key={c.category_no} className="scd-chip" data-band={band}
-                  title={`${CATEGORY_INFO[c.category_no].name}: ${v} of 100`}>
-                <span className="scd-chip-label">{CATEGORY_INFO[c.category_no].short}</span>
-                <span className="scd-chip-num">{v}<span className="scd-chip-pct">%</span></span>
-                <span className="scd-chip-tier">{bandWord(v)}</span>
-              </li>
-            );
-          })}
+      {scored.length > 0 && (
+        <ul className="sc2-bars" aria-label="Category scores">
+          {scored.map(({ no, v }) => (
+            <li key={no} data-band={bandKey(v)} title={`${CATEGORY_INFO[no].name}: ${v} of 100`}>
+              <span className="sc2-bar-label">{CATEGORY_INFO[no].short}</span>
+              <span className="sc2-bar"><i style={{ width: `${v}%` }} /></span>
+              <span className="sc2-bar-num">{v}</span>
+            </li>
+          ))}
         </ul>
       )}
 
-      {/* ── Advisory notice: only exceptions are shown ── */}
       {(closed || gateBadges.length > 0) && (
         <div className="scd-advisory">
           {closed && (
@@ -147,7 +146,6 @@ export function SalonCard({ salon, onSelect, ratedFor }) {
               {salon.permanently_closed ? "Permanently closed" : "Temporarily closed"} on Google.
             </p>
           )}
-
           {gateBadges.map((b) => (
             <p key={b} className="scd-advisory-line" title="Gate applied: −0.15 to the score">
               <span className="scd-advisory-tag">[Advisory Notice]</span>

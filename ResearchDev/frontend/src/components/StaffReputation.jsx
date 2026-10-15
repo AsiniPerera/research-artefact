@@ -19,10 +19,10 @@ export function StaffReputation({ data, placeId }) {
   if (staff.length === 0) {
     return (
       <section id="staff-reputation" className="staff-mentions">
-        <h3 className="staff-head">Staff mentioned in reviews</h3>
+        <h3 className="staff-head">Staff mentioned in feedbacks</h3>
         <p className="staff-note">
-          No one is named in enough reviews here. A name is listed once it
-          appears in at least 3 reviews — across all salons, extraction found
+          No one is named in enough feedbacks here. A name is listed once it
+          appears in at least 3 feedbacks — across all salons, extraction found
           a name on about one in three.
         </p>
       </section>
@@ -31,10 +31,10 @@ export function StaffReputation({ data, placeId }) {
 
   return (
     <section id="staff-reputation" className="staff-mentions">
-      <h3 className="staff-head">Staff mentioned in reviews</h3>
+      <h3 className="staff-head">Staff mentioned in feedbacks</h3>
       <p className="staff-note">
-        Counts reflect reviews naming each person — attribution is at the
-        review level, not statement level.
+        Counts reflect feedbacks naming each person — attribution is at the
+        feedback level, not statement level.
       </p>
       <ul className="staff-list">
         {staff.map((s) => {
@@ -58,14 +58,14 @@ export function StaffReputation({ data, placeId }) {
               <div
                 className="staff-bar"
                 role="img"
-                aria-label={`${pct}% positive, from ${s.reviews} reviews`}
+                aria-label={`${pct}% positive, from ${s.reviews} feedbacks`}
               >
                 <span className="staff-bar-fill" style={{ width: `${pct}%` }} />
               </div>
               <div className="staff-counts">
                 {s.positive} positive
                 {s.mixed ? ` · ${s.mixed} mixed` : ""}
-                {` · ${s.negative} negative · ${s.reviews} relevant review${s.reviews === 1 ? "" : "s"}`}
+                {` · ${s.negative} negative · ${s.reviews} relevant feedback${s.reviews === 1 ? "" : "s"}`}
               </div>
             </li>
           );

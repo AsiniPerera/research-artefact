@@ -221,10 +221,10 @@ export function Contact({ token }) {
                   />
                 </div>
 
-                <div className="cp-field-wrap">
+                <div className="cp-field-wrap cp-field-wrap--wide">
                   <label className={`cp-field ${fieldErrs.message ? "cp-field--err" : ""}`}>
                     <span>Message</span>
-                    <textarea rows={4} value={form.message} onChange={set("message")} onBlur={blur("message")}
+                    <textarea rows={6} value={form.message} onChange={set("message")} onBlur={blur("message")}
                               placeholder="Tell us how we can help…"
                               aria-invalid={!!fieldErrs.message} />
                   </label>
@@ -236,29 +236,23 @@ export function Contact({ token }) {
 
                 {apiError && <p className="auth-error" role="alert">{apiError}</p>}
 
-                <button type="submit" className="btn-hero cp-send" disabled={loading}>
-                  {loading ? "Sending…" : "Send message"}
-                  <span className="btn-hero-disc" aria-hidden="true">
-                    <IconArrow size={16} />
-                  </span>
-                </button>
+                <div className="cp-form-foot">
+                  <p className="cp-form-note">
+                    <IconClock size={14} /> We reply within one working day.
+                  </p>
+                  <button type="submit" className="btn-hero cp-send" disabled={loading}>
+                    {loading ? "Sending…" : "Send message"}
+                    <span className="btn-hero-disc" aria-hidden="true">
+                      <IconArrow size={16} />
+                    </span>
+                  </button>
+                </div>
               </form>
             </>
           )}
         </section>
 
         <aside className="cp-details">
-          {/* Overlapping rings as a watermark, in the same spirit as the
-              outlined numerals on the About cards: faint champagne outlines,
-              large, bleeding off the corner. Decorative only. */}
-          <svg className="cp-details-mark" viewBox="0 0 260 260" aria-hidden="true" focusable="false">
-            <circle cx="168" cy="150" r="104" />
-            <circle cx="168" cy="150" r="76" className="is-faint" />
-            <circle cx="66" cy="104" r="48" />
-            <circle cx="92" cy="216" r="26" className="is-faint" />
-            <circle cx="214" cy="56" r="14" />
-          </svg>
-
           <p className="about-kicker">Get in touch</p>
           <h2 className="cp-details-name">Amore Beauty</h2>
 

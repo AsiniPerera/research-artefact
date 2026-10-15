@@ -16,12 +16,15 @@ Run from backend/api:
     uvicorn main:app --reload        # http://127.0.0.1:8000, docs at /docs
 """
 
+import json
 import os
+import pathlib
 import queue
 import re
 import math
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager, contextmanager
 
 import psycopg2
@@ -30,6 +33,7 @@ from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
@@ -192,16 +196,34 @@ def cursor():
         pool.put(conn, broken)
 
 
+# The services most often opened first, asked the way the app asks by default
+# (equal weights, open salons, all time). Done once in the background at start-up
+# so the first real click is a cache hit instead of a cold database round.
+_WARM_SERVICES = ("HR.CUT.01", "HR.COL.01", "SK.FAC.01", "NL.CARE.01", "BO.BRIDAL.02")
+
+
+def _warm_rankings() -> None:
+    for code in _WARM_SERVICES:
+        try:
+            rankings(sub_service_code=code, weights="2,2,2,2,2,2,2", city=None,
+                     status="open", consistency_window="anytime")
+        except Exception:
+            return       # warming is a nicety; never let it disturb start-up
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Close the pooled connections on shutdown so Supabase does not hold
     sessions open for a process that has gone."""
+    threading.Thread(target=_warm_rankings, daemon=True).start()
     yield
     if _pool is not None:
         _pool.close()
 
 
 app = FastAPI(title="Beauty Service Ranking API", lifespan=lifespan)
+# JSON of salon rows is highly repetitive: a 200 KB ranking compresses to ~25 KB.
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
@@ -221,6 +243,15 @@ app.include_router(auth_router)
 app.include_router(contact_router)
 
 _LATEST_RUN = "(select max(scoring_run_id) from score.scoring_run)"
+
+# Ranking answers are the same until a new scoring run is loaded, and the same
+# search is asked again and again (the Rank button, paging back, reopening a
+# service). A short in-memory cache keyed on the full query skips the dozen
+# database round trips behind each answer. Five minutes bounds how long an old
+# answer can outlive a new scoring run; restarting the API clears it at once.
+_RANK_CACHE: dict = {}
+_RANK_CACHE_TTL = 300.0
+_RANK_CACHE_MAX = 400
 
 
 def _sub_service_or_404(cur, code: str) -> dict:
@@ -331,7 +362,7 @@ def health():
 
 
 @app.get("/services")
-def services(consistency_window: str = Query("1y", description="6m, 1y, 3y or anytime")):
+def services(consistency_window: str = Query("anytime", description="6m, 1y, 3y or anytime")):
     """Taxonomy tree with ranked / evidenced provider counts per sub-service.
 
     trust_score carries one row per place x sub-service x window now, so the
@@ -475,7 +506,7 @@ _RANK_COLUMNS = """
 
 
 def _rank_rows(cur, level: str, code: str, w, city: str, status: str,
-               window: str = "1y") -> list[dict]:
+               window: str = "all") -> list[dict]:
     """One level of the ranking, filtered. Nothing here re-orders the rows."""
     if level == "sub_service":
         source = "from score.rank_providers(%s, %s::numeric[], %s) with ordinality r"
@@ -496,7 +527,7 @@ _LEVEL_COL = {"sub_service": "sub_service_code",
               "service": "service_code", "category": "category_code"}
 
 
-def _attach_category_scores(cur, rows, level_used, shown, window="1y"):
+def _attach_category_scores(cur, rows, level_used, shown, window="all"):
     """Add `category_scores` to each row, in place.
 
     Keyed at whatever level ranked: the category scores of the sub-service at
@@ -542,6 +573,83 @@ def _attach_category_scores(cur, rows, level_used, shown, window="1y"):
             by_place.get(r["place_id"], []), key=lambda x: x["category_no"])
 
 
+def _load_audience() -> dict[str, str]:
+    """place_id -> "ladies" | "gents" | "unisex", from provider_audience.json.
+
+    The database has no audience field. salon_db/22_derive_provider_audience.py
+    writes this file from the loaded CSVs and labels only the salons it is sure
+    of; a salon not in the file simply has no label. A missing or unreadable
+    file means no salon is labelled, not an error.
+    """
+    path = pathlib.Path(__file__).with_name("provider_audience.json")
+    try:
+        return {pid: v["audience"] for pid, v in json.loads(path.read_text(encoding="utf-8")).items()}
+    except (OSError, ValueError, KeyError, TypeError):
+        return {}
+
+
+_AUDIENCE = _load_audience()
+
+
+def _display_name(full: str) -> str:
+    """"Thisarani Warusavithana" -> "Thisarani W.". A first name and a last
+    initial: enough to read the review as a person's, without printing a full
+    identifiable name beside what they wrote."""
+    parts = full.split()
+    if len(parts) < 2:
+        return parts[0] if parts else ""
+    return f"{parts[0]} {parts[-1][0]}." if parts[-1][0].isalpha() else parts[0]
+
+
+def _load_reviewer_names() -> dict[str, str]:
+    """review_id -> display name, from salon_db/data/review_reviewer.csv.
+
+    That file is personal data and is git-ignored, so on a machine without it
+    there are simply no names and the app shows none. Read once at start-up."""
+    import csv
+    path = pathlib.Path(__file__).resolve().parents[1] / "salon_db" / "data" / "review_reviewer.csv"
+    try:
+        with open(path, encoding="utf-8-sig", newline="") as f:
+            return {r["review_id"]: _display_name(r["reviewer_name"].strip())
+                    for r in csv.DictReader(f) if r.get("reviewer_name", "").strip()}
+    except (OSError, KeyError, ValueError):
+        return {}
+
+
+_REVIEWER = _load_reviewer_names()
+
+
+def _review_counts(cur, place_ids) -> dict[str, dict[str, int]]:
+    """Two counts per salon, both across ALL its services.
+
+    reviews  every review collected for the salon, star-only ones included. This is
+             the figure a reader compares with the salon's Google page.
+    written  those with a comment, which is all the scorer can read (a star-only
+             review has no text to assess). Same count the salon profile shows as
+             its sentiment total.
+
+    A ranking row's own `evidence_reviews` is narrower again: only the reviews
+    that are about the service asked for. All three are shown so a salon with 219
+    reviews and 11 about haircuts does not look like a salon with 11 reviews.
+    """
+    if not place_ids:
+        return {}
+    cur.execute(
+        """
+        select r.place_id,
+               count(distinct r.review_id)  as reviews,
+               count(distinct ra.review_id) as written
+        from raw.review r
+        left join extract.review_assessment ra
+               on ra.review_id = r.review_id and ra.overall_sentiment is not null
+        where r.place_id = any(%s)
+        group by r.place_id
+        """,
+        (list(place_ids),),
+    )
+    return {r["place_id"]: {"reviews": r["reviews"], "written": r["written"]} for r in cur.fetchall()}
+
+
 def _haversine_km(lat1, lng1, lat2, lng2) -> float:
     """Great-circle distance in km between two lat/lng points."""
     r = 6371.0
@@ -573,7 +681,7 @@ def rankings_nearby(
     status: str = Query("any", pattern="^(open|closed|any)$"),
     radius_km: float = Query(NEARBY_RADIUS_KM, gt=0, le=30),
     limit: int = Query(NEARBY_LIMIT, ge=1, le=50),
-    consistency_window: str = Query("1y", description="6m, 1y, 3y or anytime"),
+    consistency_window: str = Query("anytime", description="6m, 1y, 3y or anytime"),
 ):
     """Ranked salons just OUTSIDE the chosen city, nearest first.
 
@@ -641,7 +749,12 @@ def rankings_nearby(
         _attach_category_scores(cur, nearby, level_used, shown, window=cw)
         staff_card = staff_card_for(cur, [r["place_id"] for r in nearby])
         pop = popular_services_for(cur, [r["place_id"] for r in nearby])
+        counts = _review_counts(cur, [r["place_id"] for r in nearby])
         for r in nearby:
+            c = counts.get(r["place_id"], {})
+            r["reviews_total"] = c.get("reviews", 0)
+            r["total_feedbacks"] = c.get("written", 0)
+            r["audience"] = _AUDIENCE.get(r["place_id"])
             card = staff_card.get(r["place_id"], {})
             r["staff_dependent"] = card.get("staff_dependent", False)
             r["popular_services"] = pop.get(r["place_id"])
@@ -670,7 +783,7 @@ def rankings(
                         description="open = operating; closed = Google lists it as permanently "
                                     "or temporarily closed. No opening hours are held, so this is "
                                     "business status, not time of day."),
-    consistency_window: str = Query("1y", description="6m, 1y, 3y or anytime"),
+    consistency_window: str = Query("anytime", description="6m, 1y, 3y or anytime"),
 ):
     """Ranked, available-but-not-ranked and safety-concern providers, in database order.
 
@@ -703,6 +816,10 @@ def rankings(
     w = _parse_weights(weights)
     cw = _window(consistency_window)
     city = (city or "").strip()
+    cache_key = (sub_service_code, tuple(w or ()), cw, city, status)
+    hit = _RANK_CACHE.get(cache_key)
+    if hit and time.monotonic() - hit[0] < _RANK_CACHE_TTL:
+        return hit[1]
     with cursor() as cur:
         sub = _sub_service_or_404(cur, sub_service_code)
 
@@ -715,16 +832,37 @@ def rankings(
                 level_used = level
                 break
 
-        _attach_category_scores(cur, rows, level_used, shown, window=cw)
-        staff_card = staff_card_for(cur, [r["place_id"] for r in rows])
-        pop = popular_services_for(cur, [r["place_id"] for r in rows])
+        # A salon with no review about this service has nothing to show and no
+        # score to attach, and the app never lists it. Dropping it before the
+        # per-salon lookups below cuts about a third of the database work.
+        rows = [r for r in rows if r["rank_status"] != "available but not ranked"
+                or (r.get("evidence_reviews") or 0) >= 1]
+        ids = [r["place_id"] for r in rows]
+
+        def _on_own_cursor(fn, *args):
+            with cursor() as c:
+                return fn(c, *args)
+
+        # Four independent read-only lookups. Each is a database round trip, so
+        # running them side by side takes about as long as the slowest one
+        # instead of the sum. The category scores are attached from this thread.
+        with ThreadPoolExecutor(max_workers=3) as ex:
+            f_staff = ex.submit(_on_own_cursor, staff_card_for, ids)
+            f_pop = ex.submit(_on_own_cursor, popular_services_for, ids)
+            f_counts = ex.submit(_on_own_cursor, _review_counts, ids)
+            _attach_category_scores(cur, rows, level_used, shown, window=cw)
+            staff_card, pop, counts = f_staff.result(), f_pop.result(), f_counts.result()
         for r in rows:
+            c = counts.get(r["place_id"], {})
+            r["reviews_total"] = c.get("reviews", 0)
+            r["total_feedbacks"] = c.get("written", 0)
+            r["audience"] = _AUDIENCE.get(r["place_id"])
             card = staff_card.get(r["place_id"], {})
             r["staff_dependent"] = card.get("staff_dependent", False)
             r["popular_services"] = pop.get(r["place_id"])
             r["named_staff"] = card.get("named_staff", {"count": 0, "top": []})
 
-    return {
+    result = {
         # The full sub-service row, which every client reads for its name and
         # tier. `requested` repeats the code and name for the fallback notice.
         "sub_service": sub,
@@ -738,6 +876,10 @@ def rankings(
         "available_but_not_ranked": [r for r in rows if r["rank_status"] == "available but not ranked"],
         "safety_concern": [r for r in rows if r["rank_status"] == "not ranked: safety concern"],
     }
+    if len(_RANK_CACHE) >= _RANK_CACHE_MAX:
+        _RANK_CACHE.clear()
+    _RANK_CACHE[cache_key] = (time.monotonic(), result)
+    return result
 
 
 @app.get("/providers")
@@ -759,7 +901,7 @@ def search_providers(q: str = "", limit: int = Query(50, ge=1, le=200)):
 
 
 @app.get("/providers/{place_id}")
-def provider(place_id: str, consistency_window: str = Query("1y", description="6m, 1y, 3y or anytime")):
+def provider(place_id: str, consistency_window: str = Query("anytime", description="6m, 1y, 3y or anytime")):
     """Details, safety, gates and vetoes, and a score per service with category scores.
 
     consistency_window now scopes every category and every score here, not
@@ -899,6 +1041,7 @@ def provider(place_id: str, consistency_window: str = Query("1y", description="6
         # score -- see 06_run_scoring.py's Category 9 block.
         specialism = specialism_for(cur, [place_id], cw)[place_id]
         languages = languages_for(cur, [place_id])[place_id]
+        review_counts = _review_counts(cur, [place_id]).get(place_id, {"reviews": 0, "written": 0})
 
     for s in services_:
         s["category_scores"] = by_service.get(s["sub_service_code"], [])
@@ -906,7 +1049,8 @@ def provider(place_id: str, consistency_window: str = Query("1y", description="6
     return {**details, "safety": safety, "gates_and_vetoes": gates, "services": services_,
             "evidence_services": evidence_services, "sentiment_totals": sentiment_totals,
             "staff_reputation": staff_reputation,
-            "popular_services": popular_services, "specialism": specialism, "languages": languages}
+            "popular_services": popular_services, "specialism": specialism, "languages": languages,
+            "review_counts": review_counts, "audience": _AUDIENCE.get(place_id)}
 
 
 # Evidence ordering. The key is validated by the Query pattern below and the
@@ -1233,4 +1377,7 @@ def evidence(
              polarity, polarity, hide_mention, only_named, language, language,
              limit, offset),
         )
-        return cur.fetchall()
+        rows = cur.fetchall()
+    for r in rows:
+        r["reviewer_name"] = _REVIEWER.get(r["review_id"])
+    return rows

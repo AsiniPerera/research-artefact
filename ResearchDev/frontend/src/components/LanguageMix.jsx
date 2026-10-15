@@ -19,9 +19,9 @@ export function LanguageMix({ data }) {
   if (rows.length === 0) {
     return (
       <section className="language-mix">
-        <h3>Reviews by language</h3>
+        <h3>Feedbacks by language</h3>
         <p className="language-note">
-          Too few reviews have a detected language to compare.
+          Too few feedbacks have a detected language to compare.
         </p>
       </section>
     );
@@ -31,37 +31,19 @@ export function LanguageMix({ data }) {
 
   return (
     <section className="language-mix">
-      <h3>Reviews by language</h3>
-      <p className="language-note">Share of reviews written in each language.</p>
-      {/* The bar is the whole point visually and says nothing to a screen
-          reader on its own, so it carries the same split as a label. */}
-      <div
-        className="language-bar"
-        role="img"
-        aria-label={rows
-          .map((l) => `${l.label} ${Math.round(l.share * 100)}%`)
-          .join(", ")}
-      >
-        {rows.map((l) => (
-          <span
-            key={l.code}
-            className={`lang-${l.code.replace(/_/g, "-")}`}
-            style={{ flex: l.n }}
-            title={`${l.label}: ${l.n} reviews`}
-          />
-        ))}
-      </div>
+      <h3>Feedbacks by language</h3>
+      <p className="language-note">Share of feedbacks written in each language.</p>
       <ul className="language-list">
         {rows.map((l) => (
           <li key={l.code}>
             <strong>{l.label}</strong>
-            <span>{l.n} reviews ({Math.round(l.share * 100)}%)</span>
+            <span>{l.n} feedbacks ({Math.round(l.share * 100)}%)</span>
           </li>
         ))}
       </ul>
       {single && (
         <p className="language-note language-note--foot">
-          Every review here with a detected language is in {rows[0].label}, so
+          Every feedback here with a detected language is in {rows[0].label}, so
           there is no mix to compare.
         </p>
       )}

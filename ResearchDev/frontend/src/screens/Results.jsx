@@ -1,63 +1,21 @@
-/* The ranked list itself, rendered by Rankings.jsx with the API response as
-   `data`. Paginates ranked + reviewed-but-unranked together, shows the
-   nearby-salons section beneath them, and the no-feedback-yet tail last. */
-import { useState, useEffect, Fragment } from "react";
+/* The ranking list, rendered by Rankings.jsx with the API response as `data`.
+   One list: the ranked salons first, then salons that have feedbacks about the
+   service but whose score is not yet certain enough to rank (marked
+   "Less certain"). Salons with no feedbacks about the service are left out. The
+   nearby-salons section sits beneath it. */
+import { useState, useEffect } from "react";
 import { SalonCard } from "../components/SalonCard";
 import { FallbackNotice } from "../components/FallbackNotice";
 import { rankingFallback } from "../api/client";
 import { servicePath } from "../utils/servicePath";
-import { IconChevron } from "../components/Icons";
+import { IconInfo } from "../components/Icons";
+import { AUDIENCE } from "../constants/audience";
 
 const PER_PAGE = 6;
 
-// How many unranked salons to show before asking. Long enough to be a useful
-// sample, short enough not to bury the ranked list under 130 chips.
-const UNRANKED_PREVIEW = 10;
-
-/** A provider listed but not ranked: name, city, review count, link to profile.
- *
- *  `preview` caps the list until asked for the rest.
- */
-function UnrankedList({ rows, onSelectSalon, preview }) {
-  const [showAll, setShowAll] = useState(false);
-  const capped = preview > 0 && rows.length > preview;
-  const shown = capped && !showAll ? rows.slice(0, preview) : rows;
-
-  return (
-    <>
-      <ul className="salon-chips">
-        {shown.map((r) => (
-          <li key={r.place_id}>
-            <button type="button" className="salon-chip" onClick={() => onSelectSalon?.(r.place_id)}>
-              <span className="salon-chip-name">{r.provider_name}</span>
-              <span className="salon-chip-meta">
-                {r.city ? `${r.city} · ` : ""}
-                {r.evidence_reviews} {r.evidence_reviews === 1 ? "feedback" : "feedbacks"}
-              </span>
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      {capped && (
-        <button
-          type="button"
-          className="btn-text unranked-more"
-          aria-expanded={showAll}
-          onClick={() => setShowAll((v) => !v)}
-        >
-          {showAll ? `Show first ${preview}` : `See all ${rows.length}`}
-          <span className="unranked-more-caret" aria-hidden="true"><IconChevron size={12} /></span>
-        </button>
-      )}
-    </>
-  );
-}
-
 /**
- * The sections of a ranking, in the order the API returns them: ranked, then
- * available but not ranked. Order within each is the API's
- * (score.rank_providers) — nothing here sorts.
+ * The ranked salons come first, in the API's order (score.rank_providers);
+ * less-certain salons follow, best score first.
  */
 export function Results({
   filters,
@@ -69,6 +27,7 @@ export function Results({
   onSelectSalon,
   onSearchAllCities,
   nearby,
+  audience = "",
 }) {
   const [page, setPage] = useState(1);
 
@@ -111,24 +70,39 @@ export function Results({
   if (!data) return null;
 
   const ranked = data.ranked ?? [];
-  const notRanked = data.available_but_not_ranked ?? [];
-  // Salons with ≥1 review but below the ranking threshold — show alongside ranked.
-  // Salons with 0 reviews — separate section at the bottom.
-  const hasReviews = notRanked.filter((r) => (r.evidence_reviews ?? 0) >= 1);
-  const noReviews  = notRanked.filter((r) => (r.evidence_reviews ?? 0) === 0);  /* Null unless the API answered above the service asked for. The notice says
+  /* Below the confidence bar but with reviews about this service: listed after
+     the ranked salons, ordered by score, and marked Less certain on the card.
+     A salon with no feedback about this service has nothing to score and is not
+     shown. */
+  const provisional = (data.available_but_not_ranked ?? [])
+    .filter((r) => (r.evidence_reviews ?? 0) >= 1)
+    .sort((a, b) => (b.personal_score ?? 0) - (a.personal_score ?? 0));
+  /* Highest score first. The API puts salons with a safety notice after every
+     clear salon; the list is ordered purely by score, and a notice is shown on
+     the card instead. Array.sort is stable, so equal scores keep the API's order. */
+  const byScore = (a, b) => (b.personal_score ?? 0) - (a.personal_score ?? 0);
+  const everyone = [...[...ranked].sort(byScore), ...provisional];
+  /* The audience filter only hides salons. Positions are recounted over what is
+     shown, and salons with no label are hidden when a label is chosen, which
+     the line under the count says. */
+  const listed = audience ? everyone.filter((r) => r.audience === audience) : everyone;
+  const hiddenUnlabelled = audience ? everyone.filter((r) => !r.audience).length : 0;
+  const serviceName = data.shown?.name ?? data.sub_service?.name ?? "this service";
+  /* Null unless the API answered above the service asked for. The notice says
      so; nothing here re-scores or re-orders because of it. */
   const fallback = rankingFallback(data);
 
-  // Merge ≥1-feedback salons into the ranked list — user wants one combined list
-  const allRanked = [...ranked, ...hasReviews];
-  const pageCount = Math.ceil(allRanked.length / PER_PAGE);
+  const pageCount = Math.ceil(listed.length / PER_PAGE);
   const pageStart = (page - 1) * PER_PAGE;
-  const current = allRanked.slice(pageStart, pageStart + PER_PAGE);
-  /* Where the ranked salons stop. `allRanked` is ranked-then-listed, so the
-     boundary is a fixed index into it, which keeps the divider in the right
-     place on whichever page it happens to fall. Null when one side is empty:
-     a divider between a list and nothing says nothing. */
-  const dividerAt = ranked.length > 0 && hasReviews.length > 0 ? ranked.length : null;
+  const current = listed.slice(pageStart, pageStart + PER_PAGE);
+  /* First, last and the neighbours of the current page, with a gap marker where
+     pages are skipped, so a long list does not become a wall of numbers. */
+  const pageItems = (() => {
+    const nums = [...new Set([1, pageCount, page - 1, page, page + 1])]
+      .filter((n) => n >= 1 && n <= pageCount)
+      .sort((a, b) => a - b);
+    return nums.flatMap((n, i) => (i > 0 && n - nums[i - 1] > 1 ? [`gap-${n}`, n] : [n]));
+  })();
   const path = servicePath(filters);
 
   return (
@@ -145,11 +119,18 @@ export function Results({
       )}
       <div className="results-head">
         <p className="summary">
-          <strong>{allRanked.length}</strong> {allRanked.length === 1 ? "salon" : "salons"}
+          <strong>{listed.length}</strong> {listed.length === 1 ? "salon" : "salons"}
           {filters.city ? ` in ${filters.city}` : ""}
+          {audience ? ` for ${AUDIENCE[audience].label.toLowerCase()}` : ""}
         </p>
+        {audience && hiddenUnlabelled > 0 && (
+          <p className="audience-note">
+            {hiddenUnlabelled} {hiddenUnlabelled === 1 ? "salon" : "salons"} we could not label as
+            Ladies, Gents or Unisex {hiddenUnlabelled === 1 ? "is" : "are"} not shown. Choose Everyone to see them.
+          </p>
+        )}
         {/* The legend reads a score ring. With no cards there is none to read. */}
-        {ranked.length > 0 && (
+        {listed.length > 0 && (
           <p className="results-legend">
             <span className="legend-ring" aria-hidden="true" />
             <span><strong>Score</strong> — 0 to 100, 50 is neutral, with its 80% range</span>
@@ -157,7 +138,22 @@ export function Results({
         )}
       </div>
 
-      {fallback && (
+      {fallback?.level === "none" && listed.length > 0 ? (
+        /* Nothing is ranked with confidence, but salons with a review about the
+           service are still listed. Say so, instead of "no rated salons" above
+           a numbered list. */
+        <div className="fallback-notice" role="status">
+          <span className="fallback-notice-icon" aria-hidden="true"><IconInfo size={16} /></span>
+          <div className="fallback-notice-body">
+            <p className="fallback-notice-msg">
+              No salon has enough feedbacks to be ranked with confidence for{" "}
+              <strong>{fallback.requested?.name ?? serviceName}</strong> yet. These salons have
+              at least one feedback about it, listed best score first. Their scores rest mostly
+              on their other feedbacks, so treat the order as a guide, not a ranking.
+            </p>
+          </div>
+        </div>
+      ) : fallback && (
         <FallbackNotice
           fallback={fallback}
           city={filters.city}
@@ -165,32 +161,27 @@ export function Results({
         />
       )}
 
-      {allRanked.length === 0 ? (
+      {listed.length === 0 ? (
         /* "Nothing at any level" is already said in full by the notice —
            one message, not two. */
         fallback?.level === "none" ? null : (
           <div className="empty-state">
-            No salon has any customer feedbacks for this service yet.
+            {audience
+              ? `No ${AUDIENCE[audience].label} salon found for this service. Choose Everyone to see all salons.`
+              : "No salon has any customer feedbacks for this service yet."}
           </div>
         )
       ) : (
         <div className="salon-grid">
           {current.map((row, i) => (
-            <Fragment key={row.place_id}>
-              {pageStart + i === dividerAt && (
-                <div className="salon-grid-divider" role="separator">
-                  <span>
-                    Below: salons that offer this service but have too little
-                    review evidence to be ranked
-                  </span>
-                </div>
-              )}
-              <SalonCard
-                salon={row}
-                onSelect={onSelectSalon}
-                ratedFor={fallback && fallback.level !== "none" ? fallback.shown?.name : null}
-              />
-            </Fragment>
+            <SalonCard
+              key={row.place_id}
+              salon={row}
+              position={ranked.length > 0 ? pageStart + i + 1 : undefined}
+              provisional={ranked.length > 0 && row.rank_status !== "ranked"}
+              onSelect={onSelectSalon}
+              ratedFor={fallback && fallback.level !== "none" ? fallback.shown?.name : null}
+            />
           ))}
         </div>
       )}
@@ -206,16 +197,20 @@ export function Results({
             ‹
           </button>
 
-          {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => (
-            <button type="button"
-              key={n}
-              className={`page-btn ${page === n ? "page-btn--active" : ""}`}
-              onClick={() => setPage(n)}
-              aria-current={page === n ? "page" : undefined}
-            >
-              {n}
-            </button>
-          ))}
+          {pageItems.map((n) =>
+            typeof n === "string" ? (
+              <span key={n} className="page-gap" aria-hidden="true">…</span>
+            ) : (
+              <button type="button"
+                key={n}
+                className={`page-btn ${page === n ? "page-btn--active" : ""}`}
+                onClick={() => setPage(n)}
+                aria-current={page === n ? "page" : undefined}
+              >
+                {n}
+              </button>
+            )
+          )}
 
           <button type="button"
             className="page-btn"
@@ -228,24 +223,11 @@ export function Results({
         </nav>
       )}
 
-      {/* Nearby sits directly under the matches, before the unranked tail:
-          both are real ranked salons the reader can go to, so they belong
-          together, above the "not enough evidence" and safety lists. Driven by
-          the "Nearby areas" toggle up by the city filter — idle renders
-          nothing; otherwise it shows its own loading, empty and loaded states. */}
+      {/* Nearby sits directly under the matches. Driven by the "Nearby areas"
+          toggle up by the city filter — idle renders nothing; otherwise it
+          shows its own loading, empty and loaded states. */}
       {nearby && nearby.status && nearby.status !== "idle" && (
-        <NearbySection city={filters.city} nearby={nearby} onSelectSalon={onSelectSalon} />
-      )}
-
-      {noReviews.length > 0 && (
-        <section className="no-review-section no-review-section--empty">
-          <h4>No customer feedbacks yet ({noReviews.length})</h4>
-          <p>
-            These salons offer this service but have no customer feedbacks on record.
-            They cannot be scored or compared until feedbacks are available.
-          </p>
-          <UnrankedList rows={noReviews} onSelectSalon={onSelectSalon} preview={UNRANKED_PREVIEW} />
-        </section>
+        <NearbySection city={filters.city} nearby={nearby} onSelectSalon={onSelectSalon} audience={audience} />
       )}
     </div>
   );
@@ -254,9 +236,10 @@ export function Results({
 /* Salons just outside the chosen city, shown as the same cards with a distance
    on each. `nearby` is the request state lifted to the page:
    { status: loading|done|error, data, error }. */
-function NearbySection({ city, nearby, onSelectSalon }) {
+function NearbySection({ city, nearby, onSelectSalon, audience = "" }) {
   const { status, data, error } = nearby;
-  const rows = data?.nearby ?? [];
+  const all = data?.nearby ?? [];
+  const rows = audience ? all.filter((r) => r.audience === audience) : all;
 
   return (
     <section className="nearby-section nearby-section--open">

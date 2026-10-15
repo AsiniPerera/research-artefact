@@ -102,7 +102,8 @@ export function ServicesNav({ activeFamily, onPick }) {
                   className="svcbar-col-head"
                   onClick={() => pick(open, null, group.id)}
                 >
-                  {group.label}
+                  <span className="svcbar-col-name">{group.label}</span>
+                  <span className="svcbar-col-count">{group.leaves.length}</span>
                 </button>
                 <ul>
                   {group.leaves.map((leaf) => (
@@ -116,6 +117,11 @@ export function ServicesNav({ activeFamily, onPick }) {
               </div>
             ))}
           </div>
+          {/* The panel is a way to go deeper, never the only way through. */}
+          <button type="button" className="svcbar-all" onClick={() => pick(open, null)}>
+            Show everything in {DOMAINS.find((d) => d.value === open)?.label}
+            <span aria-hidden="true">&rarr;</span>
+          </button>
         </div>
       )}
     </div>

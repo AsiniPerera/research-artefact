@@ -11,23 +11,23 @@ const WEIGHTED_NOS = [1, 2, 4, 5, 6, 7];
 const STEPS = [
   {
     title: "We read what customers wrote",
-    body: "Every review is read for what it says about the salon — the result, the care, the staff, the price, the cleanliness — and coded as positive, negative or mixed. Owner replies to complaints are read too. The star rating is never used to decide what a review means.",
+    body: "Every feedback is read for what it says about the salon — the result, the care, the staff, the price, the cleanliness — and coded as positive, negative or mixed. Owner replies to complaints are read too. The star rating is never used to decide what a feedback means.",
   },
   {
     title: "Six categories, each with its own score",
-    body: "What reviews say is sorted into six categories, listed below. Each salon gets a score in each one, so you can see what it does well and where it falls short. A seventh, Management Response, is scored too, but shown for information rather than ranked — see below.",
+    body: "What feedbacks say is sorted into six categories, listed below. Each salon gets a score in each one, so you can see what it does well and where it falls short. A seventh, Management Response, is scored too, but shown for information rather than ranked — see below.",
   },
   {
     title: "You choose how far back to look",
-    body: "The \"Reviews from\" filter above the results lets you pick how far back to look: 6 months, 1 year, 3 years, or all time. Only reviews published in that period count toward every score. A shorter period shows how a salon is doing right now, but rests on fewer reviews; a longer period draws on more evidence, but includes older experiences along with recent ones.",
+    body: "The \"Feedbacks from\" filter above the results lets you pick how far back to look: 6 months, 1 year, 3 years, or all time. Only feedbacks published in that period count toward every score. A shorter period shows how a salon is doing right now, but rests on fewer feedbacks; a longer period draws on more evidence, but includes older experiences along with recent ones.",
   },
   {
     title: "You choose what matters",
     body: "For each of the six categories you choose how important it is to you: Low, Medium, High or Very high. Very high counts eight times as much as Low. Your choices decide the order, so a bride and someone booking a quick haircut can see different lists.",
   },
   {
-    title: "Only salons with enough evidence are ranked",
-    body: "A salon is ranked only when there is enough review evidence about the service you chose, in the period you picked. Salons that offer the service but have too little evidence are listed as \"Available but Not Ranked\" rather than given a score they have not earned.",
+    title: "Only salons we can score with confidence are ranked",
+    body: "Every score comes with a range showing how sure we are. A salon is ranked only when that range is narrow enough, and that depends on how many feedbacks there are, how recent they are, how much they agree and how closely they are about the service you chose — not on a simple head count. Salons that offer the service but are still too uncertain are listed separately as \"Available but Not Ranked\", rather than given a score they have not earned.",
   },
   {
     title: "Wider results when nothing is ranked",
@@ -77,18 +77,18 @@ export function HowItWorks() {
       <h2>How a score is built</h2>
       <ul className="principle-list">
         <li>
-          <strong>Every score starts at 50%.</strong> With no reviews about a category, a
+          <strong>Every score starts at 50%.</strong> With no feedbacks about a category, a
           salon sits in the middle. Each positive or negative comment moves the score up or
-          down, so one glowing review cannot make a salon look perfect — and a salon with
-          very few reviews stays close to the middle until more evidence arrives.
+          down, so one glowing feedback cannot make a salon look perfect — and a salon with
+          very few feedbacks stays close to the middle until more evidence arrives.
         </li>
         <li>
-          <strong>Recent reviews count more.</strong> A review from two years ago counts
+          <strong>Recent feedbacks count more.</strong> A feedback from two years ago counts
           half as much as one written today, on top of whatever period you've chosen above.
         </li>
         <li>
-          <strong>A review about the exact service counts most.</strong> A review of your
-          chosen service counts in full. A review about the salon in general, or about
+          <strong>A feedback about the exact service counts most.</strong> A feedback of your
+          chosen service counts in full. A feedback about the salon in general, or about
           another service, counts for less.
         </li>
         <li>
@@ -97,14 +97,14 @@ export function HowItWorks() {
         </li>
         <li>
           <strong>The specialism badge is informational.</strong> On a salon's profile it
-          shows what share of its reviews are about the service you're looking at. It helps
+          shows what share of its feedbacks are about the service you're looking at. It helps
           you see what the salon is known for, but it is not part of the score and never
           changes the ranking.
         </li>
         <li>
-          <strong>Safety comes first in the order.</strong> Salons with two or more
-          independent reports of harm or poor hygiene in the last two years are listed
-          after the others, whatever their score.
+          <strong>The list runs from the highest score to the lowest.</strong> A salon's
+          score already counts what customers reported about safety and hygiene, and its
+          profile shows any independent reports of harm in the last two years.
         </li>
       </ul>
 
@@ -123,7 +123,7 @@ export function HowItWorks() {
           score.
         </li>
         <li>
-          No sponsored placement. The order comes only from reviews and your choices.
+          No sponsored placement. The order comes only from feedbacks and your choices.
         </li>
       </ul>
     </article>
