@@ -233,6 +233,7 @@ app.add_middleware(
 
 from auth import router as auth_router
 from contact import router as contact_router
+from survey import router as survey_router
 _VALID_WINDOWS = {"6m", "1y", "3y", "anytime", "all"}
 from staff import (staff_for, staff_dependent_flag, staff_dependent_for,
                    reviews_for_staff, named_staff_summary_for, staff_card_for)
@@ -241,6 +242,7 @@ from service_specialism import specialism_for
 from languages import languages_for
 app.include_router(auth_router)
 app.include_router(contact_router)
+app.include_router(survey_router)
 
 _LATEST_RUN = "(select max(scoring_run_id) from score.scoring_run)"
 

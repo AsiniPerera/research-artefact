@@ -81,7 +81,7 @@ export function Auth({ mode, onSwitch, onHome, onSignedIn }) {
   const [form, setForm]       = useState({ name: "", email: "", password: "" });
   const [fieldErrs, setFieldErrs] = useState({});
   const [showPw, setShowPw]   = useState(false);
-  const [remember, setRemember] = useState(true);
+  const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
   const [googleNote, setGoogleNote] = useState("");

@@ -214,6 +214,9 @@ export const updateMe = (token, fields) => put("/auth/me", fields, token);
 export const submitInquiry = (form, token) =>
   post("/contact/inquiries", form, token);
 
+/** One completed usability survey; anonymous, so no token. */
+export const submitSurvey = (answers) => post("/survey/responses", answers);
+
 /** A category_scores value may come back as a list of rows or as a
     { category_no: score } object; read both as [{ category_no, score, … }]. */
 export function categoryScoreRows(scores) {

@@ -15,7 +15,7 @@
 
 const ROUTES = new Set([
   "home", "ourservices", "services", "offers", "about", "contact",
-  "auth", "profile", "favorites", "account", "search", "how",
+  "auth", "profile", "favorites", "account", "search", "how", "survey",
 ]);
 
 /** The current URL as app state. Unknown or absent routes fall back to home. */

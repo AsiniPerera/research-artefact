@@ -41,6 +41,11 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
     };
   });
   const [weights, setWeights] = useState(DEFAULT_WEIGHTS);
+  /* Whether the reader has moved any priority yet; until then a short note
+     explains that the sliders change the ranking. */
+  const [touched, setTouched] = useState(false);
+  /* On a phone the priorities fold away above the list. */
+  const [prioOpen, setPrioOpen] = useState(false);
   /* What the visible results were ranked FOR, set by the Rank Salons button.
      Controls can change afterwards and the list does not follow until the
      button is pressed again — so the page says when they disagree. */
@@ -67,6 +72,20 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
   );
   /* The profile shows the badge for the same window as the list it was opened from. */
   const openSalon = (id) => onSelectSalon(id, cwUsed);
+
+  /* Moving a priority re-ranks at once, once a list is on screen: only the
+     weights follow the sliders, so a filter changed but not yet applied stays
+     waiting for the button. (useRanking debounces, so dragging sends one request.) */
+  useEffect(() => {
+    setSubmitted((s) => {
+      if (!s || JSON.stringify(s.weightList) === JSON.stringify(weightList)) return s;
+      return {
+        ...s,
+        weightList,
+        sig: JSON.stringify({ code: s.code, weightList, cw: s.cw, city: s.city, availability: s.availability }),
+      };
+    });
+  }, [weightList]);
 
   /* Salons just outside the chosen city. Shown automatically once a city is
      picked and the list has been ranked; with "All cities" there is no outside
@@ -189,7 +208,15 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
 
       <div className="discover">
         {/* ── Sidebar: HOW to rank ───────────────────── */}
-        <aside className="sidebar">
+        <aside className={`sidebar ${prioOpen ? "" : "is-collapsed"}`}>
+          <button
+            type="button"
+            className="prio-toggle"
+            aria-expanded={prioOpen}
+            onClick={() => setPrioOpen((v) => !v)}
+          >
+            Your priorities <span aria-hidden="true">{prioOpen ? "−" : "+"}</span>
+          </button>
           <div className="sidebar-scroll">
             <section className="priority-panel priority-panel--rail">
               <div className="priority-panel-head">
@@ -207,7 +234,7 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
               </div>
               <WeightLevels
                 weights={weights}
-                onChange={setWeights}
+                onChange={(w) => { setTouched(true); setWeights(w); }}
               />
             </section>
           </div>
@@ -256,7 +283,14 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
             </div>
           )}
 
+          {submitted && !touched && (
+            <p className="prio-hint" role="note">
+              All priorities are set to Medium. Adjust them under “Your priorities” to see how rankings change based on what matters most to you.
+            </p>
+          )}
+
           <Results
+            priorities={submitted?.weightList ?? weightList}
             filters={submitted?.filters ?? filters}
             serviceChosen={Boolean(code)}
             submitted={submitted !== null}
