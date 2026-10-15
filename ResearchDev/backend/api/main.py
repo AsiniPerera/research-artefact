@@ -21,6 +21,7 @@ import os
 import pathlib
 import queue
 import re
+import datetime
 import math
 import threading
 import time
@@ -234,6 +235,7 @@ app.add_middleware(
 from auth import router as auth_router
 from contact import router as contact_router
 from survey import router as survey_router
+from overall import overall_figure, WINDOW_MONTHS
 _VALID_WINDOWS = {"6m", "1y", "3y", "anytime", "all"}
 from staff import (staff_for, staff_dependent_flag, staff_dependent_for,
                    reviews_for_staff, named_staff_summary_for, staff_card_for)
@@ -1069,6 +1071,50 @@ _EVIDENCE_ORDER = {
 }
 
 
+@app.get("/providers/{place_id}/overall")
+def provider_overall(
+    place_id: str,
+    weights: str | None = Query(None, description="Seven comma-separated priorities, "
+                                                  "category 1 to 7, as /rankings takes them."),
+    consistency_window: str = Query("anytime", description="6m, 1y, 3y or anytime"),
+):
+    """The salon's overall score: every category plus the Overall Verdict, over
+    all of the salon's feedbacks across all services, weighted by the visitor's
+    priorities.
+
+    Computed here from the extraction rows with the scorer's per-statement
+    maths (see overall.py); read-only and display-only. It is not stored and
+    does not enter the ranking, where category 8 is reported only. Category 3
+    is not part of it (owner replies, reported-only).
+    """
+    w = _parse_weights(weights)
+    cw = _window(consistency_window)
+    with cursor() as cur:
+        cur.execute("select max(published_at)::date as d from raw.review")
+        ref = cur.fetchone()["d"]
+        cur.execute(
+            """
+            select sp.category_no, e.confidence, e.polarity, e.severity,
+                   r.published_at::date as published
+            from extract.evidence_item e
+            join ref.sub_point sp on sp.code = e.sub_point_code
+            join raw.review r on r.review_id = e.review_id
+            where e.place_id = %s
+              and sp.category_no in (1, 2, 4, 5, 6, 7, 8)
+              and e.polarity in ('positive', 'negative', 'mixed')
+              and not coalesce(e.reviewer_fault, false)
+              and not coalesce(e.needs_manual_check, false)
+            """,
+            (place_id,),
+        )
+        rows = cur.fetchall()
+    if ref is None:
+        return {"score": None, "statements": 0, "categories": [], "window": cw}
+    out = overall_figure(rows, ref, weights=w, window=cw, today=datetime.date.today())
+    out["window"] = cw
+    return out
+
+
 @app.get("/providers/{place_id}/sentiment")
 def sentiment(place_id: str):
     """Sentiment split per service x category, over the evidence each score used.
@@ -1257,11 +1303,18 @@ def reply_quality(place_id: str):
 def evidence(
     place_id: str,
     service_code: str | None = None,
-    # Inert: extract.evidence_item.sub_service_code is null on every row, so
-    # this filter matches nothing. Kept because the column and the filter are
-    # both correct -- the attribution is what is missing -- and the service
-    # level above is the finest the evidence actually carries today.
+    # Exactly this sub-service. About a quarter of the evidence carries one
+    # (21_backfill_sub_service_code.py); the rest is filed at service level or
+    # not at all, so this alone under-counts what is "about" a sub-service --
+    # see `about_sub_service` below.
     sub_service_code: str | None = None,
+    # Everything the feedbacks say about this sub-service: evidence filed to
+    # it, plus evidence filed to its service with no more precise sub-service
+    # named. That second group is why a sub-service with no tagged evidence of
+    # its own can still have feedbacks about it, and it is exactly what the
+    # "N feedbacks about this service" count on a profile is made of. Evidence
+    # filed to a SIBLING sub-service is not included.
+    about_sub_service: str | None = Query(None, pattern="^[A-Z0-9.]+$", max_length=24),
     # Evidence filed against no service at all -- what a score rests on when
     # nothing service-specific exists, and not otherwise listable.
     #
@@ -1359,6 +1412,11 @@ def evidence(
               and (%s::text is null
                    or (e.service_code is not null and e.service_code <> %s))
               and (%s::text is null or e.sub_service_code = %s)
+              and (%s::text is null
+                   or e.sub_service_code = %s
+                   or (e.sub_service_code is null
+                       and e.service_code = (select d.service_code from ref.dim_service d
+                                             where d.sub_service_code = %s)))
               and (%s::smallint is null or sp.category_no = %s)
               -- Sentiment filter matches the REVIEW-level sentiment (the badge),
               -- not the per-sub-point polarity.
@@ -1375,6 +1433,7 @@ def evidence(
              service_code or None, service_code or None,
              exclude_service_code or None, exclude_service_code or None,
              sub_service_code or None, sub_service_code or None,
+             about_sub_service or None, about_sub_service or None, about_sub_service or None,
              category_no, category_no,
              polarity, polarity, hide_mention, only_named, language, language,
              limit, offset),

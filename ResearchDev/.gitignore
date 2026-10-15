@@ -16,3 +16,8 @@ docs/results/
 
 # Reviewer names are personal data: kept on this machine, never committed
 backend/salon_db/data/review_reviewer.csv
+
+# Bulk review-text dumps from the extraction pipeline (tens of MB, derived
+# data, sometimes carry reviewer text): the CSV sources are the source of truth
+backend/salon_db/data/reviews_clean.json
+backend/salon_db/data/reviews_final.json

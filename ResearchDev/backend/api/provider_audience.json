@@ -1,19 +1,91 @@
 {
+"ChIJ--VyPlxF4joRGd1Rg1S7XsY": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (12)"
+},
+"ChIJ-2t0t9BX4joRhHqK5fN8Frk": {
+"audience": "ladies",
+"basis": "you"
+},
+"ChIJ-QbtddBR4joRRJeIhKppf9w": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 3 men reviewers"
+},
+"ChIJ-T-PJwBX4joROeUMkjccc24": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (4)"
+},
+"ChIJ-TfCkftR4joR1y4aIj84G3c": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (2)"
+},
 "ChIJ-W03RHBZ4joRPkFzZI5V6Jk": {
 "audience": "unisex",
 "basis": "reviews mention both: 8 female, 3 male words"
 },
-"ChIJ-flYIU9Q4joRxkc3tCxmUB4": {
+"ChIJ-_nd1i1P4joRTG2gQWxnkLY": {
 "audience": "ladies",
-"basis": "name says ladies / bridal"
+"basis": "you"
+},
+"ChIJ-aO3ICpX4joRUOYao9IEEm0": {
+"audience": "unisex",
+"basis": "reviewer rule: 3 women and 34 men reviewers"
+},
+"ChIJ-dS1R-tX4joRFi8IHOx-Lxc": {
+"audience": "ladies",
+"basis": "you"
+},
+"ChIJ-fOTyl9P4joR4VR5iznIrSo": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (1)"
+},
+"ChIJ-flYIU9Q4joRxkc3tCxmUB4": {
+"audience": "unisex",
+"basis": "reviewer rule: 48 women and 34 men reviewers"
+},
+"ChIJ-wcxvQxV4joRR25Z9zQFY60": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJ0137NJFa4joR3PlYp_E4qAY": {
+"audience": "unisex",
+"basis": "reviewer rule: 27 women and 7 men reviewers"
+},
+"ChIJ0T17359R4joR5lL2Hq3dn_E": {
+"audience": "unisex",
+"basis": "reviewer rule: 6 women and 37 men reviewers"
+},
+"ChIJ0eecWTtb4joRK-R1yLOWMmY": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (1)"
 },
 "ChIJ0ztBAgBb4joRYjdxBLaZx1w": {
-"audience": "gents",
-"basis": "reviews: 11 male vs 1 female words"
+"audience": "unisex",
+"basis": "reviewer rule: 7 women and 28 men reviewers"
+},
+"ChIJ10e0eLZQ4joRXXUksFsAjl4": {
+"audience": "unisex",
+"basis": "reviewer rule: 11 women and 3 men reviewers"
 },
 "ChIJ18R9QaVb4joRzi2ezMlfKXw": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (9)"
+},
+"ChIJ1Q7ofoZP4joRRV-DrkzqMJU": {
+"audience": "gents",
+"basis": "you"
+},
+"ChIJ1QQ3fdRR4joRZsnsBZKoWQ0": {
 "audience": "unisex",
-"basis": "name says unisex / both"
+"basis": "reviewer rule: 12 women and 1 men reviewers"
+},
+"ChIJ1RlYPK9Q4joRrlxsUjZxbZ8": {
+"audience": "unisex",
+"basis": "reviewer rule: 3 women and 2 men reviewers"
+},
+"ChIJ1TaNUINX4joRd3Z0BtXBexM": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 1 men reviewers"
 },
 "ChIJ1XByFgBR4joR2N44EP1jZVo": {
 "audience": "unisex",
@@ -23,537 +95,1649 @@
 "audience": "unisex",
 "basis": "reviews mention both: 17 female, 7 male words"
 },
+"ChIJ1_C6OH5a4joRH6XXZZ4iJI8": {
+"audience": "unisex",
+"basis": "reviewer rule: 170 women and 57 men reviewers"
+},
 "ChIJ1eb67ypX4joR5oQMb-UvyxU": {
-"audience": "ladies",
-"basis": "reviews: 12 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 24 women and 2 men reviewers"
 },
 "ChIJ1x2wIwdR4joRw_S1qs-fH-g": {
 "audience": "ladies",
 "basis": "name says ladies / bridal"
 },
-"ChIJ2Urx7fFX4joRsDNcLygVnOk": {
+"ChIJ1zqW-C5R4joR0T2m0zQ-LnM": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 1 men reviewers"
+},
+"ChIJ23V7detR4joRNQZfvTatObM": {
 "audience": "ladies",
-"basis": "reviews: 260 female vs 7 male words"
+"basis": "reviewer rule: only women reviewers (1)"
+},
+"ChIJ2QhbiJZa4joReYI1QzdnRO0": {
+"audience": "unisex",
+"basis": "reviewer rule: 16 women and 19 men reviewers"
+},
+"ChIJ2QyROIZP4joRazbnDYcYYaU": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJ2T0uNypX4joRkfoYvGjYwCY": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJ2Urx7fFX4joRsDNcLygVnOk": {
+"audience": "unisex",
+"basis": "reviewer rule: 199 women and 73 men reviewers"
+},
+"ChIJ2WEQXEdP4joRVvyrL1HfFxs": {
+"audience": "unisex",
+"basis": "reviewer rule: 6 women and 7 men reviewers"
+},
+"ChIJ2X9hEABX4joR_SwUJt9wVkE": {
+"audience": "unisex",
+"basis": "reviewer rule: 8 women and 1 men reviewers"
+},
+"ChIJ2YY3riJP4joR2CLxvv_huQQ": {
+"audience": "unisex",
+"basis": "reviewer rule: 6 women and 21 men reviewers"
+},
+"ChIJ2Z8PApRP4joRGiSoZ5c42_E": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 11 men reviewers"
+},
+"ChIJ2ycDDrNR4joR7lp5UDzLuFI": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (3)"
+},
+"ChIJ31J7HFdF4joRpQewyORb4OI": {
+"audience": "unisex",
+"basis": "reviewer rule: 4 women and 5 men reviewers"
+},
+"ChIJ32DDx_dX4joRmOxxgGGf6RA": {
+"audience": "unisex",
+"basis": "reviewer rule: 5 women and 9 men reviewers"
+},
+"ChIJ344bewhb4joRrF4Acqvc2-k": {
+"audience": "unisex",
+"basis": "reviewer rule: 9 women and 1 men reviewers"
+},
+"ChIJ34hvLkdX4joRGebdnKmOZ-I": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 2 men reviewers"
+},
+"ChIJ35Wbfv9X4joRpup-FtDaMiI": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (2)"
 },
 "ChIJ36NjqxZX4joRg8uw_t98_oo": {
 "audience": "gents",
 "basis": "source category: Gents' Grooming"
 },
 "ChIJ3TlabqNb4joRwhFfi3Ligis": {
+"audience": "unisex",
+"basis": "reviewer rule: 71 women and 11 men reviewers"
+},
+"ChIJ3dvMcFNa4joRX91XXwl9LzU": {
+"audience": "unisex",
+"basis": "reviewer rule: 17 women and 14 men reviewers"
+},
+"ChIJ3widP9JR4joRdT0Iz1Wpx_Y": {
 "audience": "ladies",
-"basis": "reviews: 117 female vs 3 male words"
+"basis": "reviewer rule: only women reviewers (1)"
+},
+"ChIJ3z82ehRR4joR4GHmu3avB-w": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
 },
 "ChIJ3ze4lClZ4joR2MSfbAWaErE": {
+"audience": "unisex",
+"basis": "reviewer rule: 26 women and 9 men reviewers"
+},
+"ChIJ44rFbgpX4joRFAB_XfB2qkY": {
 "audience": "ladies",
-"basis": "reviews: 17 female vs 0 male words"
+"basis": "reviewer rule: only women reviewers (2)"
+},
+"ChIJ4YE_GmRb4joRTFXnj8CemNQ": {
+"audience": "unisex",
+"basis": "reviewer rule: 20 women and 28 men reviewers"
+},
+"ChIJ4ZbiiH1P4joRSlFV8u1ePmk": {
+"audience": "ladies",
+"basis": "you"
 },
 "ChIJ4Zuph-ta4joRd7cEkQ4Uxvg": {
-"audience": "ladies",
-"basis": "reviews: 93 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 35 women and 35 men reviewers"
+},
+"ChIJ51vsVHNX4joR82IKfUJHBNo": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJ56_cEvdP4joR6EJ_NYXBMms": {
+"audience": "unisex",
+"basis": "reviewer rule: 21 women and 5 men reviewers"
+},
+"ChIJ58gsEe1P4joR4854Mo996ro": {
+"audience": "unisex",
+"basis": "reviewer rule: 18 women and 25 men reviewers"
+},
+"ChIJ5TaCO6pa4joRlSoAqevD5Hs": {
+"audience": "unisex",
+"basis": "reviewer rule: 16 women and 7 men reviewers"
 },
 "ChIJ5VlyCgVb4joR1NglaeTtsCU": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 15 women and 8 men reviewers"
 },
 "ChIJ5_7WaD1X4joRhaCQYL5zpPk": {
 "audience": "unisex",
 "basis": "reviews mention both: 12 female, 8 male words"
 },
 "ChIJ5a95F9FW4joRdTxSoAnA9wI": {
-"audience": "ladies",
-"basis": "reviews: 12 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 17 women and 7 men reviewers"
+},
+"ChIJ5cyZoBtb4joRsehgg7fEO3I": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 20 men reviewers"
+},
+"ChIJ5d4eewBX4joRBAYc-Ubk_r8": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
 },
 "ChIJ5x7Wdf9P4joR-vfrvkt1tJg": {
-"audience": "ladies",
-"basis": "reviews: 25 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 33 women and 8 men reviewers"
 },
 "ChIJ5yIHFOZa4joRnvouaWhpDfI": {
 "audience": "unisex",
 "basis": "name says unisex / both"
 },
+"ChIJ5yzFsNdR4joRbwVxvXVK8xE": {
+"audience": "ladies",
+"basis": "you"
+},
+"ChIJ65ku6_tZ4joRGovH7Fgbv90": {
+"audience": "unisex",
+"basis": "reviewer rule: 24 women and 25 men reviewers"
+},
+"ChIJ67vrJwBR4joRCyQWm5qyBWs": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (1)"
+},
+"ChIJ6SsQMm9Q4joRDNNaWua6keI": {
+"audience": "unisex",
+"basis": "reviewer rule: 35 women and 136 men reviewers"
+},
 "ChIJ6WR4cABX4joRH5HRoQepPPI": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 3 men reviewers"
+},
+"ChIJ6eNXa5Za4joRNZWV6qiQByo": {
 "audience": "gents",
-"basis": "source category: Gents' Grooming"
+"basis": "you"
 },
 "ChIJ70vqJexR4joRudkGSDIMFJk": {
 "audience": "unisex",
 "basis": "reviews mention both: 17 female, 8 male words"
 },
+"ChIJ74t1nttW4joRZbsKMKtz0iQ": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
+},
+"ChIJ7Ss91FdX4joRLZh5BAq_7So": {
+"audience": "ladies",
+"basis": "you"
+},
 "ChIJ7TSCAzNR4joR2-1kgNiomOI": {
 "audience": "ladies",
 "basis": "name says ladies / bridal"
 },
+"ChIJ7ZLbcDpR4joRrr181834FEI": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 2 men reviewers"
+},
+"ChIJ7d8eHmBX4joRmUmu5cS08OA": {
+"audience": "unisex",
+"basis": "reviewer rule: 4 women and 1 men reviewers"
+},
+"ChIJ7dRc9O1T4joRlr89eNdcX28": {
+"audience": "unisex",
+"basis": "you"
+},
 "ChIJ7xCUdVJX4joR8Q7TuI8NOrQ": {
-"audience": "gents",
-"basis": "source category: Gents' Grooming"
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (1)"
 },
 "ChIJ8-JBf25X4joR2QkWOGimFZQ": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 3 women and 4 men reviewers"
 },
 "ChIJ80LAMwBR4joRgI2_Jy8ckMU": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJ81HiOABX4joR9iEHF4tbhwo": {
 "audience": "ladies",
-"basis": "name says ladies / bridal"
+"basis": "reviewer rule: only women reviewers (1)"
+},
+"ChIJ830VGWJR4joRZYs0pVbOMuM": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJ83rawwdX4joR2q3fEmVKu1k": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
 },
 "ChIJ84qEKwBR4joRTExg9Wjvv9I": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 4 women and 2 men reviewers"
 },
 "ChIJ85dn3q5R4joROPmNhUKvtR0": {
-"audience": "ladies",
-"basis": "reviews: 61 female vs 2 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 56 women and 23 men reviewers"
+},
+"ChIJ85nQNJBX4joRzhkYhcz8pFM": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJ8SVWix1R4joRVc5x2tC41WM": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 2 men reviewers"
 },
 "ChIJ8SdSh2xR4joRWnXJ8YeZ1Mc": {
+"audience": "unisex",
+"basis": "reviewer rule: 56 women and 20 men reviewers"
+},
+"ChIJ8a9vjXtP4joRBEuJMleC0CQ": {
+"audience": "unisex",
+"basis": "reviewer rule: 27 women and 22 men reviewers"
+},
+"ChIJ8f7LBgBP4joRjXH3qxvKYqk": {
 "audience": "gents",
-"basis": "reviews: 9 male vs 1 female words"
+"basis": "reviewer rule: only men reviewers (1)"
 },
 "ChIJ962djztR4joRXoKXuDRPIWA": {
+"audience": "unisex",
+"basis": "reviewer rule: 24 women and 2 men reviewers"
+},
+"ChIJ9Re1cgBX4joR1dTE9KSHNWc": {
 "audience": "ladies",
-"basis": "reviews: 20 female vs 0 male words"
+"basis": "you"
 },
 "ChIJ9WKOtcFR4joRa9SuscjNMTs": {
 "audience": "unisex",
 "basis": "reviews mention both: 14 female, 10 male words"
 },
+"ChIJ9WhUWPFP4joRc4kh2g_q3dw": {
+"audience": "unisex",
+"basis": "reviewer rule: 23 women and 84 men reviewers"
+},
+"ChIJ9XrpTABZ4joRJfcrv_afVXo": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 3 men reviewers"
+},
+"ChIJ9b3EJABP4joROB1-oSgM1EM": {
+"audience": "ladies",
+"basis": "you"
+},
+"ChIJ9dzEGL9Q4joRvsl80ildC7A": {
+"audience": "unisex",
+"basis": "reviewer rule: 15 women and 10 men reviewers"
+},
+"ChIJ9x069rRR4joRRK_VJ3x68wg": {
+"audience": "unisex",
+"basis": "reviewer rule: 5 women and 25 men reviewers"
+},
 "ChIJA1Vzt_lb4joRjr4eUqmQwTE": {
-"audience": "gents",
-"basis": "source category: Gents' Grooming"
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
+},
+"ChIJA38eSTFX4joRIEwkRoINLjY": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 2 men reviewers"
 },
 "ChIJA61PtbxP4joR1bAu2E_jOM0": {
 "audience": "gents",
 "basis": "source category: Gents' Grooming"
+},
+"ChIJASIOr91R4joR_MP9EWcXp5M": {
+"audience": "unisex",
+"basis": "reviewer rule: 9 women and 9 men reviewers"
+},
+"ChIJAa4pYdpW4joRy7ioY_pCwpM": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 2 men reviewers"
 },
 "ChIJB1cpDqxR4joRw7x22pWimXg": {
 "audience": "unisex",
 "basis": "reviews mention both: 17 female, 10 male words"
 },
 "ChIJB30qV05X4joRQ2v5KSzBDiY": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 6 women and 7 men reviewers"
+},
+"ChIJB80pdrxX4joRBOqQoCrBELc": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
 },
 "ChIJB85ODUxR4joRyHwiv6EP5DQ": {
 "audience": "unisex",
 "basis": "reviews mention both: 14 female, 14 male words"
 },
 "ChIJBSzcHHlQ4joRF3_YrsGawMc": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 15 women and 15 men reviewers"
 },
 "ChIJBXUHeklR4joRbDOoJQD5Egg": {
-"audience": "ladies",
-"basis": "reviews: 40 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 30 women and 13 men reviewers"
 },
 "ChIJBYQyIdRR4joRYutrm-Nfud4": {
 "audience": "unisex",
 "basis": "name says unisex / both"
 },
+"ChIJBZxhD9xF4joR6IB1ERbWm30": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (1)"
+},
 "ChIJBa7NJgBR4joRdp1hgWPD34g": {
 "audience": "unisex",
 "basis": "name says unisex / both"
+},
+"ChIJC03zOgBX4joR6DHjD4JaLFo": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (2)"
+},
+"ChIJC0Pz1eVP4joRgn3T1S30O6A": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
+},
+"ChIJCRqLpTlX4joRQzwrOR5SN0Y": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (1)"
 },
 "ChIJCVx0C1dR4joRoVrOag0D3Dg": {
 "audience": "unisex",
 "basis": "reviews mention both: 26 female, 10 male words"
 },
-"ChIJCzgy_kBP4joRSVrLiSrHDlw": {
+"ChIJCdNo_xxb4joRQCvUoMzmvE0": {
+"audience": "unisex",
+"basis": "reviewer rule: 28 women and 5 men reviewers"
+},
+"ChIJCeLt2NtR4joRltl5Xw4yr3U": {
 "audience": "ladies",
-"basis": "name says ladies / bridal"
+"basis": "you"
+},
+"ChIJCzgy_kBP4joRSVrLiSrHDlw": {
+"audience": "unisex",
+"basis": "reviewer rule: 867 women and 134 men reviewers"
+},
+"ChIJDUF4MwBR4joRgCG1AEKuV9Y": {
+"audience": "unisex",
+"basis": "reviewer rule: 26 women and 32 men reviewers"
+},
+"ChIJDXKvyCxX4joRv0G20dCH3aA": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (5)"
+},
+"ChIJDZ1NjLRW4joR7lo4bj_kjs4": {
+"audience": "ladies",
+"basis": "you"
 },
 "ChIJDdlmEQBb4joR_j5zTBUPsSE": {
-"audience": "ladies",
-"basis": "reviews: 40 female vs 1 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 36 women and 11 men reviewers"
+},
+"ChIJDxRQfClX4joR2vWIZTSUD3Y": {
+"audience": "unisex",
+"basis": "reviewer rule: 3 women and 6 men reviewers"
+},
+"ChIJE92uIZtX4joRRPZ6T3tBs-w": {
+"audience": "unisex",
+"basis": "reviewer rule: 4 women and 2 men reviewers"
+},
+"ChIJE9Oct6tb4joRgteklyvDmuc": {
+"audience": "unisex",
+"basis": "reviewer rule: 8 women and 5 men reviewers"
 },
 "ChIJEQ_XWuZR4joRRkhEZ7md4Z0": {
+"audience": "unisex",
+"basis": "reviewer rule: 81 women and 17 men reviewers"
+},
+"ChIJEV2fmXRR4joROcHl6q1Z26I": {
 "audience": "ladies",
-"basis": "reviews: 116 female vs 1 male words"
+"basis": "you"
+},
+"ChIJEWYAYQBb4joRAaK9tKqOuH4": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
 },
 "ChIJE_tmyjNR4joRI2tS0mRlBxw": {
-"audience": "ladies",
-"basis": "reviews: 19 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 13 women and 5 men reviewers"
 },
 "ChIJEajxLvxR4joRTKi1a61TXkI": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 41 women and 17 men reviewers"
+},
+"ChIJEbVKAAFb4joR4XxbVftkOs0": {
+"audience": "unisex",
+"basis": "reviewer rule: 45 women and 12 men reviewers"
+},
+"ChIJEzMVa_VP4joR6t0akQUogPg": {
+"audience": "unisex",
+"basis": "reviewer rule: 15 women and 20 men reviewers"
 },
 "ChIJF2kUdwBP4joRTOk7Sm_34o8": {
 "audience": "ladies",
 "basis": "name says ladies / bridal"
 },
+"ChIJF4kmHyhR4joRmaYId9V-h8E": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (2)"
+},
+"ChIJF6uZPzJP4joR6iYnq6Z99mY": {
+"audience": "unisex",
+"basis": "reviewer rule: 5 women and 28 men reviewers"
+},
 "ChIJFSaB5NZS4joRY22JWRq_nEk": {
 "audience": "unisex",
 "basis": "reviews mention both: 8 female, 5 male words"
 },
+"ChIJFSm8IgJX4joR5JIMf6Ti1k4": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJFW9JiPtR4joR78z9qXxfeNA": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
 "ChIJFYRNr8pb4joRsDaqTrefjDA": {
+"audience": "unisex",
+"basis": "reviewer rule: 40 women and 9 men reviewers"
+},
+"ChIJFYpqU3BR4joR8OxlFBBXCFc": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 1 men reviewers"
+},
+"ChIJFaJ6fgBX4joRheTIEg2Wat8": {
 "audience": "ladies",
-"basis": "reviews: 31 female vs 0 male words"
+"basis": "reviewer rule: only women reviewers (1)"
+},
+"ChIJFwjxsHNU4joRaHJMvvTzGRU": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
+},
+"ChIJG0KBW-hV4joRHSz0ymPqLbg": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (1)"
 },
 "ChIJG0nCHf9Z4joRZ8SHQKFM9eo": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 5 women and 6 men reviewers"
+},
+"ChIJG7LbBwBV4joR2uYFpA-1ZRc": {
+"audience": "gents",
+"basis": "you"
 },
 "ChIJG7ewXhxR4joRwIQ1A7uBIPw": {
-"audience": "ladies",
-"basis": "reviews: 49 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 78 women and 14 men reviewers"
+},
+"ChIJGYFWuQBR4joR-eIgPBfUKTM": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
+},
+"ChIJGxPcslRb4joRc9QcXROk9fQ": {
+"audience": "unisex",
+"basis": "reviewer rule: 27 women and 3 men reviewers"
+},
+"ChIJHWzisvlb4joRQj1upMeOL2U": {
+"audience": "unisex",
+"basis": "reviewer rule: 16 women and 4 men reviewers"
+},
+"ChIJHY0ibNZX4joRkP6ijBMgjOA": {
+"audience": "unisex",
+"basis": "reviewer rule: 14 women and 8 men reviewers"
+},
+"ChIJHZwj_JNX4joR2EetUGTAbrg": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 3 men reviewers"
+},
+"ChIJHbJDug5P4joRphcaqetdSw0": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 5 men reviewers"
+},
+"ChIJHxS8M6pX4joRIIaLW4s24wg": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
+},
+"ChIJI0dC1U9X4joRkTVgt_KFRT8": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
 },
 "ChIJIRsgKrNR4joRzYkI_LUh8jI": {
-"audience": "ladies",
-"basis": "reviews: 23 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 70 women and 9 men reviewers"
+},
+"ChIJIUdOIJZb4joRBfQBHSj3KVA": {
+"audience": "unisex",
+"basis": "reviewer rule: 39 women and 11 men reviewers"
 },
 "ChIJIWNpUGlR4joRWXturgk_ucI": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 19 women and 3 men reviewers"
 },
 "ChIJIcO7z01R4joReZZ3vVP-LGs": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 55 women and 16 men reviewers"
 },
 "ChIJIdgXRo5X4joRKph_ZDPUkhQ": {
 "audience": "ladies",
 "basis": "name says ladies / bridal"
 },
+"ChIJIw0NgjhQ4joRa7FSrQFa05I": {
+"audience": "unisex",
+"basis": "reviewer rule: 14 women and 6 men reviewers"
+},
 "ChIJIwxf1HlR4joRv-UmhI5F57w": {
 "audience": "unisex",
 "basis": "reviews mention both: 7 female, 6 male words"
 },
-"ChIJJ3aJimdR4joRdTAclcZZ5pM": {
+"ChIJJ1PSKDJP4joRjAdoRlwyfaE": {
 "audience": "ladies",
-"basis": "name says ladies / bridal"
+"basis": "reviewer rule: only women reviewers (1)"
+},
+"ChIJJ3aJimdR4joRdTAclcZZ5pM": {
+"audience": "unisex",
+"basis": "reviewer rule: 2576 women and 405 men reviewers"
+},
+"ChIJJ5GFDQBV4joRfYWlPjLUdMI": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (3)"
+},
+"ChIJJYmCFwBX4joRjr5-uWDPtps": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJJdcrz2Ja4joReLJfcFCu0Wo": {
+"audience": "unisex",
+"basis": "reviewer rule: 14 women and 38 men reviewers"
+},
+"ChIJJfUSxEVQ4joRmhJ33EJCF3M": {
+"audience": "unisex",
+"basis": "reviewer rule: 4 women and 1 men reviewers"
 },
 "ChIJJypKgmNR4joRq0n8mHK7Z6o": {
 "audience": "unisex",
 "basis": "reviews mention both: 24 female, 23 male words"
 },
+"ChIJK1d3AgBb4joRUw9dik4sKWo": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 4 men reviewers"
+},
+"ChIJK4GOJt1R4joRnkCHB4BvnVk": {
+"audience": "unisex",
+"basis": "reviewer rule: 4 women and 30 men reviewers"
+},
+"ChIJK6N9dkJR4joRVOLV1-b8M7o": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (1)"
+},
+"ChIJKS0mIgBR4joRFK1jJz0SLnk": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 2 men reviewers"
+},
+"ChIJKV2wx15R4joR98i4ITMJ3_E": {
+"audience": "unisex",
+"basis": "reviewer rule: 7 women and 7 men reviewers"
+},
 "ChIJKV4S381X4joRGsio33CMcDI": {
-"audience": "gents",
-"basis": "source category: Gents' Grooming"
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (1)"
+},
+"ChIJKZ6rcs9R4joRTuDTKDpGj7g": {
+"audience": "unisex",
+"basis": "reviewer rule: 3 women and 1 men reviewers"
+},
+"ChIJKa1z3lVR4joRvKSjhxyHOMI": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 2 men reviewers"
 },
 "ChIJKaeodQBb4joRP9pf6j8Q8Ok": {
 "audience": "unisex",
 "basis": "reviews mention both: 19 female, 11 male words"
 },
+"ChIJKbiZN0VR4joRKTQ1xIBGd-8": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 19 men reviewers"
+},
+"ChIJKcKSxHFX4joR4IkUvMv9Awc": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 2 men reviewers"
+},
+"ChIJL0UsWlNR4joRqjG0sMrBD1c": {
+"audience": "ladies",
+"basis": "you"
+},
+"ChIJL8yIbgBP4joR7DNBtRyj0ng": {
+"audience": "unisex",
+"basis": "reviewer rule: 5 women and 21 men reviewers"
+},
+"ChIJLVXU6WhX4joRBpD9KJWEHUY": {
+"audience": "unisex",
+"basis": "reviewer rule: 4 women and 3 men reviewers"
+},
+"ChIJL_bMnoRb4joRpSdPdJ5YQ98": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (4)"
+},
+"ChIJLb7TPMdR4joReh-DuYVTVYY": {
+"audience": "ladies",
+"basis": "you"
+},
+"ChIJLeUpBQBR4joRBEvwvsPI2b0": {
+"audience": "unisex",
+"basis": "reviewer rule: 4 women and 3 men reviewers"
+},
 "ChIJLwHNr4pX4joR7YmaPYUGknQ": {
 "audience": "unisex",
 "basis": "name says unisex / both"
 },
+"ChIJLxRYZQBX4joRLf_laV4v7Ik": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (2)"
+},
+"ChIJM-nIYDRX4joRn6eoJShRxK8": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
+},
 "ChIJM01tXzpb4joR5N07xFm7-GU": {
-"audience": "ladies",
-"basis": "reviews: 18 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 58 women and 11 men reviewers"
+},
+"ChIJM2F5KuRX4joRrGp3_h6Lr50": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (2)"
+},
+"ChIJM3pjO3FQ4joR0v6j9ylLkEg": {
+"audience": "unisex",
+"basis": "reviewer rule: 667 women and 269 men reviewers (Salon Zero)"
+},
+"ChIJM5IgawBX4joRY0h1KxBRAmU": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
+},
+"ChIJM7-8eRNX4joRqmBLQEP2GDw": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
 },
 "ChIJMSWrMfZE4moRGBLuyRZZao4": {
 "audience": "unisex",
 "basis": "name says unisex / both"
 },
+"ChIJMWdngRtb4joRFhraauItMmc": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 1 men reviewers"
+},
 "ChIJM_1gCABX4joR-MJa1HnyJUc": {
 "audience": "unisex",
 "basis": "name says unisex / both"
 },
-"ChIJMyY8VgBX4joRoSFiAwe78qM": {
+"ChIJM_vNWgBb4joRighZS9C36ak": {
 "audience": "ladies",
-"basis": "reviews: 46 female vs 1 male words"
+"basis": "you"
+},
+"ChIJMbI8vKBX4joRukvddqAYSsM": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 2 men reviewers"
+},
+"ChIJMbzoNABR4joRBpqzO18eLbE": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (1)"
+},
+"ChIJMfiQiW1R4joRYMAJBkt6f8I": {
+"audience": "unisex",
+"basis": "reviewer rule: 25 women and 4 men reviewers"
+},
+"ChIJMyY8VgBX4joRoSFiAwe78qM": {
+"audience": "unisex",
+"basis": "reviewer rule: 31 women and 4 men reviewers"
 },
 "ChIJN05iJ2xX4joR5E7BBu9QyMM": {
-"audience": "ladies",
-"basis": "reviews: 14 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 9 women and 2 men reviewers"
+},
+"ChIJN3ANP-ZZ4joR5gznY-obXBo": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 4 men reviewers"
+},
+"ChIJNR7o0_5Z4joRxBkmOds111A": {
+"audience": "unisex",
+"basis": "reviewer rule: 5 women and 29 men reviewers"
+},
+"ChIJNUz4WetR4joRZnajxB3CNMw": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJNX18aABX4joRBF2hVSyeWP0": {
+"audience": "unisex",
+"basis": "reviewer rule: 5 women and 2 men reviewers"
 },
 "ChIJNb2bzf9Z4joR_21VF2k5pf4": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 34 women and 21 men reviewers"
 },
 "ChIJNcRSGRVb4joRiTW4XBCRW4U": {
+"audience": "unisex",
+"basis": "reviewer rule: 106 women and 20 men reviewers"
+},
+"ChIJO5PTQQBX4joRK-DWqlPdPHc": {
 "audience": "ladies",
-"basis": "name says ladies / bridal"
+"basis": "reviewer rule: only women reviewers (4)"
 },
 "ChIJO8GLIb9X4joRfdBSLmRgAQw": {
 "audience": "ladies",
 "basis": "name says ladies / bridal"
 },
+"ChIJO9mAYM5R4joRp8RMseckgsk": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
+},
+"ChIJOTY8F2Jb4joR2RWS74_1mAo": {
+"audience": "unisex",
+"basis": "reviewer rule: 4 women and 30 men reviewers"
+},
+"ChIJOUhbEQBP4joRAmO0_2_P94E": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 3 men reviewers"
+},
+"ChIJOX57sAFR4joR7_rH8_m8A5w": {
+"audience": "unisex",
+"basis": "reviewer rule: 25 women and 15 men reviewers"
+},
+"ChIJOZFl8ATjGIkR5Lf5gCNBnbM": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJOfOdRGZP4joR1DjF5gqf-Gk": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 3 men reviewers"
+},
+"ChIJP-rOn-BX4joRfbh8QNVTags": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 2 men reviewers"
+},
 "ChIJP0LlPgBR4joRpAmi_8RtGkQ": {
 "audience": "gents",
 "basis": "source category: Gents' Grooming"
 },
+"ChIJP0hnPhNX4joRh7LbtiwLJ7k": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJP455d-BR4joRYrrvsxNxMKA": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 13 men reviewers"
+},
 "ChIJP4iOpDRR4joR-u7WKSFFxZk": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 1 men reviewers"
+},
+"ChIJP6kxVgBb4joR5ViTW1Jxmds": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
+},
+"ChIJPSOO_NNb4joR5WA8lDsxAAM": {
+"audience": "unisex",
+"basis": "reviewer rule: 29 women and 2 men reviewers"
 },
 "ChIJPWmJuS1X4joRDnd-trFGD9k": {
-"audience": "ladies",
-"basis": "reviews: 25 female vs 1 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 22 women and 15 men reviewers"
+},
+"ChIJPaol5SxX4joRzjf9G2Z9zrg": {
+"audience": "unisex",
+"basis": "reviewer rule: 17 women and 16 men reviewers"
 },
 "ChIJPeZ-bZVQ4joR5kHUVOuRUYY": {
-"audience": "gents",
-"basis": "source category: Gents' Grooming"
+"audience": "unisex",
+"basis": "reviewer rule: 3 women and 61 men reviewers"
 },
 "ChIJPf8rfmlX4joRMlCMfwYcPMw": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (2)"
 },
 "ChIJQ-qTzW5b4joRpC_aFtQvRlU": {
 "audience": "unisex",
 "basis": "name says unisex / both"
 },
+"ChIJQ5j6h5dX4joR5Bnw-s8Wh4s": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (1)"
+},
 "ChIJQ9VwOoNb4joRO-5Snt1lqbg": {
 "audience": "unisex",
 "basis": "name says unisex / both"
 },
+"ChIJRWPCKFZR4joRZxbnYjdOx3M": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 3 men reviewers"
+},
 "ChIJRWyKAqL_s48RSlzZwQ1_u-I": {
+"audience": "unisex",
+"basis": "reviewer rule: 14 women and 3 men reviewers"
+},
+"ChIJRX_iyF9X4joRoBC6CM0qUcU": {
 "audience": "ladies",
-"basis": "reviews: 21 female vs 1 male words"
+"basis": "reviewer rule: only women reviewers (5)"
+},
+"ChIJRdaZPwBP4joR3Jp6v2N66Zc": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (10)"
 },
 "ChIJS2Zn5TBX4joRlnwZwmA8pEg": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
+},
+"ChIJSSAYDVlb4joRDmvrA47kFyQ": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJSWReq_9Z4joRhLWGt33jnbI": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
 },
 "ChIJSf_ta7Zb4joR_7gPfS6iIiU": {
+"audience": "unisex",
+"basis": "reviewer rule: 12 women and 2 men reviewers"
+},
+"ChIJSfp5q_1Q4joR2Mc38Ayoj4A": {
+"audience": "unisex",
+"basis": "reviewer rule: 16 women and 12 men reviewers"
+},
+"ChIJT40YjYlR4joRPLLIuAuWqf8": {
 "audience": "ladies",
-"basis": "name says ladies / bridal"
+"basis": "reviewer rule: only women reviewers (2)"
+},
+"ChIJT5kj0eBP4joRuuO_IizdzTw": {
+"audience": "unisex",
+"basis": "reviewer rule: 10 women and 60 men reviewers"
 },
 "ChIJT5qB5FhR4joRLRKmBFI95YM": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 18 women and 5 men reviewers"
+},
+"ChIJT80bOmFb4joR4LMTwunz9aU": {
+"audience": "unisex",
+"basis": "reviewer rule: 17 women and 2 men reviewers"
 },
 "ChIJT9u1wNxW4joR5e7u7xBuuxM": {
-"audience": "gents",
-"basis": "reviews: 16 male vs 2 female words"
+"audience": "unisex",
+"basis": "reviewer rule: 4 women and 38 men reviewers"
+},
+"ChIJTUEwRQBb4joRz95Xl6U1ZiI": {
+"audience": "unisex",
+"basis": "reviewer rule: 20 women and 12 men reviewers"
 },
 "ChIJTWX2f91F4joR5XE8Mm5e4-Q": {
+"audience": "unisex",
+"basis": "reviewer rule: 3 women and 1 men reviewers"
+},
+"ChIJTZG6eABX4joRYvwlmupBzP4": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
+},
+"ChIJTfdSFABR4joRt6d7Otc_ckY": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 3 men reviewers"
+},
+"ChIJTySDnJZa4joRniNb-JPr4kU": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
+},
+"ChIJU13eRbZX4joRKEhXrS1Jjqg": {
 "audience": "ladies",
-"basis": "name says ladies / bridal"
+"basis": "you"
+},
+"ChIJU49BDABR4joRr6oL5XTATsQ": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (1)"
 },
 "ChIJU6TdTgBX4joRIAMVCqXbKFU": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 9 women and 1 men reviewers"
+},
+"ChIJU6mpTctX4joRunmTj2z5c7I": {
+"audience": "unisex",
+"basis": "reviewer rule: 6 women and 1 men reviewers"
+},
+"ChIJU79kZMxX4joR7VBAaVlu9qs": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (2)"
+},
+"ChIJU85OGitR4joRXxQCZOOCW-k": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 3 men reviewers"
 },
 "ChIJUQAAwERa4joR_9K0V_MOTfA": {
 "audience": "unisex",
 "basis": "reviews mention both: 12 female, 4 male words"
 },
-"ChIJV1hht1xX4joRpBeZz0cxt3w": {
+"ChIJUXRR_KNa4joR1-MFVECN09M": {
 "audience": "ladies",
-"basis": "name says ladies / bridal"
+"basis": "reviewer rule: only women reviewers (3)"
+},
+"ChIJUdRkpgpX4joRqb5bYOa-nOs": {
+"audience": "unisex",
+"basis": "reviewer rule: 21 women and 3 men reviewers"
+},
+"ChIJV1hht1xX4joRpBeZz0cxt3w": {
+"audience": "unisex",
+"basis": "reviewer rule: 15 women and 2 men reviewers"
 },
 "ChIJV35OMd5R4joR8gKmFJOLvRk": {
-"audience": "gents",
-"basis": "source category: Gents' Grooming"
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 7 men reviewers"
+},
+"ChIJV3mDQ-dX4joRoyotDKBjx7E": {
+"audience": "unisex",
+"basis": "reviewer rule: 3 women and 1 men reviewers"
+},
+"ChIJV5VJSABR4joR7LUzNBzWjik": {
+"audience": "ladies",
+"basis": "you"
+},
+"ChIJV5t0sSBP4joRuWHCLbAKl3A": {
+"audience": "unisex",
+"basis": "reviewer rule: 7 women and 2 men reviewers"
 },
 "ChIJVSI8AABP4joRcbU3I76anKw": {
 "audience": "unisex",
 "basis": "name says unisex / both"
 },
 "ChIJVXRElNJb4joRBpiIgASuGpk": {
-"audience": "ladies",
-"basis": "reviews: 17 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 26 women and 6 men reviewers"
+},
+"ChIJVb1zG3FX4joRlKj5oO4_Vs0": {
+"audience": "unisex",
+"basis": "reviewer rule: 6 women and 2 men reviewers"
 },
 "ChIJVbA6OwBR4joR05Th6Cy_EJs": {
 "audience": "gents",
 "basis": "source category: Gents' Grooming"
 },
+"ChIJVbWSXABb4joRl9kVrp9UF70": {
+"audience": "unisex",
+"basis": "reviewer rule: 14 women and 2 men reviewers"
+},
 "ChIJVfLPKdJR4joResMm1oTNlM4": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 25 women and 21 men reviewers"
 },
 "ChIJVxWFfbhX4joRuAj6Dbny95c": {
+"audience": "unisex",
+"basis": "reviewer rule: 48 women and 16 men reviewers"
+},
+"ChIJVxXhNUlQ4joRUh9eajNlJ3g": {
+"audience": "unisex",
+"basis": "reviewer rule: 11 women and 42 men reviewers"
+},
+"ChIJVyB-GMZR4joRTvnv7d5dj-M": {
+"audience": "unisex",
+"basis": "reviewer rule: 7 women and 2 men reviewers"
+},
+"ChIJWTm2SIxa4joRpZGp4T8tX1I": {
 "audience": "ladies",
-"basis": "name says ladies / bridal"
+"basis": "reviewer rule: only women reviewers (2)"
+},
+"ChIJWWWlcKVR4joR0dMuX0scDiU": {
+"audience": "unisex",
+"basis": "reviewer rule: 5 women and 9 men reviewers"
+},
+"ChIJW_lw5L1b4joRYQp8zEwpKms": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 8 men reviewers"
 },
 "ChIJWbHaEGRP4joRh14FhsuULwQ": {
+"audience": "unisex",
+"basis": "reviewer rule: 3 women and 1 men reviewers"
+},
+"ChIJWdMfrMZR4joRgjhWnGUa9bI": {
+"audience": "unisex",
+"basis": "reviewer rule: 204 women and 85 men reviewers (Salon PR)"
+},
+"ChIJX3Oht1FX4joRzZDAf4KDaeQ": {
+"audience": "unisex",
+"basis": "reviewer rule: 5 women and 5 men reviewers"
+},
+"ChIJX4r_lmFP4joRjCo4Y6wAeoc": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 1 men reviewers"
+},
+"ChIJX7D2AQBR4joRYR3SD8aU1Xo": {
 "audience": "gents",
-"basis": "name says gents / barber"
+"basis": "reviewer rule: only men reviewers (1)"
 },
 "ChIJXT35BgBb4joRluNk9nLoefo": {
-"audience": "gents",
-"basis": "source category: Gents' Grooming"
+"audience": "unisex",
+"basis": "reviewer rule: 14 women and 13 men reviewers"
+},
+"ChIJXUpHUfZP4joRptI7g5XBLn4": {
+"audience": "unisex",
+"basis": "reviewer rule: 27 women and 74 men reviewers"
 },
 "ChIJXVicRQBb4joRrIkUawqPeWg": {
+"audience": "unisex",
+"basis": "reviewer rule: 4 women and 3 men reviewers"
+},
+"ChIJXcCn96tQ4joRHd6W_phN-zI": {
+"audience": "unisex",
+"basis": "reviewer rule: 31 women and 37 men reviewers"
+},
+"ChIJXfhEUQBR4joRSye4YLhEWxo": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJXwRcYtlb4joR0QpCug6tbIE": {
 "audience": "ladies",
-"basis": "reviews: 11 female vs 0 male words"
+"basis": "reviewer rule: only women reviewers (4)"
 },
 "ChIJY-C1RrhR4joRKk97EvBB-Vk": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 24 women and 7 men reviewers"
+},
+"ChIJY4TfFABR4joRBt1mZiRxYdY": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
 },
 "ChIJY6QODvlZ4joRftEPXNMqHB4": {
-"audience": "ladies",
-"basis": "reviews: 16 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 18 women and 8 men reviewers"
+},
+"ChIJYQkoBtZR4joR9KEw_z6j-6I": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
 },
 "ChIJYX3FqYBb4joRNGmrifjezNQ": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 13 women and 5 men reviewers"
+},
+"ChIJYXIchdBW4joRVWQRBupq8ZU": {
+"audience": "unisex",
+"basis": "reviewer rule: 6 women and 70 men reviewers"
 },
 "ChIJY_xPAIha4joRJ-dSoYF2qSY": {
-"audience": "ladies",
-"basis": "reviews: 26 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 27 women and 11 men reviewers"
 },
 "ChIJYagM0g5X4joRudO1z-xMPl4": {
-"audience": "ladies",
-"basis": "reviews: 12 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 18 women and 1 men reviewers"
+},
+"ChIJZ1KNtJ1X4joR76acToiq300": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (3)"
 },
 "ChIJZ4qvRLRR4joRwcYL3TePHMY": {
-"audience": "ladies",
-"basis": "reviews: 25 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 29 women and 25 men reviewers"
+},
+"ChIJZ5Nz7CJR4joRMwODCwpiLdM": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 3 men reviewers"
 },
 "ChIJZ7u6e1hb4joRrsZ4zsZ5dEI": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
 },
 "ChIJZQhKfQBb4joR5CgLYuqZKyw": {
 "audience": "gents",
 "basis": "name says gents / barber"
 },
 "ChIJZSCkuG1W4joRGj6sAkJOcug": {
-"audience": "ladies",
-"basis": "reviews: 44 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 110 women and 30 men reviewers"
 },
 "ChIJZbj5gklR4joRf8abTBLGZ5Y": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 16 women and 13 men reviewers"
+},
+"ChIJZyqQDQBX4joRbRXBKwnT4B0": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
 },
 "ChIJ_3zpdABR4joRwkmyfppcD1w": {
+"audience": "unisex",
+"basis": "reviewer rule: 24 women and 8 men reviewers"
+},
+"ChIJ__dLSABX4joRp6X_b1Qp3F0": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJ_d5UpQRX4joReIlcY3dL7xE": {
 "audience": "ladies",
-"basis": "name says ladies / bridal"
+"basis": "you"
 },
 "ChIJa0M3fABR4joRvl3LPWedq94": {
 "audience": "unisex",
 "basis": "reviews mention both: 9 female, 6 male words"
 },
+"ChIJa2yXHwZP4joRJUS3MTxQyh4": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJa3dn-fpR4joRInebU3C_pIc": {
+"audience": "unisex",
+"basis": "reviewer rule: 22 women and 8 men reviewers"
+},
 "ChIJa45WIHpR4joRPaZWdkt3Doc": {
-"audience": "ladies",
-"basis": "reviews: 14 female vs 1 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 9 women and 4 men reviewers"
+},
+"ChIJa8l2_-lX4joRyATa9zlVn5Q": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 4 men reviewers"
+},
+"ChIJa8wUfAZX4joR5RBKN7b_9J4": {
+"audience": "gents",
+"basis": "you"
+},
+"ChIJaRcOLHFQ4joRXR6wT5lrlwI": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (18)"
 },
 "ChIJaw4QHT1R4joRJ6FqQCFPjv4": {
-"audience": "ladies",
-"basis": "reviews: 32 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 49 women and 15 men reviewers"
 },
 "ChIJawMcdu5R4joRRP7Za5L-aPs": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 14 women and 3 men reviewers"
+},
+"ChIJawZi_XZR4joRPcm04y4jOJo": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 1 men reviewers"
+},
+"ChIJazsdju1R4joR-KmixzgA3wE": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 2 men reviewers"
+},
+"ChIJb3WF0P9Z4joRUol0MS9t4PY": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
 },
 "ChIJb3kKZzxb4joRl9sg2K1cttA": {
-"audience": "ladies",
-"basis": "reviews: 12 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 5 women and 3 men reviewers"
 },
 "ChIJb4phfVtR4joR5S6eCIbW3Ro": {
 "audience": "unisex",
 "basis": "reviews mention both: 8 female, 2 male words"
 },
 "ChIJb7J6JPpP4joRZtufyBztCuk": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 5 women and 6 men reviewers"
+},
+"ChIJb83iYQBZ4joRTCyEEaXDYG0": {
+"audience": "unisex",
+"basis": "reviewer rule: 17 women and 4 men reviewers"
+},
+"ChIJb9EXXchR4joRww9bS1c5kNI": {
+"audience": "unisex",
+"basis": "reviewer rule: 4 women and 2 men reviewers"
+},
+"ChIJbQHVLwBX4joR94G4htHoQcc": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
 },
 "ChIJbXA9cABb4joR0I_sbc9BzJA": {
 "audience": "gents",
 "basis": "name says gents / barber"
 },
+"ChIJb_4Y5-5P4joRucNZgDeXlhs": {
+"audience": "ladies",
+"basis": "you"
+},
+"ChIJbf_QNNhZ4joRY16KumNYqKo": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (5)"
+},
+"ChIJbwm6349X4joRxxtCJKk7jsQ": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (12)"
+},
+"ChIJc1Whg3tX4joRrhgC3J8CUXg": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (1)"
+},
+"ChIJc1sCUgBV4joReqKPWEjabRY": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
+},
 "ChIJc7eExxtV4joRPalHvv1gdbg": {
 "audience": "ladies",
 "basis": "name says ladies / bridal"
 },
+"ChIJc9uIaaBV4joR6-AfDiNoJjA": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
+},
 "ChIJcQN9GQBR4joRDsPxxoB8X6A": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 1 men reviewers"
+},
+"ChIJcShcPWBb4joR1qotBj98utk": {
+"audience": "unisex",
+"basis": "reviewer rule: 3 women and 3 men reviewers"
+},
+"ChIJcUfWBc5b4joR6uMrsXCf0WY": {
+"audience": "unisex",
+"basis": "reviewer rule: 4 women and 73 men reviewers"
+},
+"ChIJcazVMcRX4joRqLbIiXDa0B0": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 6 men reviewers"
+},
+"ChIJd1PNzZBa4joRoq9fWYts5_4": {
+"audience": "unisex",
+"basis": "reviewer rule: 22 women and 103 men reviewers"
+},
+"ChIJd4RMShtZ4joR2zX4bmpWxZU": {
+"audience": "unisex",
+"basis": "reviewer rule: 11 women and 43 men reviewers"
+},
+"ChIJd53CniZX4joRAPvRM70XEwk": {
+"audience": "unisex",
+"basis": "reviewer rule: 11 women and 9 men reviewers"
+},
+"ChIJd5viwN9X4joRWNsfL6CxSxU": {
+"audience": "unisex",
+"basis": "reviewer rule: 7 women and 16 men reviewers"
 },
 "ChIJdYchjEhR4joRxLcC2cCiSl0": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
 },
 "ChIJda_myW9Q4joR6NN-FFR2U_Q": {
-"audience": "ladies",
-"basis": "reviews: 11 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 13 women and 14 men reviewers"
+},
+"ChIJdcagMM9R4joRorMjp-M3EM8": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (3)"
 },
 "ChIJdwG-zWRR4joRbOWZpEZKtEM": {
-"audience": "ladies",
-"basis": "reviews: 11 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 28 women and 24 men reviewers"
 },
 "ChIJe4omEMpb4joRJQvCgAiS_ag": {
 "audience": "unisex",
 "basis": "name says unisex / both"
 },
-"ChIJeafHPwBP4joR58NigmkhEIQ": {
+"ChIJe5xh1rFX4joRAeiDHOPEwTU": {
 "audience": "ladies",
-"basis": "name says ladies / bridal"
+"basis": "reviewer rule: only women reviewers (7)"
+},
+"ChIJeWbkFwBR4joRAgl7mJRv354": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (1)"
+},
+"ChIJeXYVy9lX4joRL82F-AN0_4s": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 5 men reviewers"
+},
+"ChIJeafHPwBP4joR58NigmkhEIQ": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
+},
+"ChIJef9FVABX4joRm_nt-3D1u2M": {
+"audience": "unisex",
+"basis": "reviewer rule: 3 women and 1 men reviewers"
 },
 "ChIJewxTdgBP4joRaX-6ti14aes": {
-"audience": "ladies",
-"basis": "reviews: 35 female vs 3 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 53 women and 7 men reviewers"
+},
+"ChIJexzxFABV4joR9zjegumfLkI": {
+"audience": "gents",
+"basis": "you"
+},
+"ChIJf-A0IsBR4joRJF4uVbRJASw": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 3 men reviewers"
 },
 "ChIJf3bqLQ5X4joRna5mS0Dvve8": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 2 men reviewers"
+},
+"ChIJf7c5CABX4joRYJGT878dinI": {
 "audience": "ladies",
-"basis": "name says ladies / bridal"
+"basis": "reviewer rule: only women reviewers (1)"
+},
+"ChIJf9gUcQBR4joR8DGc0Xj0SW8": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
 },
 "ChIJfQ3RL35b4joRWYUL5cwWrVQ": {
-"audience": "ladies",
-"basis": "reviews: 26 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 86 women and 16 men reviewers"
 },
 "ChIJfSkRE_xb4joRSvSvmDJzM8I": {
 "audience": "unisex",
 "basis": "name says unisex / both"
 },
-"ChIJgRSnQABb4joR1mW4Dp2x_BA": {
+"ChIJfeo_eU1R4joRX8JygxEloLs": {
 "audience": "ladies",
-"basis": "reviews: 83 female vs 0 male words"
+"basis": "you"
+},
+"ChIJg0RMB7JQ4joRTygBnf82FXk": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 1 men reviewers"
+},
+"ChIJg6DDEwBR4joR4rOkyhKAlDI": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (3)"
+},
+"ChIJgR7fUNhR4joRCw0nu0wAl6Y": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
+},
+"ChIJgRSnQABb4joR1mW4Dp2x_BA": {
+"audience": "unisex",
+"basis": "reviewer rule: 75 women and 6 men reviewers"
+},
+"ChIJgVkNAQBR4joRA6bVKMApJS0": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (1)"
+},
+"ChIJgXhkPvFZ4joRubHBXF1Rgek": {
+"audience": "unisex",
+"basis": "reviewer rule: 6 women and 3 men reviewers"
+},
+"ChIJgZTaj-NV4joRu99Qapn9oOs": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (3)"
 },
 "ChIJga7nHpRa4joRNj4SjrS9Z7g": {
+"audience": "unisex",
+"basis": "reviewer rule: 27 women and 11 men reviewers"
+},
+"ChIJgb-4iCVX4joRzZneuY_mY-s": {
 "audience": "ladies",
-"basis": "reviews: 12 female vs 0 male words"
+"basis": "you"
+},
+"ChIJgbptNqdX4joRlReLtfltWNw": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (1)"
+},
+"ChIJgwPn9ltT4joRXB3TwiEeMAA": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (2)"
+},
+"ChIJh0_2MQBX4joR9SpKeLF2Vv0": {
+"audience": "unisex",
+"basis": "reviewer rule: 4 women and 1 men reviewers"
+},
+"ChIJh22UqOlX4joRoVpn8bAYXbk": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 2 men reviewers"
 },
 "ChIJh2rTTABb4joRw3V5zFgMKFY": {
 "audience": "unisex",
 "basis": "name says unisex / both"
 },
+"ChIJh4mIFs5b4joRp57snOZCDyA": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 3 men reviewers"
+},
+"ChIJh5YHMABR4joRpyhwbz-8l6Y": {
+"audience": "unisex",
+"basis": "reviewer rule: 41 women and 5 men reviewers"
+},
+"ChIJh6S2fQBF4joR_omAFUgOrok": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
 "ChIJhYTcDEZR4joRwKLnyX93xyY": {
 "audience": "ladies",
 "basis": "name says ladies / bridal"
+},
+"ChIJhZaz_uxR4joRRgDjcitk_KU": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 13 men reviewers"
+},
+"ChIJh_Clu4JX4joRj8xUc85gCbk": {
+"audience": "unisex",
+"basis": "reviewer rule: 9 women and 4 men reviewers"
+},
+"ChIJhaGyxvJW4joRL9fPBo20ciY": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 5 men reviewers"
 },
 "ChIJhzabZnlb4joRWP_L6wqPYJ8": {
 "audience": "unisex",
 "basis": "name says unisex / both"
 },
-"ChIJi1UDBwBb4joRz9jLHg2KQwE": {
+"ChIJi0-ZCgBP4joRrJaU1T2gUdk": {
+"audience": "unisex",
+"basis": "reviewer rule: 10 women and 14 men reviewers"
+},
+"ChIJi1PTdwBR4joR3JP7Cs9U0js": {
 "audience": "ladies",
-"basis": "reviews: 37 female vs 1 male words"
+"basis": "reviewer rule: only women reviewers (2)"
+},
+"ChIJi1UDBwBb4joRz9jLHg2KQwE": {
+"audience": "unisex",
+"basis": "reviewer rule: 24 women and 4 men reviewers"
+},
+"ChIJi2KlR2hR4joRpISdK0CQVEo": {
+"audience": "unisex",
+"basis": "reviewer rule: 12 women and 7 men reviewers"
+},
+"ChIJi7Q8gU9X4joRJxenRjJ70tk": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJiWN4S_Ra4joRObpWXOBAZfc": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
 },
 "ChIJicSVEuhX4joRZk16oAoSBrc": {
+"audience": "unisex",
+"basis": "reviewer rule: 75 women and 14 men reviewers"
+},
+"ChIJieDAIgBX4joRWF4py8EoB4c": {
 "audience": "ladies",
-"basis": "reviews: 33 female vs 0 male words"
+"basis": "you"
+},
+"ChIJj8zk6kNR4joRcpxOFPdDM24": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (10)"
+},
+"ChIJjU98qPmqim4RLI3JZV7l424": {
+"audience": "unisex",
+"basis": "reviewer rule: 8 women and 3 men reviewers"
+},
+"ChIJjW-Jk0NR4joRLHv1grUfrRQ": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
+},
+"ChIJjXQgwkBX4joRzjHSBmZkjsI": {
+"audience": "unisex",
+"basis": "reviewer rule: 10 women and 4 men reviewers"
 },
 "ChIJk2NQothP4joRKF-G9rQpf60": {
 "audience": "gents",
 "basis": "source category: Gents' Grooming"
 },
+"ChIJk3NfAgBX4joR1GtO3n5ZPiU": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJk5-V_vZP4joREl6H9DMC4JI": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 21 men reviewers"
+},
+"ChIJk6v2XwBR4joR9qJkVWWIxfA": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
+},
+"ChIJkQhf9n5R4joR0kTL4xCYka8": {
+"audience": "unisex",
+"basis": "reviewer rule: 11 women and 59 men reviewers"
+},
 "ChIJkReZNEhX4joRKeBUFe9BGFM": {
-"audience": "ladies",
-"basis": "reviews: 15 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 26 women and 15 men reviewers"
+},
+"ChIJkU8tMWJV4joR7MHya_WrhU0": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJkUOsVQBX4joRj2jIKL0-oq8": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 2 men reviewers"
 },
 "ChIJkVHCEgBb4joRW5Q0Vr1mKZE": {
-"audience": "gents",
-"basis": "source category: Gents' Grooming"
+"audience": "unisex",
+"basis": "reviewer rule: 6 women and 23 men reviewers"
+},
+"ChIJk_oFvW1P4joRm_r3fpiBYJ8": {
+"audience": "unisex",
+"basis": "reviewer rule: 8 women and 2 men reviewers"
+},
+"ChIJkaFPTXVX4joRiwNJcDkrrBQ": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (1)"
+},
+"ChIJkdpMcfxW4joR3WrOUSLKlDg": {
+"audience": "ladies",
+"basis": "you"
+},
+"ChIJl4-4XjBR4joRcqFwLyM1_FE": {
+"audience": "unisex",
+"basis": "reviewer rule: 3 women and 3 men reviewers"
+},
+"ChIJl4aoiIhP4joRQWYTyVy7_RA": {
+"audience": "unisex",
+"basis": "reviewer rule: 4 women and 31 men reviewers"
+},
+"ChIJlTFFn4pX4joRrZ9OqPaj2k0": {
+"audience": "unisex",
+"basis": "reviewer rule: 6 women and 1 men reviewers"
 },
 "ChIJlykmPABR4joRhvvoz1EHbxA": {
-"audience": "ladies",
-"basis": "reviews: 53 female vs 1 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 24 women and 6 men reviewers"
+},
+"ChIJlzR2VyJR4joR-YboobWXSOM": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJlzd5IgBX4joRNcwMq6WBBbY": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 13 men reviewers"
+},
+"ChIJm24ndXpQ4joRwHHDAlUKiRk": {
+"audience": "unisex",
+"basis": "reviewer rule: 14 women and 18 men reviewers"
+},
+"ChIJm4-LTgBX4joRD3f1tQ2WeJg": {
+"audience": "unisex",
+"basis": "reviewer rule: 10 women and 6 men reviewers"
 },
 "ChIJmR8xuy5R4joResHh3IR49rs": {
+"audience": "unisex",
+"basis": "reviewer rule: 23 women and 7 men reviewers"
+},
+"ChIJme7RNgBX4joREDfDmfKqgso": {
 "audience": "ladies",
-"basis": "name says ladies / bridal"
+"basis": "reviewer rule: only women reviewers (1)"
+},
+"ChIJmwJm5nlR4joRqNu5bTM9few": {
+"audience": "ladies",
+"basis": "you"
+},
+"ChIJmwX7NwBR4joR_r-FR0gd56M": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 3 men reviewers"
+},
+"ChIJmwpR7ZNa4joRj6QVl108Vv0": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 16 men reviewers"
+},
+"ChIJmz6PFDZb4joRAP-4pPFC22Q": {
+"audience": "unisex",
+"basis": "reviewer rule: 3 women and 2 men reviewers"
+},
+"ChIJn-LUNQBX4joR3K3aKxH-Obs": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (2)"
 },
 "ChIJn-QC3oxb4joR5_QAX30pZa4": {
 "audience": "unisex",
 "basis": "name says unisex / both"
 },
+"ChIJn39ghPpa4joR5-KJL1C7r3g": {
+"audience": "unisex",
+"basis": "reviewer rule: 7 women and 35 men reviewers"
+},
+"ChIJn550nXdb4joRUJlNG59RsI0": {
+"audience": "unisex",
+"basis": "reviewer rule: 3 women and 21 men reviewers"
+},
+"ChIJn5xUBChR4joRzQ7-3Lyfmac": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 5 men reviewers"
+},
+"ChIJn6LCMgBX4joRvpAMiqTGpMk": {
+"audience": "unisex",
+"basis": "reviewer rule: 7 women and 1 men reviewers"
+},
 "ChIJn7iOn6Jb4joRXlhkDSYJf0U": {
 "audience": "unisex",
 "basis": "reviews mention both: 40 female, 17 male words"
 },
+"ChIJn8c_sAtR4joRqaY_MUIrh_o": {
+"audience": "unisex",
+"basis": "reviewer rule: 4 women and 8 men reviewers"
+},
+"ChIJnQON-bBP4joRAHZfF6U9Lwo": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 11 men reviewers"
+},
+"ChIJnc8jTyJJ4joRKtLcSYvUylg": {
+"audience": "unisex",
+"basis": "reviewer rule: 13 women and 28 men reviewers"
+},
+"ChIJndMow4ZX4joRYgW-ozQUvAI": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 2 men reviewers"
+},
 "ChIJneDVKuBP4joRFwooDcd8OP8": {
-"audience": "ladies",
-"basis": "reviews: 37 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 53 women and 5 men reviewers"
 },
 "ChIJnx2bNgBX4joR0gp2A69WTNA": {
-"audience": "gents",
-"basis": "source category: Gents' Grooming"
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 2 men reviewers"
 },
 "ChIJnxQEd2pR4joRSgI780C_Wmk": {
 "audience": "unisex",
 "basis": "reviews mention both: 13 female, 4 male words"
+},
+"ChIJo5_kRqBV4joRNOjEC2dLM3I": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (1)"
+},
+"ChIJo772x0h5SkQR3wqkmAQg980": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
 },
 "ChIJo7SsYxNR4joRg0trxopyMCA": {
 "audience": "unisex",
@@ -563,73 +1747,281 @@
 "audience": "ladies",
 "basis": "name says ladies / bridal"
 },
+"ChIJoXwMpNtX4joRRROc23A5vQ4": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (2)"
+},
+"ChIJoY4-FQBX4joRw_rpVh-QIQk": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
 "ChIJoYWrMQBR4joRssbo3lLMPbE": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 2 men reviewers"
+},
+"ChIJoauE6nxb4joRwo4KSe_ZqDQ": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 2 men reviewers"
+},
+"ChIJofamy7i1_gQRQBqGJmPX9Gw": {
+"audience": "unisex",
+"basis": "reviewer rule: 7 women and 2 men reviewers"
+},
+"ChIJoyxnXtpW4joRQ7nz9bHmTjg": {
+"audience": "unisex",
+"basis": "reviewer rule: 7 women and 6 men reviewers"
+},
+"ChIJp0Z9hXZU4joRxGh2H47V-98": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
 },
 "ChIJp0jjuVVX4joR8imQPYR-B20": {
-"audience": "ladies",
-"basis": "reviews: 11 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 9 women and 4 men reviewers"
+},
+"ChIJp0lbsH5X4joREipxMqzhdIM": {
+"audience": "unisex",
+"basis": "reviewer rule: 4 women and 1 men reviewers"
+},
+"ChIJp2WMTd1W4joRaBZJxJgPuHE": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 9 men reviewers"
+},
+"ChIJp7QvDgBP4joREpPN_nvFjqA": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
 },
 "ChIJpU9JOgBR4joRv0CVqlBVHRM": {
+"audience": "unisex",
+"basis": "reviewer rule: 50 women and 15 men reviewers"
+},
+"ChIJpUG2UGZa4joRxlIygqcQuyU": {
+"audience": "unisex",
+"basis": "reviewer rule: 13 women and 4 men reviewers"
+},
+"ChIJpVADKntR4joRIdyOsqQx-qo": {
 "audience": "ladies",
-"basis": "reviews: 30 female vs 1 male words"
+"basis": "you"
+},
+"ChIJpX5TOQBX4joRBF5xydO2bYM": {
+"audience": "unisex",
+"basis": "reviewer rule: 15 women and 4 men reviewers"
+},
+"ChIJpbNX1khX4joR_00utz2jGFk": {
+"audience": "unisex",
+"basis": "reviewer rule: 13 women and 1 men reviewers"
+},
+"ChIJpc2tNgBR4joRlifS_ZjmfdU": {
+"audience": "unisex",
+"basis": "reviewer rule: 8 women and 24 men reviewers"
+},
+"ChIJpcO-IUJR4joRKhfmxClxLVs": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 4 men reviewers"
+},
+"ChIJpdHvykZR4joRwrW162E7ZaU": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJpfwwOwFa4joRTaJ-OHT7XWU": {
+"audience": "unisex",
+"basis": "reviewer rule: 27 women and 2 men reviewers"
+},
+"ChIJpzEZUOxW4joRZ_yPpVZeHQY": {
+"audience": "unisex",
+"basis": "reviewer rule: 4 women and 2 men reviewers"
 },
 "ChIJq2vVDwBX4joRPFjH8kgEQNk": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 2 men reviewers"
+},
+"ChIJqW3nLwBb4joRxHNoLKAfgME": {
 "audience": "gents",
-"basis": "source category: Gents' Grooming"
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJqX6OAihU4joRz4g0xZfefeo": {
+"audience": "unisex",
+"basis": "reviewer rule: 11 women and 10 men reviewers"
+},
+"ChIJqXsPMgBX4joRwvE-gHLEUmU": {
+"audience": "gents",
+"basis": "you"
 },
 "ChIJqY6_HatQ4joRL8DweMatAp4": {
+"audience": "unisex",
+"basis": "reviewer rule: 12 women and 59 men reviewers"
+},
+"ChIJqYsvxcxR4joReUSzc9FBIlA": {
+"audience": "unisex",
+"basis": "reviewer rule: 23 women and 2 men reviewers"
+},
+"ChIJr5ygkcVR4joRvZaC9Exe5iM": {
 "audience": "gents",
-"basis": "reviews: 9 male vs 3 female words"
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJr6VZwPNW4joRu3KM7RVWp5c": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (1)"
 },
 "ChIJr8AD-Dxb4joRiLq8z2esjRE": {
-"audience": "ladies",
-"basis": "reviews: 29 female vs 2 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 35 women and 7 men reviewers"
+},
+"ChIJrTc7dF5Z4joRA9p7VtwC8VE": {
+"audience": "unisex",
+"basis": "reviewer rule: 4 women and 12 men reviewers"
+},
+"ChIJr_v5lq5X4joRYpH6t4HtDQo": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 3 men reviewers"
+},
+"ChIJrbKHySxX4joRF-aAthezsZ4": {
+"audience": "unisex",
+"basis": "reviewer rule: 9 women and 1 men reviewers"
 },
 "ChIJs2EE139X4joR8umC-Ug6BTs": {
-"audience": "ladies",
-"basis": "reviews: 25 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 46 women and 15 men reviewers"
 },
 "ChIJsSyY4-pP4joRtYxpmkZHERM": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 32 women and 10 men reviewers"
+},
+"ChIJsW42UgBX4joRwIhOc33lb6I": {
+"audience": "unisex",
+"basis": "reviewer rule: 3 women and 9 men reviewers"
+},
+"ChIJs_UBegBb4joRcUIkAMg4RfM": {
+"audience": "unisex",
+"basis": "reviewer rule: 20 women and 7 men reviewers"
 },
 "ChIJsaoxv3hQ4joR2l-VeJ22z-Y": {
-"audience": "ladies",
-"basis": "reviews: 39 female vs 1 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 33 women and 23 men reviewers"
 },
 "ChIJscEpW55V4joRTEM8y_-3ihM": {
 "audience": "gents",
 "basis": "source category: Gents' Grooming"
 },
+"ChIJszoIjPRa4joRowu1NvtGYk0": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 20 men reviewers"
+},
+"ChIJt2nfrORR4joRvmuf2bvHBHI": {
+"audience": "unisex",
+"basis": "reviewer rule: 12 women and 2 men reviewers"
+},
+"ChIJt5gYIABb4joRy4GrUuTq1_E": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 2 men reviewers"
+},
 "ChIJt6VqopNQ4joRcYCYRugOoDI": {
 "audience": "unisex",
 "basis": "name says unisex / both"
+},
+"ChIJt8_CfgBR4joRy0qCpB9m42A": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (2)"
 },
 "ChIJtQnLOJRR4joR5G8yMSbb3Do": {
 "audience": "ladies",
 "basis": "name says ladies / bridal"
 },
+"ChIJtVWhDWta4joRt24OJawyvgA": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (20)"
+},
+"ChIJtW6edihR4joRcgTWbVw2Ny4": {
+"audience": "gents",
+"basis": "you"
+},
+"ChIJtbAlurpQ4joRDKC0i6iyEgg": {
+"audience": "unisex",
+"basis": "reviewer rule: 24 women and 37 men reviewers"
+},
 "ChIJtbnuvOBR4joRrk3oJrR1eqI": {
+"audience": "unisex",
+"basis": "reviewer rule: 8 women and 1 men reviewers"
+},
+"ChIJteKa1SFX4joRLlkfbK-IDfU": {
 "audience": "ladies",
-"basis": "reviews: 13 female vs 0 male words"
+"basis": "reviewer rule: only women reviewers (1)"
+},
+"ChIJtyEgGABP4joRXfpyeuVOW9M": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
 },
 "ChIJtypJ3alb4joRmAaGC3PpQ0M": {
-"audience": "ladies",
-"basis": "reviews: 132 female vs 1 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 40 women and 5 men reviewers"
 },
 "ChIJu6y2MgBR4joRjuGGtLuM6N8": {
+"audience": "unisex",
+"basis": "reviewer rule: 45 women and 9 men reviewers"
+},
+"ChIJu8KWPwBX4joR_qGKk50fd1Y": {
 "audience": "ladies",
-"basis": "reviews: 83 female vs 0 male words"
+"basis": "you"
+},
+"ChIJuSB6XSZR4joR6vn0OkTWw54": {
+"audience": "unisex",
+"basis": "reviewer rule: 12 women and 9 men reviewers"
+},
+"ChIJuZFwCpRZ4joRLwzTT8HAwtk": {
+"audience": "unisex",
+"basis": "reviewer rule: 6 women and 4 men reviewers"
+},
+"ChIJubUSEwBb4joRp7ZzrlE5Yfw": {
+"audience": "ladies",
+"basis": "you"
+},
+"ChIJv1cRE2lR4joRL7xngF1t8Bk": {
+"audience": "unisex",
+"basis": "reviewer rule: 7 women and 22 men reviewers"
+},
+"ChIJv4d--bRR4joRMT9uWpEvdHM": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 16 men reviewers"
+},
+"ChIJv5_nOgBR4joR5Ja3ILiaICM": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 2 men reviewers"
 },
 "ChIJv6DDlftX4joRlUzx9J3VHxU": {
-"audience": "ladies",
-"basis": "reviews: 13 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 39 women and 11 men reviewers"
+},
+"ChIJv8q9cQBR4joR3cwKtcWk5O8": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJv9Nu8xhR4joR6tF4kEi1xTY": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (2)"
+},
+"ChIJvRMNjBJP4joRmCo8LLQ0ilc": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJvV_elulR4joRsZRJNKXKnPU": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
+},
+"ChIJvfOWMklP4joRMXESdRMZ924": {
+"audience": "unisex",
+"basis": "reviewer rule: 14 women and 35 men reviewers"
+},
+"ChIJvw0RFXVR4joRnPsCOrQ3lOU": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJvwMyGFtR4joRDeFv-afdBug": {
+"audience": "unisex",
+"basis": "reviewer rule: 21 women and 9 men reviewers"
 },
 "ChIJvxavfl9Q4joREmnQ1IYkmqE": {
-"audience": "ladies",
-"basis": "reviews: 28 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 23 women and 11 men reviewers"
 },
 "ChIJvyZgfalP4joR0UBwDdiyJCg": {
 "audience": "unisex",
@@ -639,48 +2031,164 @@
 "audience": "gents",
 "basis": "source category: Gents' Grooming"
 },
+"ChIJw7-3HABR4joR2CvBtbVkj6E": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJw8U91dZW4joR17pnwGJm6L4": {
+"audience": "unisex",
+"basis": "reviewer rule: 10 women and 6 men reviewers"
+},
 "ChIJwS0uZkFR4joRpSFYBaHIcpk": {
+"audience": "unisex",
+"basis": "reviewer rule: 36 women and 8 men reviewers"
+},
+"ChIJwShkuGVR4joRw7XHKiw1wUY": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 6 men reviewers"
+},
+"ChIJwWP0MgBX4joR-49ezI6QqN8": {
 "audience": "ladies",
-"basis": "name says ladies / bridal"
+"basis": "reviewer rule: only women reviewers (1)"
+},
+"ChIJwWpWU8FR4joR2zfg8ZyyDII": {
+"audience": "unisex",
+"basis": "reviewer rule: 14 women and 50 men reviewers"
+},
+"ChIJwb0cSABR4joRknDED9j57Xw": {
+"audience": "ladies",
+"basis": "you"
+},
+"ChIJwf4QErVR4joRZ1_yE0J0IqI": {
+"audience": "unisex",
+"basis": "reviewer rule: 6 women and 30 men reviewers"
+},
+"ChIJwxYBdLxa4joRKXPOfS3xUOg": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 2 men reviewers"
+},
+"ChIJx0YB5hxb4joRJ31T-kZ9uhc": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 25 men reviewers"
+},
+"ChIJx58xg3pa4joRRoVWZbAyWkQ": {
+"audience": "unisex",
+"basis": "reviewer rule: 4 women and 43 men reviewers"
+},
+"ChIJx7AFaDZR4joRzCgGoEVRu7k": {
+"audience": "unisex",
+"basis": "reviewer rule: 20 women and 8 men reviewers"
+},
+"ChIJx90DOE4BaqsRuwhuu1T5uOM": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (7)"
+},
+"ChIJxUJxjE5R4joR2DqZw3Erv94": {
+"audience": "unisex",
+"basis": "reviewer rule: 24 women and 9 men reviewers"
 },
 "ChIJxVp-uNxW4joRl0XmjcEMD74": {
 "audience": "gents",
 "basis": "source category: Gents' Grooming"
 },
-"ChIJxWB2LZNX4joRGUZZhkafsuY": {
+"ChIJxW9KKQBR4joRlJbdw74DoLs": {
 "audience": "ladies",
-"basis": "name says ladies / bridal"
+"basis": "you"
+},
+"ChIJxWB2LZNX4joRGUZZhkafsuY": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
 },
 "ChIJxbu4SwBR4joRLgtI9VXDPSg": {
 "audience": "unisex",
 "basis": "reviews mention both: 22 female, 7 male words"
 },
+"ChIJxdK3LQBR4joRyMggV8zPFN8": {
+"audience": "unisex",
+"basis": "reviewer rule: 18 women and 1 men reviewers"
+},
+"ChIJxfSk4sBX4joR-GHnY2Jh6Gg": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 7 men reviewers"
+},
 "ChIJy-Vq0vNZ4joROAdXhLKvQXs": {
-"audience": "ladies",
-"basis": "name says ladies / bridal"
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 2 men reviewers"
+},
+"ChIJy2qtkSVX4joRcvahXyQWpJ0": {
+"audience": "unisex",
+"basis": "reviewer rule: 3 women and 6 men reviewers"
+},
+"ChIJy3suaLtP4joRcE9-CHIm-jw": {
+"audience": "unisex",
+"basis": "reviewer rule: 3 women and 1 men reviewers"
+},
+"ChIJy4cPLwBX4joRX8X_5d_W964": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 1 men reviewers"
+},
+"ChIJy55MHkNb4joRXevK3NEjS8o": {
+"audience": "unisex",
+"basis": "reviewer rule: 2 women and 3 men reviewers"
+},
+"ChIJy6weJXFQ4joRTBllTdnHRd0": {
+"audience": "unisex",
+"basis": "reviewer rule: 22 women and 120 men reviewers"
 },
 "ChIJy7QxwcFR4joR_Rgi0_6Uvhc": {
 "audience": "unisex",
 "basis": "reviews mention both: 7 female, 7 male words"
 },
+"ChIJy8bCWQBX4joRMR0_PfE9-bs": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
 "ChIJySB_YwBR4joRGDIo57AcfMM": {
-"audience": "ladies",
-"basis": "reviews: 47 female vs 0 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 23 women and 3 men reviewers"
 },
 "ChIJyXVpZeFR4joRM-vjllerHVk": {
+"audience": "unisex",
+"basis": "reviewer rule: 23 women and 9 men reviewers"
+},
+"ChIJyZNbwCNR4joRs1UnBMZ-5KA": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
+},
+"ChIJy_eCMABR4joRgYYdkzXafko": {
 "audience": "ladies",
-"basis": "reviews: 33 female vs 1 male words"
+"basis": "reviewer rule: only women reviewers (3)"
+},
+"ChIJyx9rILNX4joRAfjupshx2qs": {
+"audience": "ladies",
+"basis": "reviewer rule: only women reviewers (1)"
+},
+"ChIJyzjd5Z5R4joRrEWKUVwzWJ8": {
+"audience": "unisex",
+"basis": "reviewer rule: 1 women and 1 men reviewers"
 },
 "ChIJz1xI6fZP4joR3swYo4oEAMo": {
-"audience": "ladies",
-"basis": "reviews: 99 female vs 4 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 88 women and 71 men reviewers"
 },
 "ChIJzQC7HABX4joRKwBAFuNiew0": {
-"audience": "ladies",
-"basis": "reviews: 14 female vs 1 male words"
+"audience": "unisex",
+"basis": "reviewer rule: 7 women and 3 men reviewers"
+},
+"ChIJzTnYntpV4joR4CiTqKQg-eU": {
+"audience": "gents",
+"basis": "reviewer rule: only men reviewers (1)"
 },
 "ChIJzUxXnNxW4joRg_M4NbopGFc": {
+"audience": "unisex",
+"basis": "reviewer rule: 80 women and 20 men reviewers"
+},
+"ChIJzVpOGABR4joR1QTAWjkYb1g": {
+"audience": "unisex",
+"basis": "reviewer rule: 18 women and 4 men reviewers"
+},
+"ChIJzyZFXCxX4joRcZfgeAVYkBQ": {
 "audience": "ladies",
-"basis": "reviews: 38 female vs 1 male words"
+"basis": "reviewer rule: only women reviewers (1)"
 }
 }

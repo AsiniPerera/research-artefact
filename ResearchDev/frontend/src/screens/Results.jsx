@@ -147,7 +147,7 @@ export function Results({
       )}
       <div className="results-head">
         <p className="summary">
-          <strong>{listed.length}</strong> {listed.length === 1 ? "salon" : "salons"}
+          <strong>{listed.length}</strong> {listed.length === 1 ? "salon" : "salons"} found
           {filters.city ? ` in ${filters.city}` : ""}
           {audience ? ` for ${AUDIENCE[audience].label.toLowerCase()}` : ""}
         </p>

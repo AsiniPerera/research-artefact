@@ -47,8 +47,12 @@ export default function App() {
   /* The consistency window the profile was opened with. Only the ranking list
      sends one; any other way in falls back to the default (1 year). */
   const [salonWindow, setSalonWindow] = useState(initial.cw);
-  const openSalon = (id, consistencyWindow = null) => {
+  /* The seven priorities the list was ranked with, for the profile's overall
+     score. Null from any other way in, which means Medium throughout. */
+  const [salonWeights, setSalonWeights] = useState(null);
+  const openSalon = (id, consistencyWindow = null, weightList = null) => {
     setSalonWindow(consistencyWindow);
+    setSalonWeights(weightList);
     setSelectedSalon(id);
   };
   /* Seeded by the services bar when a specific service is picked, so the
@@ -404,6 +408,7 @@ export default function App() {
             <SalonDetail
               salonId={selectedSalon}
               consistencyWindow={salonWindow ?? undefined}
+              weights={salonWeights}
               onBack={() => setSelectedSalon(null)}
             />
           ) : route === "services" ? null

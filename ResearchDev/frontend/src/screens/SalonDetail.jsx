@@ -14,6 +14,11 @@ import { LEAF_BY_CODE } from "../constants/taxonomy";
 import { SUB_POINTS, subPointsOf } from "../constants/subPoints";
 import { CATEGORY_INFO, isShownCategory } from "../constants/categories";
 import { StaffReputation } from "../components/StaffReputation";
+import { ResponsivenessRing } from "../components/ResponsivenessRing";
+import { OverallSalonScore } from "../components/OverallSalonScore";
+import { responsivenessFigure, verdictFor } from "../lib/responsiveness";
+import { getScoreStyle, badgeStyle } from "../lib/scoreScale";
+import { subServiceView } from "../lib/subServiceRows";
 import { PopularServicesBadge } from "../components/PopularServicesBadge";
 import { SpecialismBadge } from "../components/SpecialismBadge";
 import { LanguageMix } from "../components/LanguageMix";
@@ -346,6 +351,56 @@ function Donut({ counts, score, label }) {
   );
 }
 
+/* The salon's own details, at the top of the profile's first tab. This used to
+   be a separate "Salon Info" tab. The Google figure is a reference fact about
+   the business; it is not used in any score. Renders nothing when there is
+   nothing to show, rather than an empty box. */
+function SalonInformation({ p, gates }) {
+  const address = p.address
+    ? `${p.address}${p.city && !String(p.address).includes(p.city) ? `, ${p.city}` : ""}`
+    : null;
+  if (p.google_rating == null && !address && gates.length === 0) return null;
+
+  return (
+    <section className="profile-info">
+      <h3 className="profile-info-head">Salon information</h3>
+      <div className="profile-info-grid">
+        {p.google_rating != null && (
+          <div className="info-block">
+            <p className="info-label">Google rating</p>
+            <p className="info-value">★ {p.google_rating} <span className="info-sub">({p.google_review_count} customer feedbacks — reference only)</span></p>
+          </div>
+        )}
+        {address && (
+          <div className="info-block">
+            <p className="info-label">Address</p>
+            <p className="info-value">{address}</p>
+          </div>
+        )}
+      </div>
+      {gates.length > 0 && (
+        <div className="info-block">
+          <p className="info-label">Notices</p>
+          <ul className="gate-list">
+            {gates.map((g) => (
+              <li key={`${g.sub_point_code}-${g.kind}`} className={`gate gate--${g.kind}`}>
+                <strong>{g.kind} {g.sub_point_code}</strong>
+                <span>{g.customer_question}</span>
+                <small>
+                  {g.status}
+                  {g.report_count !== undefined ? ` · ${g.report_count} reports` : ""}
+                  {g.disputed_reports ? ` (${g.disputed_reports} disputed by the owner)` : ""}
+                  {g.expires_on ? ` · expires ${String(g.expires_on).slice(0, 10)}` : ""}
+                </small>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  );
+}
+
 /* One legend per service, not per ring: the same four slots repeat across
    eight donuts, and eight legends would be noise. Counts are shown here
    rather than on the arcs — a number on every segment is unreadable, and
@@ -402,41 +457,6 @@ function RangeBar({ score, low, high }) {
   );
 }
 
-/* Scoring runs at service level, so the sub-services under one service
-   usually carry the SAME number, band and category breakdown — "Haircut &
-   Trim" and "Style Cut & Restyling" are one score printed twice. Those rows
-   collapse into one named after the service.
-
-   A group only collapses when everything the panel shows is identical:
-   score, band, status, badges and the whole category breakdown. Fold on the
-   headline number alone and a differing breakdown would vanish silently.
-
-   Rank is the deliberate exception. It is per sub-service — the pool of
-   competitors differs, so Haircut & Trim can be #27 while Style Cut is #20
-   on the same score — and collapsing those to a single "Ranked #20" would
-   overstate the salon. A group whose ranks differ still collapses, but shows
-   the span and names its members, so no rank is claimed that isn't held. */
-function scoreSignature(s) {
-  const cats = categoryScoreRows(s.category_scores)
-    .slice()
-    .sort((a, b) => a.category_no - b.category_no)
-    .map((c) => `${c.category_no}:${c.score}:${c.evidence_count}`)
-    .join(",");
-  return [s.trust_score, s.range_low, s.range_high, s.rank_status, s.badges ?? "", cats].join("|");
-}
-
-/* Surest first. The API's order is by code, which carries no meaning for a
-   reader, and the scores are too close together to order by. Band width is
-   the one thing that genuinely separates these rows, so the service whose
-   score rests on the most evidence leads. Grouping by category still wins —
-   this only orders within a group. */
-function sortByCertainty(groups) {
-  return [...groups].sort((a, b) => {
-    const width = (g) => Number(g.service.range_high ?? 1) - Number(g.service.range_low ?? 0);
-    return width(a) - width(b) || Number(b.service.trust_score) - Number(a.service.trust_score);
-  });
-}
-
 /* Rows under their category heading — Hair, Nails, Skin & Beauty — in the
    order the API sent them. Grouping only; nothing is re-sorted, so the
    service order on screen stays the one the backend chose. */
@@ -450,63 +470,61 @@ function byCategory(groups) {
   return [...out];
 }
 
-/* The second fold, one level up: when every service row in a category is the
-   same score, band, status and breakdown, the category becomes one row named
-   after itself — "Nail Care" rather than three rows that all read 79.
- 
-   It applies the SAME test as the service fold, for the same reason. Folding
-   on the headline number alone would be wrong here in a way that is easy to
-   miss: within a category the scores often round to one number while the
-   bands do not. Salon Zero's Nail Care is 79 at 61-93 and ranked #8, beside
-   two services at 79 but 39-100 and not ranked at all. One row reading
-   "Nail Care 79, ranked #8" would lend the ranked service's standing and its
-   much narrower band to two services that have neither. */
-function collapseCategory(cat, groups) {
-  if (groups.length < 2) return null;
-  const first = scoreSignature(groups[0].service);
-  if (!groups.every((g) => scoreSignature(g.service) === first)) return null;
-  return {
-    key: `category:${cat}`,
-    service: groups[0].service,
-    displayName: cat,
-    // Every underlying sub-service, so the rank span and the Covers line
-    // still name real leaves rather than the service rows above them.
-    members: groups.flatMap((g) => g.members ?? [g.service]),
-  };
-}
-
-/** trust_score rows for one category heading -> one row per service, with
-    same-score members collapsed into a group by scoreSignature (see
-    collapseCategory for why identical scores still need to be told apart by
-    rank and evidence before collapsing). */
-function groupServices(rows) {
-  const byService = new Map();     // Map keeps the API's order
-  for (const r of rows) {
-    const k = r.service ?? r.sub_service_code;
-    if (!byService.has(k)) byService.set(k, []);
-    byService.get(k).push(r);
-  }
-  const out = [];
-  for (const [name, members] of byService) {
-    const buckets = new Map();
-    for (const m of members) {
-      const k = scoreSignature(m);
-      if (!buckets.has(k)) buckets.set(k, []);
-      buckets.get(k).push(m);
-    }
-    for (const bucket of buckets.values()) {
-      out.push(
-        bucket.length > 1
-          ? { key: `group:${name}:${bucket[0].sub_service_code}`, service: bucket[0],
-              displayName: name, members: bucket }
-          : { key: bucket[0].sub_service_code, service: bucket[0] },
-      );
-    }
-  }
-  return out;
-}
 
 const DRAWER_PAGE = 6;
+const PANEL_LOAD = 60;   // statements fetched when a panel opens
+
+/* "Show the feedbacks behind this", one component for both tabs.
+
+   Profile information passes a whole-salon query ({ category_no }) and shows
+   every feedback in that category. Scores by Service passes
+   { about_sub_service, category_no }, which the API resolves to feedbacks
+   filed to that sub-service plus feedbacks that name its service but no more
+   precise sub-service (what the "N feedbacks about this service" count is
+   made of), and never a sibling's. Filtering is server-side so a small
+   sub-service is not crowded out of a fixed-size page by a large sibling.
+
+   Loaded on first open, the PANEL_LOAD most recent, six at a time. */
+function EvidencePanel({ placeId, query, salonName, label, emptyText }) {
+  const [open, setOpen] = useState(false);
+  const [rows, setRows] = useState(null);      // null = not loaded yet
+  const [error, setError] = useState(null);
+  const [visible, setVisible] = useState(DRAWER_PAGE);
+
+  useEffect(() => {
+    if (!open || rows !== null) return undefined;
+    const ctrl = new AbortController();
+    getEvidence(placeId, { ...query, hide_mention: true, limit: PANEL_LOAD }, { signal: ctrl.signal })
+      .then((r) => setRows(Array.isArray(r) ? r : []))
+      .catch((e) => { if (e.name !== "AbortError") setError(e.message); });
+    return () => ctrl.abort();
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <div className="evidence-panel">
+      <button type="button" className="btn-text evidence-toggle" aria-expanded={open}
+              onClick={() => setOpen((o) => !o)}>
+        {open ? "Hide feedbacks" : label}
+      </button>
+      {open && (
+        error ? <p className="subtle">{error}</p>
+        : rows === null ? <p className="subtle">Loading feedbacks…</p>
+        : rows.length === 0 ? <p className="subtle">{emptyText}</p>
+        : (
+          <>
+            <EvidenceRows rows={rows.slice(0, visible)} salonName={salonName} />
+            {rows.length > visible && (
+              <button type="button" className="btn-text evidence-panel-more"
+                      onClick={() => setVisible((v) => v + DRAWER_PAGE)}>
+                Show more ({rows.length - visible} more)
+              </button>
+            )}
+          </>
+        )
+      )}
+    </div>
+  );
+}
 
 /* The reviews behind one category score, opened in place under the score.
  
@@ -889,39 +907,33 @@ const SERVICE_STATUSES = [
    Every option is built from THIS salon's rows, not from the taxonomy: a
    salon with only Hair evidence should not be offered Nails and handed an
    empty list. */
-function ServiceScoreList({ services, categoryName, categoryTrait, sentimentBy, subPointBy, placeId, filters }) {
-  const { category, service_code: service, status } = filters;
-
-  const shown = services.filter((s) =>
-    (!category || s.category === category) &&
-    (!service || s.service_code === service) &&
-    (!status || (status === "ranked" ? s.rank_status === "ranked" : s.rank_status !== "ranked")));
-
-  const filtered = shown.length !== services.length;
+function ServiceScoreList({ services, categoryName, categoryTrait, sentimentBy, subPointBy, placeId, filters, salonName }) {
+  // Only sub-services that have feedbacks about them are listed; see
+  // lib/subServiceRows.js. A filter that lands on one with none says so.
+  const view = subServiceView(services, filters);
+  const filtered = view.shown !== view.total;
   // Headings earn their place only when there is more than one category to
   // tell apart.
-  const showCategoryHeads = new Set(shown.map((r) => r.category)).size > 1;
-  const clear = () => { setCategory(""); setService(""); setStatus(""); };
+  const showCategoryHeads = new Set(view.rows.map((r) => r.service.category)).size > 1;
 
   return (
     <>
-      {filtered && (
+      {filtered && view.state === "ok" && (
         <p className="detail-note service-filter-count">
-          Showing {shown.length} of {services.length} services
+          Showing {view.shown} of {view.total} services
         </p>
       )}
 
-      {shown.length === 0 ? (
+      {view.state === "no-match" ? (
         <p className="subtle">No service matches these filters.</p>
+      ) : view.state === "no-feedbacks" ? (
+        <p className="subtle">No feedbacks about this service yet.</p>
       ) : (
-        byCategory(sortByCertainty(groupServices(shown))).map(([cat, items]) => {
-          const folded = collapseCategory(cat, items);
-          // A folded category IS its heading, so printing both would say the
-          // same word twice.
-          const rows = folded ? [folded] : items;
+        byCategory(view.rows).map(([cat, items]) => {
+          const rows = items;
           return (
             <section key={cat} className="service-group">
-              {showCategoryHeads && !folded && (
+              {showCategoryHeads && (
                 <h3 className="service-group-head">
                   {cat}
                   <span className="service-group-count">
@@ -942,14 +954,13 @@ function ServiceScoreList({ services, categoryName, categoryTrait, sentimentBy, 
                 <ServiceScores
                   key={g.key}
                   service={g.service}
-                  displayName={g.displayName}
-                  members={g.members}
                   categoryName={categoryName}
                   categoryTrait={categoryTrait}
                   sentimentBy={sentimentBy}
                   subPointBy={subPointBy}
                   placeId={placeId}
                   filters={filters}
+                  salonName={salonName}
                 />
               ))}
             </section>
@@ -965,7 +976,7 @@ function ServiceScoreList({ services, categoryName, categoryTrait, sentimentBy, 
     children), opened to show CategoryEvidence for whichever score the reader
     clicks. `members` carries the sibling services collapsed into this row by
     groupServices, so the summary can name all of them. */
-function ServiceScores({ service, categoryName, categoryTrait, sentimentBy, subPointBy, displayName, members, placeId, filters }) {
+function ServiceScores({ service, categoryName, categoryTrait, sentimentBy, subPointBy, displayName, members, placeId, filters, salonName }) {
   const rows = categoryScoreRows(service.category_scores)
     .filter((r) => isShownCategory(r.category_no))
     .slice()
@@ -985,6 +996,11 @@ function ServiceScores({ service, categoryName, categoryTrait, sentimentBy, subP
         <span className="detail-service-name">
           {displayName ?? serviceName(service)}
         </span>
+        {service.evidence_reviews > 0 && (
+          <span className="detail-service-count">
+            {service.evidence_reviews} {service.evidence_reviews === 1 ? "feedback" : "feedbacks"} about this service
+          </span>
+        )}
       </summary>
       {members && members.length > 1 && (
         <p className="detail-service-covers">
@@ -999,20 +1015,26 @@ function ServiceScores({ service, categoryName, categoryTrait, sentimentBy, subP
       <ul className="cat-score-list">
         {rows.map((r) => {
           const s = Math.round((r.score ?? 0) * 100);
-          const band = s >= 90 ? "Excellent" : s >= 80 ? "Great" : s >= 70 ? "Good" : s >= 60 ? "Okay" : s >= 50 ? "Fair" : "Weak";
-          const bandCls = s >= 85 ? "excellent" : s >= 75 ? "verygood" : s >= 65 ? "good" : s >= 55 ? "average" : "poor";
+          const st = getScoreStyle(s);
           return (
             <li key={r.category_no} className="csl-row">
               <div className="csl-top">
                 <span className="csl-no">{String(r.category_no).padStart(2,"0")}</span>
                 <span className="csl-name">{CATEGORY_DISPLAY[r.category_no] ?? r.name}</span>
-                <span className={`csl-band csl-band--${bandCls}`}>{band}</span>
+                <span className={`csl-band csl-band--${st.cls}`} style={badgeStyle(st)}>{st.label}</span>
                 <span className="csl-score">{s}</span>
               </div>
               <div className="csl-bar">
                 <span className="csl-bar-fill" style={{ width: `${s}%` }} />
               </div>
               <span className="csl-blurb">{CATEGORY_BLURB[r.category_no]}</span>
+              <EvidencePanel
+                placeId={placeId}
+                salonName={salonName}
+                query={{ about_sub_service: service.sub_service_code, category_no: r.category_no }}
+                label="Show feedbacks about this service"
+                emptyText="No feedbacks about this service carry this yet."
+              />
             </li>
           );
         })}
@@ -1109,7 +1131,7 @@ function EvidenceList({ placeId, filters, salonName }) {
     consistencyWindow carries the 6m/1y/3y/anytime choice from wherever the
     reader opened the profile from, so every category score and the
     specialism badge match what they were looking at. */
-export function SalonDetail({ salonId, onBack, consistencyWindow = "anytime" }) {
+export function SalonDetail({ salonId, onBack, consistencyWindow = "anytime", weights = null }) {
   const [provider, setProvider] = useState(null);
   const [categories, setCategories] = useState([]);
   const [sentiment, setSentiment] = useState([]);
@@ -1197,13 +1219,6 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "anytime" }) 
             {p.address}
             {p.city && !String(p.address ?? "").includes(p.city) ? ` · ${p.city}` : ""}
           </p>
-          {provider.review_counts?.reviews > 0 && (
-            <p className="detail-counts">
-              <strong>{provider.review_counts.reviews}</strong> feedbacks
-              <span aria-hidden="true"> · </span>
-              <strong>{provider.review_counts.written}</strong> with comments, all read
-            </p>
-          )}
           <div className="detail-chips">
             <PopularServicesBadge data={provider.popular_services} />
             <SpecialismBadge data={provider.specialism} />
@@ -1215,6 +1230,16 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "anytime" }) 
           </div>
         </div>
 
+        {/* The map link lives in the heading: where the salon is, is part of
+            who it is, and it should not need a tab change. */}
+        {p.place_url && (
+          <div className="detail-hero-side">
+            <a href={p.place_url} target="_blank" rel="noopener noreferrer" className="maps-link">
+              <IconPin size={16} />
+              View on Google Maps
+            </a>
+          </div>
+        )}
       </header>
 
       <DonutDefs />
@@ -1222,10 +1247,9 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "anytime" }) 
       {/* ── Tab bar ─────────────────────────────────────────────── */}
       <nav className="detail-tabs" aria-label="Salon sections">
         {[
-          { id: "summary", label: "Summary" },
-          { id: "scores",  label: "Scores by Service" },
+          { id: "summary", label: "Profile information" },
           { id: "feedbacks", label: "Customer Feedbacks" },
-          { id: "info",    label: "Salon Info" },
+          { id: "scores",  label: "Scores by Service" },
         ].map(({ id, label }) => (
           <button
             key={id}
@@ -1262,6 +1286,7 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "anytime" }) 
               subPointBy={subPointBy}
               placeId={salonId}
               filters={filters}
+              salonName={name}
             />
           )}
         </section>
@@ -1270,6 +1295,8 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "anytime" }) 
       {/* ── Summary tab ─────────────────────────────────────────── */}
       {tab === "summary" && (
         <section className="detail-panel">
+          <SalonInformation p={p} gates={gates} />
+
           {/* Overall review sentiment totals */}
           {provider.sentiment_totals && Object.keys(provider.sentiment_totals).length > 0 && (
             <div className="summary-sentiments">
@@ -1287,7 +1314,13 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "anytime" }) 
               so they sit together as a pair above the category findings. */}
           <div className="summary-side-cards">
             <StaffReputation data={provider.staff_reputation} placeId={salonId} />
+            <OverallSalonScore placeId={salonId} window={consistencyWindow} weights={weights} />
             <LanguageMix data={provider.languages} />
+            <ResponsivenessRing
+              replyQuality={replyQuality}
+              subPointBy={subPointBy}
+              checks={subPointsOf(3)}
+            />
           </div>
 
           {/* Smart category cards: what we check, findings, verdict */}
@@ -1307,29 +1340,12 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "anytime" }) 
               const posShare = total ? Math.round((totalPos / (totalPos + totalNeg)) * 100) : null;
 
               // Category 3 is the average of its parts that have evidence, as in the score.
-              let share = posShare;
-              if (no === 3 && replyQuality) {
-                const rq = replyQuality;
-                const sp = rq.specificity ?? {}, st = rq.stance ?? {}, pr = rq.promises ?? {};
-                const nSpec = (sp.specific ?? 0) + (sp.partly ?? 0) + (sp.generic ?? 0);
-                const nSt = (st.accepts ?? 0) + (st.mixed ?? 0) + (st.disputes ?? 0) + (st.neither ?? 0);
-                const tested = (pr.kept ?? 0) + (pr.broken ?? 0);
-                const parts = [
-                  rq.complaints > 0 ? rq.complaints_replied / rq.complaints : null,                      // 3.1
-                  nSpec ? ((sp.specific ?? 0) + 0.5 * (sp.partly ?? 0)) / nSpec : null,                  // 3.2
-                  nSt ? (((st.accepts ?? 0) + 0.75 * (st.mixed ?? 0) + 0.5 * (st.disputes ?? 0)
-                          + 0.25 * (st.neither ?? 0)) / nSt + Math.min(1, (rq.remedy ?? 0) / nSt)) / 2
-                      : null,                                                                            // 3.3
-                  tested ? (pr.kept ?? 0) / tested : null,                                               // 3.4
-                  total ? totalPos / (totalPos + totalNeg) : null,                                       // 3.5
-                ].filter((x) => x != null);
-                share = parts.length ? Math.round((parts.reduce((a, b) => a + b, 0) / parts.length) * 100) : null;
-              }
-              const verdict = share == null ? null
-                : share >= 85 ? { word: "Excellent", cls: "excellent" }
-                : share >= 70 ? { word: "Good", cls: "good" }
-                : share >= 55 ? { word: "Mixed", cls: "average" }
-                : { word: "Needs attention", cls: "poor" };
+              // One shared helper, so this verdict and the ring beside the
+              // staff section can never disagree.
+              const share = no === 3
+                ? responsivenessFigure(replyQuality, totalPos, totalNeg).share
+                : posShare;
+              const verdict = verdictFor(share);
 
               return (
                 <div key={no} className="sum-card">
@@ -1341,7 +1357,7 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "anytime" }) 
                       <span className="sum-card-sub">{CATEGORY_BLURB[no]}</span>
                     </div>
                     {verdict && (
-                      <span className={`sum-verdict sum-verdict--${verdict.cls}`}>{verdict.word}</span>
+                      <span className={`sum-verdict sum-verdict--${verdict.cls}`} style={badgeStyle(verdict)}>{verdict.word}</span>
                     )}
                   </div>
 
@@ -1536,6 +1552,17 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "anytime" }) 
                       );
                     })}
                   </ul>
+
+                  {/* Whole salon: every feedback in this category, whatever
+                      service it is about. The per-service view is on the
+                      Scores by Service tab. */}
+                  <EvidencePanel
+                    placeId={salonId}
+                    salonName={name}
+                    query={{ category_no: no }}
+                    label="Show feedbacks across the salon"
+                    emptyText="No feedbacks carry this for the salon yet."
+                  />
                 </div>
               );
             })}
@@ -1559,55 +1586,6 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "anytime" }) 
         </section>
       )}
 
-      {/* ── Info tab ────────────────────────────────────────────── */}
-      {tab === "info" && (
-        <section className="detail-panel">
-          {p.google_rating != null && (
-            <div className="info-block">
-              <p className="info-label">Google rating</p>
-              <p className="info-value">★ {p.google_rating} <span className="info-sub">({p.google_review_count} customer feedbacks — reference only)</span></p>
-            </div>
-          )}
-          {p.address && (
-            <div className="info-block">
-              <p className="info-label">Address</p>
-              <p className="info-value">{p.address}{p.city && !String(p.address).includes(p.city) ? `, ${p.city}` : ""}</p>
-            </div>
-          )}
-          {p.place_url && (
-            <div className="info-block">
-              <a href={p.place_url} target="_blank" rel="noopener noreferrer" className="maps-link">
-                <IconPin size={16} />
-                View on Google Maps
-              </a>
-            </div>
-          )}
-          {gates.length > 0 && (
-            <div className="info-block">
-              <p className="info-label">Notices</p>
-              {gates.length > 0 && (
-                <ul className="gate-list">
-                  {gates.map((g) => (
-                    <li key={`${g.sub_point_code}-${g.kind}`} className={`gate gate--${g.kind}`}>
-                      <strong>{g.kind} {g.sub_point_code}</strong>
-                      <span>{g.customer_question}</span>
-                      <small>
-                        {g.status}
-                        {g.report_count !== undefined ? ` · ${g.report_count} reports` : ""}
-                        {g.disputed_reports ? ` (${g.disputed_reports} disputed by the owner)` : ""}
-                        {g.expires_on ? ` · expires ${String(g.expires_on).slice(0, 10)}` : ""}
-                      </small>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
-          {gates.length === 0 && !p.google_rating && !p.address && (
-            <p className="subtle">No additional information available.</p>
-          )}
-        </section>
-      )}
 
     </article>
   );
