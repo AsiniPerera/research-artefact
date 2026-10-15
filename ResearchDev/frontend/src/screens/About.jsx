@@ -2,9 +2,9 @@
 import { CATEGORIES } from "../components/WeightLevels";
 import { IconArrow } from "../components/Icons";
 
-/* The eight scored-and-shown categories, taken from the priority panel so the
-   two lists cannot disagree. Category 8, Overall Verdict, is stored but never
-   shown and so is not in CATEGORIES either. */
+/* The seven scored-and-shown categories (six weighted plus Management
+   Response), taken from the priority panel so the two lists cannot disagree.
+   Overall Verdict and Category 9 are not in CATEGORIES. */
 
 /* Images are optional and matched by filename — drop one in and it appears,
    no code change. Same glob the landing page uses, so the two never disagree
@@ -94,11 +94,11 @@ export function About({ onExplore }) {
             4.6-star average flattens a hundred different opinions into one number that
             hides whichever thing you personally care about — whether the colour lasted,
             whether the place was clean, whether the price at the counter matched the price
-            you were quoted. Worse, that number treats four reviews and four hundred as
+            you were quoted. Worse, that number treats four feedbacks and four hundred as
             though they carry equal weight.
           </p>
           <p>
-            So we take reviews apart into individual opinions, attach each one to a named
+            So we take feedbacks apart into individual opinions, attach each one to a named
             category, and rebuild them into a score you control the shape of. What a salon
             is good at, how confident we are about it, and how much you care are three
             separate questions — and they deserve three separate answers rather than one
@@ -119,9 +119,10 @@ export function About({ onExplore }) {
         <p className="about-kicker">The framework</p>
         <h2>What gets measured</h2>
         <p className="about-note">
-          Seven weighted quality categories. The vocabulary is fixed and closed — extraction
+          Six quality categories you weight, plus Management Response, which is shown for
+          information and never ranked. The vocabulary is fixed and closed — extraction
           can only ever return one of these, which is what keeps scores comparable between
-          salons. You set how much each of them counts; none of them is weighted for you.
+          salons. You set how much each of the six counts; none of them is weighted for you.
         </p>
         <ol className="about-cats">
           {CATEGORIES.map(({ no, label: name, tag }) => (
@@ -154,7 +155,7 @@ export function About({ onExplore }) {
               <span className="about-check-body">
                 <strong>It agrees with people</strong>
                 <p>
-                  The reading is checked against the same reviews read by hand. Where
+                  The reading is checked against the same feedbacks read by hand. Where
                   the two disagree too often, that part of the method does not ship.
                 </p>
               </span>

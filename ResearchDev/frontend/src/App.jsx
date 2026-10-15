@@ -410,7 +410,7 @@ export default function App() {
               mode={authMode}
               onSwitch={openAuth}
               onHome={() => go("home")}
-              onSignedIn={(token, user) => { auth.saveSession(token, user); go("home"); }}
+              onSignedIn={(token, user, remember) => { auth.saveSession(token, user, remember); go("home"); }}
             />
           ) : route === "profile" ? (
             <Profile token={auth.token} onSignOut={() => { auth.clearSession(); go("home"); }} />

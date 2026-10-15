@@ -40,10 +40,10 @@ export function StaffReviewsDrawer({ placeId, staffName, onClose }) {
       <aside
         className="staff-drawer is-open"
         role="dialog"
-        aria-label={`Reviews mentioning ${staffName}`}
+        aria-label={`Feedbacks mentioning ${staffName}`}
       >
         <div className="staff-drawer-head">
-          <h3>Reviews mentioning {staffName}</h3>
+          <h3>Feedbacks mentioning {staffName}</h3>
           <button type="button" className="staff-drawer-close" onClick={onClose} aria-label="Close">
             ×
           </button>

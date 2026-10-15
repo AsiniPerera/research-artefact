@@ -3,7 +3,6 @@
    toWeightList (the API call). The review-period control lives in
    QuickFilters.jsx now -- it narrows which reviews are read, it is not a
    priority to weigh. */
-import { useState } from "react";
 import { CATEGORY_INFO } from "../constants/categories";
 
 // `label` is the category's name and `tag` a one-line plain-language gloss
@@ -80,12 +79,6 @@ const LEVELS = [
   { value: 8, label: "Very high", lvl: "excellent" },
 ];
 
-/* Four, then the rest. Seven categories in a 340px rail is still a column of
-   sliders taller than the viewport, and the first thing the page asks of
-   someone becomes a scroll. Four is enough to show what the control IS —
-   a label, a track, a named level — and to make clear there are more. */
-const PREVIEW_COUNT = 4;
-
 const indexOf = (value) => {
   const i = LEVELS.findIndex((l) => l.value === value);
   return i === -1 ? LEVELS.findIndex((l) => l.value === DEFAULT_LEVEL) : i;
@@ -98,60 +91,45 @@ const indexOf = (value) => {
    reviews are read, it is not a priority to weigh. */
 const PANEL_ORDER = [1, 7, 2, 5, 6, 4];
 
+/* One meter per priority: the category's full name and chosen level on one
+   line, four bars beneath, filled up to the level, each bar a button. The
+   names are the same ones the rest of the site uses (constants/categories.js),
+   so a reader meets one vocabulary. Same radio semantics as before (one of
+   four, arrow-key reachable) and the same weights out. */
 export function WeightLevels({ weights, onChange }) {
-  const [showAll, setShowAll] = useState(true);
-  /* Collapsed rows are UNMOUNTED, not hidden. The weights live in the page
-     above, so nothing set is lost by folding them away — and three range
-     inputs left in the tree would keep taking tab stops from a control the
-     visitor has put away. */
   const rows = PANEL_ORDER.map((no) => WEIGHTABLE_CATEGORIES.find((c) => c.no === no)).filter(Boolean);
-  const shown = showAll ? rows : rows.slice(0, PREVIEW_COUNT);
 
   return (
     <>
-      <p className="weight-heading">How important is each to you?</p>
-      <ul className="weight-list">
-        {shown.map((row) => {
-          const { key, label, tag } = row;
-          const options = LEVELS;
+      <p className="meter-heading">How important is each to you?</p>
+      <ul className="meter-list">
+        {rows.map(({ key, label, tag }) => {
           const idx = indexOf(weights[key] ?? DEFAULT_LEVEL);
           const id = `w-${key}`;
-
           return (
-            <li className="weight-row" key={key} data-level={idx + 1}>
-              <div className="weight-head">
-                <label id={`${id}-label`} className="weight-label">{label}</label>
-                <span className="weight-tag">{tag}</span>
+            <li className="meter-row" key={key} title={tag}>
+              <div className="meter-head">
+                <span id={`${id}-label`} className="meter-label">{label}</span>
+                <span className="meter-word" aria-hidden="true">{LEVELS[idx].label}</span>
               </div>
-
-              <div className="lvl-group" role="radiogroup" aria-labelledby={`${id}-label`}>
-                {options.map((l, i) => (
+              <div className="meter" role="radiogroup" aria-labelledby={`${id}-label`}>
+                {LEVELS.map((l, i) => (
                   <button
                     key={l.value}
                     type="button"
                     role="radio"
                     aria-checked={i === idx}
-                    className={`lvl-opt ${i === idx ? "is-on" : ""}`}
-                    data-lvl={l.lvl}
+                    aria-label={l.label}
+                    title={l.label}
+                    className={`meter-seg ${i <= idx ? "is-on" : ""}`}
                     onClick={() => onChange({ ...weights, [key]: l.value })}
-                  >
-                    {l.label}
-                  </button>
+                  />
                 ))}
               </div>
             </li>
           );
         })}
       </ul>
-
-      <button
-        type="button"
-        className="weight-more"
-        aria-expanded={showAll}
-        onClick={() => setShowAll((v) => !v)}
-      >
-        {showAll ? "Show less" : "Show more"}
-      </button>
     </>
   );
 }

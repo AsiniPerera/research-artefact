@@ -26,6 +26,7 @@ const DEFAULT_FILTERS = {
   subService: "",
   city: "",
   availability: "open",
+  audience: "",
 };
 
 export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
@@ -67,15 +68,14 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
   /* The profile shows the badge for the same window as the list it was opened from. */
   const openSalon = (id) => onSelectSalon(id, cwUsed);
 
-  /* Salons just outside the chosen city. The "Nearby areas" toggle by the
-     city filter drives it; off by default, so the normal path never pays for
-     it. Keyed on the SUBMITTED query, not the live filters, so the nearby set
-     always matches the ranked list actually on screen. */
-  const [includeNearby, setIncludeNearby] = useState(false);
+  /* Salons just outside the chosen city. Shown automatically once a city is
+     picked and the list has been ranked; with "All cities" there is no outside
+     to be near, so it stays idle. Keyed on the SUBMITTED query, not the live
+     filters, so the nearby set always matches the ranked list on screen. */
   const [nearby, setNearby] = useState({ status: "idle", data: null, error: null });
 
   useEffect(() => {
-    if (!includeNearby || !submitted?.city || !results) {
+    if (!submitted?.city || !results) {
       setNearby({ status: "idle", data: null, error: null });
       return undefined;
     }
@@ -92,7 +92,7 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
         if (active) setNearby({ status: "error", data: null, error: e.message });
       });
     return () => { active = false; ctrl.abort(); };
-  }, [includeNearby, results, submitted?.city, submitted?.code]);
+  }, [results, submitted?.city, submitted?.code]);
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -178,11 +178,11 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
         <QuickFilters
           filters={filters}
           onChange={setFilters}
-          onReset={() => setFilters({ ...filters, city: "", availability: DEFAULT_FILTERS.availability })}
-          isDefault={!filters.city && filters.availability === DEFAULT_FILTERS.availability}
-          includeNearby={includeNearby}
-          onIncludeNearbyChange={setIncludeNearby}
+          onReset={() => setFilters({ ...filters, city: "", availability: DEFAULT_FILTERS.availability, audience: "" })}
+          isDefault={!filters.city && !filters.audience && filters.availability === DEFAULT_FILTERS.availability}
           consistencyWindow={cw}
+          audience={filters.audience}
+          onAudienceChange={(audience) => setFilters({ ...filters, audience })}
           onConsistencyWindowChange={(v) => setWeights({ ...weights, consistency_window: v })}
         />
       </header>
@@ -195,8 +195,6 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
               <div className="priority-panel-head">
                 <div>
                   <h3>Your priorities</h3>
-                  {/* Priorities reorder ranked salons only — never safety or who is ranked. */}
-                  <p>How much does each one matter to you?</p>
                 </div>
                 <button
                   type="button"
@@ -270,6 +268,7 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
             onSelectSalon={openSalon}
             onSearchAllCities={searchAllCities}
             nearby={nearby}
+            audience={filters.audience}
           />
         </section>
       </div>

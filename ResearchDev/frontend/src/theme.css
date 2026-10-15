@@ -1,0 +1,2515 @@
+/* Light theme, layered over index.css (imported after it in main.jsx).
+
+   index.css was built dark: plum grounds, champagne accent. Most of it reads
+   colour through the tokens below, so redefining them flips the whole app to
+   white grounds, slate type and a near-black accent in one place. Rules that
+   hard-code a dark-theme colour are overridden per screen further down. */
+
+:root {
+  /* Grey ladder standing in for the plum one: 990 is still "deepest", so
+     anything that sat below the page now sits as the faintest grey. */
+  --plum-990: #f2eee8;
+  --plum-950: #ffffff;
+  --plum-900: #ffffff;
+  --plum-850: #ffffff;
+  --plum-800: #ffffff;
+  --plum-700: #e7e2da;
+  --plum-600: #d8d2c8;
+  --plum-500: #9b948a;
+  --plum-400: #6f685f;
+
+  /* The one accent is near-black now, as in the reference. */
+  --champagne-200: #e7e2da;
+  --champagne-300: #262019;
+  --champagne-400: #3b352e;
+  --champagne:     #1c1814;
+  --champagne-600: #262019;
+  --champagne-700: #0b1220;
+
+  --ink:     #1c1814;
+  --ink-800: #262019;
+  --ink-700: #3b352e;
+  --ink-600: #504a42;
+  --body:    #3b352e;
+  --muted:   #6f685f;
+  --faint:   #6f685f;   /* 4.8:1 on white; #9b948a would fail AA */
+
+  --ink-surface:      #ffffff;
+  --ink-surface-deep: #f2eee8;
+
+  --gold:     #1c1814;
+  --gold-600: #262019;
+  --gold-700: #0b1220;
+  --gold-400: #3b352e;
+  --gold-300: #262019;
+  --gold-200: rgba(28, 24, 20, 0.12);
+  --gold-100: rgba(28, 24, 20, 0.07);
+  --gold-50:  rgba(28, 24, 20, 0.04);
+
+  --btn-fill:       #1c1814;
+  --btn-fill-hover: #262019;
+  --btn-ink:        #ffffff;
+
+  --sel-bg:     rgba(28, 24, 20, 0.06);
+  --sel-border: #1c1814;
+  --sel-ink:    #1c1814;
+
+  --field-line:     #d8d2c8;
+  --field-line-lit: #1c1814;
+  --field-bg:       #ffffff;
+  --field-bg-hover: #faf7f3;
+
+  --line:         #e7e2da;
+  --line-soft:    #eeeae3;
+  --line-on-dark: #e7e2da;
+
+  --paper:   #ffffff;
+  --surface: #ffffff;
+  --card:    #ffffff;
+
+  --navy:     #ffffff;
+  --navy-700: #e7e2da;
+  --slate:      #1c1814;
+  --slate-700:  #262019;
+  --accent:     #1c1814;
+  --accent-700: #262019;
+
+  --ok:   #15803d;
+  --warn: #b45309;
+  --bad:  #b91c1c;
+
+  --font-display: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-text:    "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --track-display: -0.02em;
+  --track-eyebrow:  0.12em;
+
+  /* index.css's "luxury glass" layer becomes plain white cards with a hairline. */
+  --lux-glass:       #ffffff;
+  --lux-glass-solid: #ffffff;
+  --lux-hair:        #e7e2da;
+  --lux-hair-strong: #d8d2c8;
+  --lux-lit:         none;
+  --lux-drop:        0 1px 2px rgba(28, 24, 20, 0.04);
+  --lux-glow:        0 1px 2px rgba(28, 24, 20, 0.04);
+  --lux-r:           4px;
+  --lux-metal:       #1c1814;
+
+  --wrap: 1180px;
+}
+
+body { background: #ffffff; color: var(--body); }
+::selection { background: #e7e2da; color: #1c1814; }
+
+/* ── Page grounds ───────────────────────────────────────────── */
+/* index.css paints these dark in several places, one with a hard-coded
+   #170e14 on the landing shell, so they are reset by class pair. */
+.app, .app .shell, .app .shell--landing, .app .page { background: #ffffff; }
+
+/* ── Header ─────────────────────────────────────────────────── */
+/* Prefixed with `.app` so these outrank index.css's `.nav--landing .nav-link`
+   style rules (two classes), which hold pale text meant for a dark bar. */
+.app .nav,
+.app .nav.nav--landing,
+.app .nav.nav--scrolled {
+  margin: 0;
+  top: 0;
+  background: #ffffff;
+  border: 0;
+  border-bottom: 1px solid #e7e2da;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.app .nav .nav-logo, .app .footer .footer-logo { filter: none; opacity: 1; }
+.app .nav .nav-link {
+  color: #504a42;
+  font-size: 0.875rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.app .nav .nav-link:hover,
+.app .nav .nav-link--active,
+.app .nav .nav-link--active:hover { color: #1c1814; }
+.app .nav .nav-link--active::after { background: #1c1814; height: 1px; border-radius: 0; }
+.app .nav .nav-icon-btn,
+.app .nav .nav-search-toggle { color: #1c1814; background: transparent; border-color: transparent; }
+.app .nav .nav-icon-btn:hover,
+.app .nav .nav-search-toggle:hover { background: #f2eee8; }
+
+/* ── Footer ─────────────────────────────────────────────────── */
+.footer {
+  background: #ffffff;
+  border-top: 1px solid #e7e2da;
+  color: #6f685f;
+}
+.footer::before, .footer::after { display: none; }
+.footer-col h4 {
+  color: #1c1814;
+  font-family: var(--font-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+}
+.footer-col button, .footer-blurb { color: #6f685f; }
+.footer-col button:hover { color: #1c1814; }
+.footer-legal { border-top: 1px solid #e7e2da; color: #6f685f; }
+
+/* ── Shared buttons, light ──────────────────────────────────── */
+.btn-primary, .btn-hero {
+  background: #1c1814;
+  color: #ffffff;
+  border: 1px solid #1c1814;
+  border-radius: 2px;
+  box-shadow: none;
+}
+.btn-primary:hover, .btn-hero:hover { background: #262019; color: #ffffff; }
+
+/* ══ Landing ═══════════════════════════════════════════════════
+   Its own `lp-` namespace so none of index.css's old landing rules apply. */
+.lp { background: #ffffff; color: #3b352e; }
+.lp-wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 1.5rem; }
+.lp-section { padding: 6rem 0; }
+.lp-section--grey { background: #ffffff; }
+
+.lp-eyebrow {
+  margin: 0 0 1rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  color: #6f685f;
+}
+.lp-h1 {
+  margin: 0;
+  font-size: clamp(2.5rem, 5vw, 3.75rem);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: #1c1814;
+  text-wrap: balance;
+}
+.lp-h2 {
+  margin: 0;
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: #1c1814;
+}
+.lp-head { margin-bottom: 3rem; }
+.lp-lede { max-width: 32rem; margin: 1.75rem 0 0; font-size: 1rem; line-height: 1.7; color: #504a42; }
+
+.lp-btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.85rem 1.5rem;
+  font: 500 0.875rem/1 var(--font-text);
+  background: #1c1814; color: #ffffff;
+  border: 1px solid #1c1814; border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.15s var(--ease);
+}
+.lp-btn:hover { background: #262019; }
+.lp-btn--outline { background: #ffffff; color: #1c1814; }
+.lp-btn--outline:hover { background: #f2eee8; }
+.lp-link {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0; background: none; border: 0; cursor: pointer;
+  font: 500 0.875rem/1 var(--font-text); color: #1c1814;
+}
+.lp-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+.lp-btn:focus-visible, .lp-link:focus-visible, .lp-card:focus-visible {
+  outline: 2px solid #1c1814; outline-offset: 3px; box-shadow: none;
+}
+
+/* Hero */
+.lp-hero { padding: 4.5rem 0 6rem; }
+.lp-hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+.lp-actions { display: flex; align-items: center; gap: 1.75rem; margin-top: 2.25rem; }
+.lp-stats {
+  display: flex; gap: 3rem;
+  margin: 3rem 0 0; padding-top: 2rem;
+  border-top: 1px solid #e7e2da;
+}
+.lp-stats dd { margin: 0; font-size: 1.75rem; font-weight: 500; color: #1c1814; letter-spacing: -0.02em; }
+.lp-stats dt { margin-top: 0.25rem; font-size: 0.8125rem; color: #6f685f; }
+.lp-stats div { display: flex; flex-direction: column-reverse; }
+.lp-hero-img { aspect-ratio: 1 / 1.04; width: 100%; object-fit: cover; display: block; }
+
+/* Numbered service cards */
+.lp-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1px; background: #e7e2da; border: 1px solid #e7e2da; }
+.lp-card {
+  display: flex; flex-direction: column; align-items: flex-start;
+  padding: 2rem 1.75rem 2.25rem;
+  background: #ffffff; border: 0; text-align: left; cursor: pointer;
+  font: inherit; color: inherit;
+  transition: background 0.15s var(--ease);
+}
+.lp-card:hover { background: #fcfcfd; }
+.lp-card-no { font-size: 2.75rem; font-weight: 300; line-height: 1; color: #9b948a; letter-spacing: -0.02em; }
+.lp-card h3 { margin: 1.75rem 0 0.6rem; font-size: 1.125rem; font-weight: 500; color: #1c1814; }
+.lp-card p { margin: 0; font-size: 0.875rem; line-height: 1.6; color: #6f685f; }
+.lp-card-meta { margin-top: auto; padding-top: 1.5rem; font-size: 0.875rem; color: #1c1814; }
+
+/* Statement + image grid */
+
+/* Why list */
+.lp-why { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+.lp-why img { width: 100%; aspect-ratio: 1.15 / 1; object-fit: cover; display: block; }
+.lp-checks { list-style: none; margin: 2rem 0 0; padding: 0; display: grid; gap: 1.5rem; }
+.lp-checks li { display: grid; grid-template-columns: 1.25rem 1fr; gap: 0.75rem; }
+.lp-checks svg { margin-top: 0.15rem; color: #1c1814; }
+.lp-checks strong { display: block; font-size: 0.9375rem; font-weight: 500; color: #1c1814; }
+.lp-checks span { font-size: 0.875rem; color: #6f685f; }
+
+/* Offers, laid out like the reference's packages */
+.lp-offers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+.lp-offer {
+  position: relative;
+  display: flex; flex-direction: column;
+  padding: 2rem;
+  background: #ffffff; border: 1px solid #e7e2da;
+}
+.lp-offer--featured { border-color: #1c1814; }
+.lp-offer-flag {
+  position: absolute; top: -0.6rem; left: 2rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.625rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+  background: #1c1814; color: #ffffff;
+}
+.lp-offer-tag { font-size: 0.8125rem; color: #6f685f; }
+.lp-offer .lp-offer-amount { margin: 0.5rem 0 0; font-size: 2rem; font-weight: 500; color: #1c1814; letter-spacing: -0.02em; }
+.lp-offer-amount small { font-size: 0.9375rem; font-weight: 400; color: #6f685f; margin-left: 0.25rem; }
+.lp-offer h3 { margin: 1.25rem 0 0.4rem; font-size: 1rem; font-weight: 500; color: #1c1814; }
+.lp-offer p { margin: 0; font-size: 0.875rem; line-height: 1.6; color: #6f685f; }
+.lp-offer .lp-offer-code { margin: 1.25rem 0 1.5rem; font-size: 0.75rem; letter-spacing: 0.06em; color: #3b352e; }
+.lp-offer .lp-btn { margin-top: auto; justify-content: center; width: 100%; }
+
+/* Reviews */
+.lp-reviews { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.lp-review { margin: 0; padding: 1.75rem; background: #ffffff; border: 1px solid #e7e2da; }
+.lp-stars { font-size: 0.8125rem; letter-spacing: 0.15em; color: #1c1814; }
+.lp-review blockquote { margin: 1rem 0 1.25rem; font-size: 0.9375rem; line-height: 1.7; color: #3b352e; }
+.lp-review figcaption { font-size: 0.8125rem; color: #1c1814; }
+.lp-review figcaption span { display: block; margin-top: 0.2rem; color: #6f685f; }
+
+/* Closing CTA */
+.lp-cta { text-align: center; }
+.lp-cta .lp-lede { margin: 1rem auto 2rem; }
+
+/* ══ Explore (Rankings) ═══════════════════════════════════════
+   index.css restates these components in up to six stacked layers, the
+   deepest five classes long, each repainting them plum/champagne/magenta.
+   Out-specifying every layer would mean mirroring all of them, so paint
+   properties here carry !important instead — layout is left to index.css. */
+.app .page-body--explore { background: #ffffff !important; }
+.app .page-body--explore .page-head .eyebrow { color: #6f685f !important; }
+.app .page-body--explore .page-head .eyebrow::before { background: #d8d2c8 !important; }
+.app .page-body--explore .page-head-title {
+  color: #1c1814 !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.025em !important;
+}
+.app .page-body--explore .page-head-title em {
+  font-style: normal !important;
+  color: #1c1814 !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+.app .page-body--explore .page-head--bar { border-color: #e7e2da !important; }
+
+/* Filter bar */
+.app .page-body--explore .qf-field,
+.app .page-body--explore .qf-field:hover,
+.app .page-body--explore .qf-field:focus-within,
+.app .page-body--explore .qf-field:not(:focus-within) {
+  background: #ffffff !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.app .page-body--explore .qf-field:hover { border-color: #9b948a !important; }
+.app .page-body--explore .qf-field:focus-within { border-color: #1c1814 !important; }
+.app .page-body--explore .qf-field::before,
+.app .page-body--explore .qf-field::after { display: none !important; }
+.app .page-body--explore .qf-field-label { color: #6f685f !important; }
+.app .page-body--explore .qf-select-btn { color: #1c1814 !important; background: none !important; }
+.app .page-body--explore .qf-field-icon,
+.app .page-body--explore .qf-select-caret,
+.app .page-body--explore .qf-toggle .filter-toggle-icon { color: #6f685f !important; filter: none !important; }
+.app .page-body--explore .qf-clear { color: #1c1814 !important; }
+.app .qf-menu {
+  background: #ffffff !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 2px !important;
+  box-shadow: 0 8px 24px -12px rgba(28, 24, 20, 0.18) !important;
+  backdrop-filter: none !important;
+}
+.app .qf-menu .qf-opt { color: #3b352e !important; background: transparent !important; }
+.app .qf-menu .qf-opt.is-active { background: #f2eee8 !important; color: #1c1814 !important; }
+.app .qf-menu .qf-opt.is-on { color: #1c1814 !important; font-weight: 600 !important; }
+.app .qf-menu .qf-optgroup { color: #6f685f !important; }
+.app .page-body--explore .toggle-track { background: #d8d2c8 !important; box-shadow: none !important; }
+.app .page-body--explore .toggle input:checked + .toggle-track { background: #1c1814 !important; }
+
+/* Priorities sidebar */
+.app .page-body--explore .sidebar {
+  background: #ffffff !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.app .page-body--explore .sidebar::before,
+.app .page-body--explore .sidebar::after,
+.app .page-body--explore .priority-panel::before,
+.app .page-body--explore .priority-panel::after,
+.app .page-body--explore .sidebar-foot::before,
+.app .page-body--explore .weight-label::before,
+.app .page-body--explore .priority-panel-head h3::before { display: none !important; }
+.app .page-body--explore .priority-panel {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+.app .page-body--explore .priority-panel-head h3 { color: #1c1814 !important; }
+.app .page-body--explore .priority-panel-head p,
+.app .page-body--explore .weight-heading { color: #6f685f !important; }
+.app .page-body--explore .priority-panel-head .btn-text {
+  color: #1c1814 !important;
+  background: #ffffff !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+}
+.app .page-body--explore .priority-panel-head .btn-text:hover { background: #f2eee8 !important; }
+.app .page-body--explore .weight-row,
+.app .page-body--explore .weight-row:focus-within {
+  background: transparent !important;
+  border: 0 !important;
+  border-top: 1px solid #eeeae3 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.app .page-body--explore .weight-row:first-child { border-top: 0 !important; }
+.app .page-body--explore .weight-label { color: #1c1814 !important; }
+.app .page-body--explore .weight-tag { color: #6f685f !important; background: none !important; border: 0 !important; }
+.app .page-body--explore .priority-panel--rail .lvl-opt,
+.app .page-body--explore .priority-panel--rail .lvl-opt[data-lvl] {
+  background: #ffffff !important;
+  color: #504a42 !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+  transform: none !important;
+  text-shadow: none !important;
+}
+.app .page-body--explore .priority-panel--rail .lvl-opt[data-lvl]:hover { border-color: #9b948a !important; color: #1c1814 !important; }
+.app .page-body--explore .priority-panel--rail .lvl-opt[data-lvl].is-on {
+  background: #1c1814 !important;
+  color: #ffffff !important;
+  border-color: #1c1814 !important;
+}
+.app .page-body--explore .priority-panel--rail .lvl-opt::before,
+.app .page-body--explore .priority-panel--rail .lvl-opt::after { display: none !important; }
+.app .page-body--explore .weight-more { color: #1c1814 !important; background: none !important; }
+.app .page-body--explore .sidebar-foot {
+  background: #ffffff !important;
+  border-top: 1px solid #e7e2da !important;
+  box-shadow: none !important;
+}
+.app .page-body--explore .sidebar-foot .btn-primary {
+  background: #1c1814 !important;
+  color: #ffffff !important;
+  border: 1px solid #1c1814 !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+  letter-spacing: 0.02em !important;
+  text-transform: none !important;
+}
+.app .page-body--explore .sidebar-foot .btn-primary:hover:not(:disabled) { background: #262019 !important; }
+.app .page-body--explore .sidebar-foot .btn-primary:disabled {
+  background: #f2eee8 !important;
+  color: #9b948a !important;
+  border-color: #e7e2da !important;
+}
+.app .page-body--explore .rank-note { color: #6f685f !important; }
+
+/* Services bar */
+.app .page-body--explore .svcbar,
+.app .page-body--explore .svcbar-inner { background: transparent !important; box-shadow: none !important; }
+.app .page-body--explore .svcbar-label { color: #6f685f !important; }
+.app .page-body--explore .svcbar-tabs { border-color: #e7e2da !important; }
+.app .page-body--explore .svcbar-tab { color: #504a42 !important; background: none !important; }
+.app .page-body--explore .svcbar-tab:hover,
+.app .page-body--explore .svcbar-tab.is-active,
+.app .page-body--explore .svcbar-tab.is-open { color: #1c1814 !important; }
+.app .page-body--explore .svcbar-tab.is-active::after { background: #1c1814 !important; }
+.app .page-body--explore .svcbar-panel {
+  background: #ffffff !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 2px !important;
+  box-shadow: 0 8px 24px -12px rgba(28, 24, 20, 0.18) !important;
+  backdrop-filter: none !important;
+}
+.app .page-body--explore .svcbar-col-head { color: #1c1814 !important; }
+.app .page-body--explore .svcbar-col button { color: #504a42 !important; background: none !important; }
+.app .page-body--explore .svcbar-col button:hover,
+.app .page-body--explore .svcbar-col button[aria-current],
+.app .page-body--explore .svcbar-col button.is-on { color: #1c1814 !important; background: #f2eee8 !important; }
+
+/* Empty / ready state */
+.app .page-body--explore .empty-state {
+  background: #ffffff !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+.app .page-body--explore .empty-state::before,
+.app .page-body--explore .empty-state::after,
+.app .page-body--explore .empty-state *::before,
+.app .page-body--explore .empty-state *::after { background: none !important; box-shadow: none !important; border-color: transparent !important; }
+.app .page-body--explore .empty-title { color: #1c1814 !important; }
+.app .page-body--explore .empty-state p { color: #6f685f !important; }
+
+/* Results */
+.app .page-body--explore .summary,
+.app .page-body--explore .results-head,
+.app .page-body--explore .results-legend { color: #504a42 !important; }
+.app .page-body--explore .summary strong { color: #1c1814 !important; }
+.app .page-body--explore .info-banner,
+.app .page-body--explore .fallback-notice {
+  background: #ffffff !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 2px !important;
+  color: #3b352e !important;
+  box-shadow: none !important;
+}
+.app .salon-card,
+.app .salon-card.salon-card--dossier,
+.app .salon-card[data-tier] {
+  background: #ffffff !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+.app .salon-card:hover { border-color: #9b948a !important; }
+.app .salon-card::before,
+.app .salon-card::after { display: none !important; }
+.app .salon-card .salon-name { color: #1c1814 !important; }
+.app .salon-card .scd-meta,
+.app .salon-card .scd-score-bench,
+.app .salon-card .scd-chip-label,
+.app .salon-card .scd-chip-tier { color: #6f685f !important; }
+.app .salon-card .scd-score-main { color: #1c1814 !important; background: none !important; -webkit-text-fill-color: currentColor !important; }
+.app .salon-card .scd-cats,
+.app .salon-card .scd-divider { border-color: #eeeae3 !important; }
+.app .salon-card .scd-divider { background: #e7e2da !important; }
+.app .salon-card .scd-chip + .scd-chip::before { background: #eeeae3 !important; }
+/* Band hue: ink for anything fair or better, red only where it is a warning.
+   The old champagne band (#E8D4A8) is ~1.4:1 on white. */
+.app .salon-card .scd-chip[data-band] .scd-chip-num { color: #1c1814 !important; }
+.app .salon-card .scd-chip[data-band="below"] .scd-chip-num,
+.app .salon-card .scd-chip[data-band="poor"] .scd-chip-num { color: #b91c1c !important; }
+.app .salon-card .scd-view {
+  background: #1c1814 !important;
+  color: #ffffff !important;
+  border: 1px solid #1c1814 !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+}
+.app .salon-card .scd-view:hover { background: #262019 !important; }
+.app .salon-card .scd-fav {
+  background: #ffffff !important;
+  color: #1c1814 !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+}
+.app .salon-card .scd-unranked {
+  background: #f2eee8 !important;
+  color: #504a42 !important;
+  border: 0 !important;
+}
+.app .salon-card .scd-advisory { background: #fef2f2 !important; border-color: #fecaca !important; }
+.app .salon-card .scd-advisory-line,
+.app .salon-card .scd-advisory-tag { color: #991b1b !important; }
+.app .salon-card .salon-name {
+  font-family: var(--font-text) !important;
+  font-style: normal !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.015em !important;
+}
+.app .salon-card:hover .salon-name { color: #1c1814 !important; text-decoration: underline; text-underline-offset: 4px; }
+.app .salon-card .scd-meta-city,
+.app .salon-card .scd-meta-kind,
+.app .salon-card .scd-score-pct,
+.app .salon-card .scd-chip-pct,
+.app .salon-card .scd-score-main .scd-score-pct {
+  color: #6f685f !important;
+  background: none !important;
+  -webkit-text-fill-color: #6f685f !important;
+}
+.app .salon-card .scd-view { text-transform: none !important; letter-spacing: 0 !important; font-weight: 500 !important; }
+.app .page-body--explore .legend-ring { border-color: #1c1814 !important; background: none !important; box-shadow: none !important; }
+.app .page-body--explore .svc-path,
+.app .page-body--explore .svc-path * { color: #6f685f !important; }
+
+/* Services nobody has reviewed yet */
+.app .page-body--explore .no-review-section {
+  background: #ffffff !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+.app .page-body--explore .no-review-section h4 { color: #1c1814 !important; }
+.app .page-body--explore .no-review-section--safety h4 { color: #b91c1c !important; }
+.app .page-body--explore .no-review-section p { color: #504a42 !important; }
+.app .page-body--explore .salon-chip {
+  background: #ffffff !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.app .page-body--explore .salon-chip:hover { border-color: #9b948a !important; }
+.app .page-body--explore .salon-chip-name { color: #1c1814 !important; }
+.app .page-body--explore .salon-chip-meta { color: #6f685f !important; }
+.app .page-body--explore .unranked-more { color: #1c1814 !important; }
+
+.app .page-body--explore .page-btn {
+  background: #ffffff !important;
+  color: #3b352e !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+}
+.app .page-body--explore .page-btn--active { background: #1c1814 !important; color: #ffffff !important; border-color: #1c1814 !important; }
+
+/* ══ Shared fixes ═════════════════════════════════════════════
+   Primary buttons across the app: index.css gave them dark labels for a
+   champagne fill. The fill is near-black now, so the label has to flip. */
+.app .btn-primary, .app .btn-hero, .app .auth-submit, .app .promo-cta, .app .scd-view {
+  color: #ffffff;
+  background-image: none;
+}
+.app .btn-primary:hover, .app .btn-hero:hover, .app .auth-submit:hover { color: #ffffff; }
+.app .btn-primary:disabled { color: #9b948a; background: #f2eee8; border-color: #e7e2da; }
+.app .btn-hero-disc { background: rgba(255, 255, 255, 0.16); color: #ffffff; }
+.app .auth-submit { background: #1c1814; border: 1px solid #1c1814; border-radius: 2px; box-shadow: none; }
+.app .auth-submit:hover { background: #262019; }
+.app .auth-switch { color: #504a42; }
+.app .auth-switch button { color: #1c1814; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
+
+/* ══ Salon profile ════════════════════════════════════════════
+   Written in index.css for a dark page: cream text at 25–85% alpha and
+   champagne gold. Both vanish on white, so each is remapped by role:
+   primary / secondary / tertiary ink, and gold becomes ink. */
+.app .salon-detail { color: #3b352e; }
+.app .salon-detail .back-link { color: #1c1814 !important; }
+
+.app .salon-detail .detail-hero {
+  background: #ffffff !important;
+  background-image: none !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+.app .salon-detail .detail-hero::before,
+.app .salon-detail .detail-hero::after { display: none !important; }
+.app .salon-detail .detail-name { color: #1c1814 !important; font-weight: 500 !important; letter-spacing: -0.025em !important; }
+.app .salon-detail .detail-hero .eyebrow { color: #6f685f !important; }
+.app .salon-detail .detail-meta,
+.app .salon-detail .detail-hero p { color: #504a42 !important; }
+.app .salon-detail .detail-chip,
+.app .salon-detail .badge {
+  background: #ffffff !important;
+  color: #3b352e !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+}
+.app .salon-detail .detail-chip--alert { background: #fef2f2 !important; color: #b91c1c !important; border-color: #fecaca !important; }
+.app .salon-detail .maps-link { color: #1c1814 !important; }
+
+/* Tabs */
+.app .salon-detail .detail-tabs { border-bottom: 1px solid #e7e2da !important; background: none !important; }
+.app .salon-detail .detail-tab { color: #6f685f !important; background: none !important; }
+.app .salon-detail .detail-tab:hover { color: #1c1814 !important; }
+.app .salon-detail .detail-tab--active,
+.app .salon-detail .detail-tab.is-active { color: #1c1814 !important; border-bottom-color: #1c1814 !important; }
+.app .salon-detail .detail-tab--active::after { background: #1c1814 !important; }
+.app .salon-detail .detail-panel { background: none !important; border: 0 !important; box-shadow: none !important; }
+
+/* Summary tab */
+.app .salon-detail .summary-sent-chip,
+.app .salon-detail .summary-sent-chip--positive,
+.app .salon-detail .summary-sent-chip--negative,
+.app .salon-detail .summary-sent-chip--mixed,
+.app .salon-detail .summary-sent-chip--neutral,
+.app .salon-detail .summary-sent-chip--mention {
+  background: #ffffff !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+}
+.app .salon-detail .summary-sent-count { color: #1c1814 !important; }
+.app .salon-detail .summary-sent-label { color: #6f685f !important; }
+.app .salon-detail .sum-card {
+  background: #ffffff !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+.app .salon-detail .sum-card-no { color: #9b948a !important; }
+.app .salon-detail .sum-card-title strong,
+.app .salon-detail strong { color: #1c1814 !important; }
+.app .salon-detail .sum-card-sub,
+.app .salon-detail .sum-finding-stat,
+.app .salon-detail .sum-check-right,
+.app .salon-detail .sum-check-blurb,
+.app .salon-detail .sum-check-none { color: #6f685f !important; }
+.app .salon-detail .sum-finding-stat b,
+.app .salon-detail b { color: #1c1814 !important; }
+.app .salon-detail .sum-check-label { color: #262019 !important; }
+.app .salon-detail .sum-check-n { color: #6f685f !important; }
+.app .salon-detail .sum-checks { border-top-color: #eeeae3 !important; }
+.app .salon-detail .sum-finding-bar,
+.app .salon-detail .csl-bar,
+.app .salon-detail .cat-check-meter { background: #ebe6df !important; }
+.app .salon-detail .sum-finding-fill,
+.app .salon-detail .csl-bar-fill,
+.app .salon-detail .cat-check-meter > span { background: #1c1814 !important; }
+.app .salon-detail .sum-verdict,
+.app .salon-detail .csl-band,
+.app .salon-detail .srl-band { border-radius: 2px !important; }
+.app .salon-detail .sum-verdict--excellent,
+.app .salon-detail .csl-band--excellent,
+.app .salon-detail .srl-band--excellent { color: #15803d !important; background: #f0fdf4 !important; border: 1px solid #bbf7d0 !important; }
+.app .salon-detail .sum-verdict--good,
+.app .salon-detail .csl-band--verygood,
+.app .salon-detail .csl-band--good,
+.app .salon-detail .srl-band--verygood,
+.app .salon-detail .srl-band--good { color: #166534 !important; background: #f7fee7 !important; border: 1px solid #d9f99d !important; }
+.app .salon-detail .sum-verdict--average,
+.app .salon-detail .csl-band--average,
+.app .salon-detail .srl-band--average { color: #92400e !important; background: #fffbeb !important; border: 1px solid #fde68a !important; }
+.app .salon-detail .sum-verdict--poor,
+.app .salon-detail .csl-band--poor,
+.app .salon-detail .srl-band--poor { color: #b91c1c !important; background: #fef2f2 !important; border: 1px solid #fecaca !important; }
+.app .salon-detail .sum-check-icon--pos { background: #f0fdf4 !important; color: #15803d !important; }
+.app .salon-detail .sum-check-icon--mix { background: #fffbeb !important; color: #92400e !important; }
+.app .salon-detail .sum-check-icon--neg { background: #fef2f2 !important; color: #b91c1c !important; }
+.app .salon-detail .sum-check-icon--neutral,
+.app .salon-detail .sum-check-icon { background: #f2eee8 !important; color: #6f685f !important; }
+
+/* Staff, language and side cards */
+.app .salon-detail .staff-head,
+.app .salon-detail h3,
+.app .salon-detail h2 { color: #1c1814 !important; }
+.app .salon-detail .info-label { color: #6f685f !important; }
+.app .salon-detail .info-value,
+.app .salon-detail .info-sub { color: #3b352e !important; }
+
+/* Scores by service */
+.app .salon-detail .csl-no { color: #9b948a !important; }
+.app .salon-detail .csl-name,
+.app .salon-detail .csl-score,
+.app .salon-detail .detail-service-name,
+.app .salon-detail .service-group-head { color: #1c1814 !important; }
+.app .salon-detail .csl-blurb,
+.app .salon-detail .detail-service-covers,
+.app .salon-detail .service-group-count,
+.app .salon-detail .detail-note,
+.app .salon-detail .subtle,
+.app .salon-detail .score-label,
+.app .salon-detail .donut-legend,
+.app .salon-detail .donut-legend li { color: #6f685f !important; }
+.app .salon-detail .detail-service {
+  background: #ffffff !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+.app .salon-detail .donut-track { stroke: #ebe6df !important; }
+.app .salon-detail .donut-score { fill: #1c1814 !important; }
+.app .salon-detail .donut-legend-swatch--positive { background: #1c1814 !important; }
+.app .salon-detail .donut-legend-swatch--negative { background: #9b948a !important; }
+
+/* Language bar and staff bars: one ink ramp instead of green and purple */
+.app .salon-detail .language-bar { background: #ebe6df !important; border-radius: 2px !important; }
+.app .salon-detail .language-bar > * { border-radius: 0 !important; }
+.app .salon-detail .language-bar .lang-english { background: #1c1814 !important; }
+.app .salon-detail .language-bar .lang-sinhala { background: #6f685f !important; }
+.app .salon-detail .language-bar .lang-english-sinhala-mix { background: #9b948a !important; }
+.app .salon-detail .language-bar .lang-other { background: #d8d2c8 !important; }
+.app .salon-detail .language-list li { color: #3b352e !important; }
+.app .salon-detail .language-note,
+.app .salon-detail .staff-note,
+.app .salon-detail .staff-counts,
+.app .salon-detail .staff-mentions,
+.app .salon-detail .staff-rate { color: #6f685f !important; }
+.app .salon-detail .staff-name-link { color: #1c1814 !important; }
+.app .salon-detail .staff-bar { background: #ebe6df !important; }
+.app .salon-detail .staff-bar-fill { background: #1c1814 !important; }
+.app .salon-detail .chip-popular-services,
+.app .salon-detail .chip-specialism {
+  background: #f2eee8 !important; color: #3b352e !important; border: 1px solid #e7e2da !important;
+}
+
+/* Reviews */
+.app .salon-detail .chip { background: #ffffff !important; color: #3b352e !important; border: 1px solid #e7e2da !important; border-radius: 2px !important; box-shadow: none !important; }
+.app .salon-detail .chip:hover { border-color: #9b948a !important; }
+.app .salon-detail .chip.is-on { background: #1c1814 !important; color: #ffffff !important; border-color: #1c1814 !important; }
+.app .salon-detail .chip.is-empty { color: #9b948a !important; background: #faf7f3 !important; }
+.app .salon-detail .chip-row-cap { color: #1c1814 !important; }
+.app .salon-detail .chip-row-hint { color: #6f685f !important; }
+.app .salon-detail .evidence-item {
+  background: #ffffff !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+.app .salon-detail .evidence-quote,
+.app .salon-detail .evidence-quote *,
+.app .salon-detail blockquote { color: #3b352e !important; }
+.app .salon-detail .evidence-points,
+.app .salon-detail .evidence-date,
+.app .salon-detail .evidence-reply-who,
+.app .salon-detail .evidence-staff-line-tag { color: #6f685f !important; }
+.app .salon-detail .evidence-staff-line-name { color: #1c1814 !important; }
+.app .salon-detail .evidence-reply { background: #ffffff !important; border-color: #e7e2da !important; }
+.app .salon-detail .evidence-more,
+.app .salon-detail .btn-text { color: #1c1814 !important; }
+.app .salon-detail .polarity-pill { background: #f2eee8 !important; color: #3b352e !important; border: 0 !important; }
+.app .salon-detail .polarity-pill--positive { background: #f0fdf4 !important; color: #15803d !important; }
+.app .salon-detail .polarity-pill--negative { background: #fef2f2 !important; color: #b91c1c !important; }
+.app .salon-detail .cat-drawer { background: #ffffff !important; border-color: #e7e2da !important; }
+.app .salon-detail .cat-check-label { color: #262019 !important; }
+.app .salon-detail .cat-check-blurb,
+.app .salon-detail .cat-check-n,
+.app .salon-detail .cat-drawer-head,
+.app .salon-detail .cat-drawer-more,
+.app .salon-detail .cat-pool-summary { color: #6f685f !important; }
+.app .salon-detail .range-bar-band { background: #d8d2c8 !important; }
+.app .salon-detail .range-bar-mark { background: #1c1814 !important; }
+
+/* ══ About ════════════════════════════════════════════════════ */
+.app .about { color: #3b352e; }
+.app .about-hero,
+.app .about-hero::before,
+.app .about-hero::after,
+.app .about-section,
+.app .about-split,
+.app .about-cta {
+  background: transparent !important;
+  background-image: none !important;
+  border-color: #e7e2da !important;
+  box-shadow: none !important;
+}
+.app .about-section,
+.app .about-split { border: 1px solid #e7e2da !important; border-radius: 4px !important; }
+.app .about-section::before, .app .about-section::after,
+.app .about-split::before, .app .about-split::after { display: none !important; }
+.app .about h1,
+.app .about h2,
+.app .about-hero-copy h1,
+.app .about-cta h2 {
+  color: #1c1814 !important;
+  font-family: var(--font-text) !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.025em !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+.app .about h1 em, .app .about h2 em, .app .about-accent, .app .about-accent * {
+  color: #6f685f !important;
+  font-style: normal !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+.app .about-kicker,
+.app .editorial-eyebrow,
+.app .about .eyebrow { color: #6f685f !important; }
+.app .about-kicker::before,
+.app .editorial-eyebrow::before { background: #d8d2c8 !important; }
+.app .about p,
+.app .about-lede,
+.app .about-note,
+.app .about-hero .about-lede { color: #504a42 !important; }
+.app .about p strong, .app .about-lede strong, .app .about-lede b, .app .about p b { color: #1c1814 !important; }
+.app .about-lede a, .app .about p a { color: #1c1814 !important; text-decoration: underline; text-underline-offset: 3px; }
+.app .about-hero-copy .about-lede { border-left-color: #e7e2da !important; }
+.app .about-cats li,
+.app .about-cats li:hover {
+  background: #ffffff !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+.app .about-cat-no,
+.app .about-check-no { color: #9b948a !important; font-style: normal !important; }
+.app .about-cats li::before, .app .about-cats li::after { display: none !important; }
+.app .about-cat-no::after { background: #d8d2c8 !important; }
+.app .about-cat-no, .app .about-check-no { color: #6f685f !important; }
+
+/* The "BEAUTY" poster: its plum band becomes warm sand, the lettering ink. */
+.app .poster { background: #efe4d7 !important; border: 1px solid #e2d3c2 !important; box-shadow: none !important; }
+.app .poster-bar { background: #efe4d7 !important; }
+.app .poster-layer--fill b {
+  background: none !important;
+  -webkit-background-clip: border-box !important;
+  background-clip: border-box !important;
+  color: #3d2f27 !important;
+  -webkit-text-fill-color: #3d2f27 !important;
+}
+.app .poster-layer--line b { -webkit-text-stroke-color: #ffffff !important; }
+.app .poster-side { color: #ffffff !important; }
+.app .about-cat-body strong { color: #1c1814 !important; }
+.app .about-cat-body span { color: #6f685f !important; font-style: normal !important; }
+.app .about-checks li { border-top-color: #e7e2da !important; }
+.app .about-check-body strong { color: #1c1814 !important; }
+.app .about-checks p { color: #504a42 !important; }
+.app .about-check-no { background: #ffffff !important; border: 1px solid #e7e2da !important; border-radius: 50% !important; }
+.app .about-cta { text-align: center; }
+
+/* ══ Profile (signed-out / error panel) ═══════════════════════ */
+.app .pf-page, .app .pf-empty { background: #ffffff !important; background-image: none !important; color: #3b352e !important; box-shadow: none !important; }
+.app .pf-empty { border: 1px solid #e7e2da !important; border-radius: 4px !important; }
+.app .pf-empty p { color: #504a42 !important; }
+.app .pf-signout {
+  background: #1c1814 !important; color: #ffffff !important;
+  border: 1px solid #1c1814 !important; border-radius: 2px !important; box-shadow: none !important;
+}
+
+/* ══ Header icon menus (bell, account) and the mobile drawer ══
+   index.css made these translucent glass over a dark page: on white they
+   became grey and their cream text vanished. Solid white, hairline border. */
+.app .nav-menu,
+.app .nav-drawer {
+  background: #ffffff !important;
+  background-image: none !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 4px !important;
+  box-shadow: 0 12px 32px -16px rgba(28, 24, 20, 0.25) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: #3b352e !important;
+}
+.app .nav-drawer { border-radius: 0 !important; }
+.app .nav-menu-label { color: #6f685f !important; }
+.app .nav-menu-user { color: #1c1814 !important; }
+.app .nav-menu-user span { color: #6f685f !important; }
+.app .nav-menu button,
+.app .nav-drawer a,
+.app .nav-drawer button:not(.btn-hero) {
+  background: transparent !important;
+  color: #1c1814 !important;
+  border-radius: 2px !important;
+}
+.app .nav-menu button:hover,
+.app .nav-drawer a:hover,
+.app .nav-drawer button:not(.btn-hero):hover { background: #f2eee8 !important; color: #1c1814 !important; }
+.app .nav-menu button svg { color: #6f685f !important; }
+.app .nav-menu-empty-icon { color: #6f685f !important; background: #f2eee8 !important; border-color: #e7e2da !important; }
+.app .nav-menu-empty-title { color: #1c1814 !important; }
+.app .nav-menu-empty p, .app .nav-menu-empty p:last-child { color: #6f685f !important; }
+.app .nav-drawer-label { color: #6f685f !important; }
+.app .nav-drawer-link--active { color: #1c1814 !important; font-weight: 600 !important; }
+.app .nav-drawer-scrim.is-open { background: rgba(28, 24, 20, 0.35) !important; }
+.app .nav-icon-btn--on { background: #f2eee8 !important; }
+.app .nav-badge { background: #1c1814 !important; color: #ffffff !important; }
+.app .nav-burger span { background: #1c1814 !important; }
+
+/* ══ Contact — white ═══════════════════════════════════════════
+   Warm cream ground, sand cards, one tan accent. Text is deep brown, never
+   black: on the sand card (#ffffff) the body brown measures ~9:1 and the
+   muted brown ~5:1, both above AA. The old plum cards are repainted
+   rather than hidden, so layout stays exactly as index.css built it. */
+.app:has(.contactpage) {
+  --cp-ground:   #ffffff;
+  --cp-plum:     #ffffff;
+  --cp-hair:     #e7e2da;
+  --cp-hair-lit: #d8d2c8;
+  --cp-rule:     #d8d2c8;
+  --cp-rule-lit: #8c6a50;
+}
+.app:has(.contactpage),
+.app:has(.contactpage) .shell,
+.app:has(.contactpage) .page,
+.app:has(.contactpage) main,
+.app:has(.contactpage) .contactpage { background: #ffffff !important; color: #3b352e !important; }
+.app:has(.contactpage) .nav,
+.app:has(.contactpage) .nav.nav--scrolled { background: #ffffff !important; border-bottom-color: #e7e2da !important; }
+.app:has(.contactpage) .contactpage::before,
+.app:has(.contactpage) .contactpage::after,
+.contactpage .cp-intro::before,
+.contactpage .cp-intro::after,
+.contactpage .cp-mosaic::before,
+.contactpage .cp-intro-media::before { background: none !important; }
+
+/* Intro */
+.contactpage .cp-intro-kicker,
+.contactpage .about-kicker { color: #6f685f !important; }
+.contactpage .cp-intro-kicker::before,
+.contactpage .about-kicker::before { background: #d8d2c8 !important; }
+.contactpage .cp-intro-title,
+.contactpage .cp-intro-title span { color: #1c1814 !important; font-weight: 500 !important; letter-spacing: -0.025em !important; }
+.contactpage .cp-intro-accent,
+.contactpage .cp-intro-accent em {
+  color: #6f685f !important;
+  font-style: normal !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  animation: none !important;
+}
+.contactpage .cp-intro-lede { color: #504a42 !important; }
+.contactpage .cp-intro-facts li { color: #504a42 !important; }
+.contactpage .cp-intro-facts span { color: #6f685f !important; }
+.contactpage .cp-mosaic svg { filter: none !important; }
+.contactpage .cp-mosaic-edge { stroke: rgba(28, 24, 20, .25) !important; }
+
+/* Cards */
+.contactpage .cp-card,
+.contactpage .cp-details,
+.contactpage .cp-card:hover {
+  background: #ffffff !important;
+  background-image: none !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.contactpage .cp-card::before,
+.contactpage .cp-card::after,
+.contactpage .cp-details::before,
+.contactpage .cp-details::after { display: none !important; }
+.contactpage .cp-card-title,
+.contactpage .cp-details-name { color: #1c1814 !important; font-weight: 500 !important; background: none !important; -webkit-text-fill-color: currentColor !important; }
+.contactpage .cp-card-kicker { color: #6f685f !important; }
+.contactpage .cp-card-sub,
+.contactpage .cp-block p,
+.contactpage .cp-done p { color: #6f685f !important; }
+
+/* Form fields */
+.contactpage .cp-field span,
+.contactpage .cp-optional,
+.contactpage .cp-char-count { color: #6f685f !important; }
+.contactpage .cp-field:focus-within span { color: #1c1814 !important; }
+.contactpage .cp-field input,
+.contactpage .cp-field select,
+.contactpage .cp-field textarea,
+.contactpage .cp-card input,
+.contactpage .cp-card textarea,
+.contactpage .cp-card select {
+  background: transparent !important;
+  color: #1c1814 !important;
+  border: 0 !important;
+  border-bottom: 1px solid #d8d2c8 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.contactpage .cp-field input::placeholder,
+.contactpage .cp-field textarea::placeholder { color: #6f685f !important; }
+.contactpage .cp-field input:hover,
+.contactpage .cp-field textarea:hover { border-bottom-color: #9b948a !important; }
+.contactpage .cp-field input:focus,
+.contactpage .cp-field input:focus-visible,
+.contactpage .cp-field textarea:focus,
+.contactpage .cp-field textarea:focus-visible { border-bottom-color: #1c1814 !important; outline: none !important; box-shadow: none !important; }
+.contactpage .cp-field--err input,
+.contactpage .cp-field--err textarea { border-bottom-color: #b45309 !important; }
+.contactpage .cp-field-error,
+.contactpage .auth-error { color: #9a3412 !important; }
+
+/* Topic dropdown (the shared SelectMenu, restyled for this page) */
+.contactpage .cp-select .qf-field,
+.contactpage .cp-select .qf-field:hover,
+.contactpage .cp-select .qf-field:focus-within {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+.contactpage .cp-select .qf-field-label { color: #6f685f !important; }
+.contactpage .cp-select .qf-select-btn,
+.contactpage .cp-select .qf-select-btn:hover {
+  background: transparent !important;
+  color: #1c1814 !important;
+  border: 0 !important;
+  border-bottom: 1px solid #d8d2c8 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.contactpage .cp-select .qf-select-btn[aria-expanded="true"] { border-bottom-color: #1c1814 !important; }
+.contactpage .cp-select .qf-select-caret { color: #6f685f !important; }
+.contactpage .cp-select .qf-menu {
+  background: #ffffff !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 4px !important;
+  box-shadow: 0 8px 24px -12px rgba(28, 24, 20, 0.18) !important;
+}
+.contactpage .cp-select .qf-opt { color: #3b352e !important; }
+.contactpage .cp-select .qf-opt.is-active { background: #ffffff !important; color: #1c1814 !important; }
+.contactpage .cp-select .qf-opt.is-on { color: #1c1814 !important; font-weight: 600 !important; }
+
+/* Send button */
+.contactpage .cp-send,
+.contactpage .btn-hero.cp-send {
+  background: #1c1814 !important;
+  color: #ffffff !important;
+  border: 1px solid #1c1814 !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+  background-image: none !important;
+}
+.contactpage .cp-send:hover { background: #262019 !important; border-color: #262019 !important; color: #ffffff !important; }
+.contactpage .cp-send:disabled { background: #f2eee8 !important; border-color: #f2eee8 !important; color: #9b948a !important; }
+.contactpage .cp-send .btn-hero-disc { background: rgba(255, 255, 255, 0.18) !important; color: #ffffff !important; }
+
+/* Details card */
+.contactpage .cp-details-mark { stroke: rgba(28, 24, 20, .12) !important; }
+.contactpage .cp-details-mark .is-faint { stroke: rgba(28, 24, 20, .06) !important; }
+.contactpage .cp-rows li { border-top-color: #e7e2da !important; }
+.contactpage .cp-row-icon {
+  background: #ffffff !important;
+  border: 1px solid #d8d2c8 !important;
+  color: #6f685f !important;
+  box-shadow: none !important;
+}
+.contactpage .cp-row-body *,
+.contactpage .cp-block h3 { color: #6f685f !important; }
+.contactpage .cp-row-body strong,
+.contactpage .cp-row-body a,
+.contactpage .cp-block a { color: #1c1814 !important; }
+.contactpage .cp-row-body a:hover,
+.contactpage .cp-block a:hover { color: #1c1814 !important; }
+.contactpage .cp-social a {
+  background: #ffffff !important;
+  border: 1px solid #d8d2c8 !important;
+  color: #504a42 !important;
+}
+.contactpage .cp-social a:hover { background: #1c1814 !important; border-color: #1c1814 !important; color: #ffffff !important; }
+
+/* Confirmation state */
+.contactpage .cp-done h2 { color: #1c1814 !important; }
+.contactpage .btn-text { color: #1c1814 !important; }
+
+/* Footer carries the same ground on this route */
+.app:has(.contactpage) .footer {
+  background: #ffffff !important;
+  border-top: 1px solid #e7e2da !important;
+}
+.app:has(.contactpage) .footer .footer-blurb,
+.app:has(.contactpage) .footer .footer-col button,
+.app:has(.contactpage) .footer .footer-legal { color: #6f685f !important; }
+.app:has(.contactpage) .footer .footer-col h4 { color: #1c1814 !important; }
+.app:has(.contactpage) .footer .footer-col button:hover { color: #1c1814 !important; }
+.app:has(.contactpage) .footer .footer-legal { border-top-color: #e7e2da !important; }
+
+@media (max-width: 900px) {
+  .lp-section { padding: 4rem 0; }
+  .lp-hero { padding: 2.5rem 0 4rem; }
+  .lp-hero-grid, .lp-why { grid-template-columns: 1fr; gap: 2.5rem; }
+  .lp-offers, .lp-reviews { grid-template-columns: 1fr; }
+  .lp-stats { gap: 2rem; }
+}
+
+/* ══ Contact: layout and fields ═══════════════════════════════
+   The form is the primary surface (white, bordered); the details card is
+   secondary (grey, borderless) and stays as tall as its content instead of
+   stretching beside the form with a gap in the middle. Fields are boxed with
+   the label above, so each target is visible before it is focused. */
+.app .contactpage .cp-body {
+  align-items: start !important;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) !important;
+  max-width: 1180px;
+}
+.app .contactpage .cp-card {
+  background: #ffffff !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 6px !important;
+  box-shadow: 0 1px 2px rgba(28, 24, 20, 0.04) !important;
+  padding: clamp(1.75rem, 3.2vw, 2.75rem) !important;
+}
+.app .contactpage .cp-details {
+  background: #ffffff !important;
+  border: 1px solid #eeeae3 !important;
+  border-radius: 6px !important;
+  align-self: start;
+  position: sticky;
+  top: 5.5rem;
+}
+.app .contactpage .cp-details-mark { display: none !important; }
+.app .contactpage .cp-card-title { font-size: 1.5rem !important; letter-spacing: -0.02em !important; }
+.app .contactpage .cp-card-sub { max-width: 34rem; margin-top: 0.4rem !important; font-size: 0.9375rem !important; }
+
+.app .contactpage .cp-form { gap: 1.4rem 1.25rem !important; margin-top: 2rem !important; }
+.app .contactpage .cp-field-wrap--wide,
+.app .contactpage .cp-form > .auth-error,
+.app .contactpage .cp-form-foot { grid-column: 1 / -1; }
+
+.app .contactpage .cp-field span:first-child,
+.app .contactpage .cp-select .qf-field-label {
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: #3b352e !important;
+}
+.app .contactpage .cp-optional { color: #6f685f !important; font-weight: 400 !important; }
+
+.app .contactpage .cp-field input,
+.app .contactpage .cp-field textarea,
+.app .contactpage .cp-card input,
+.app .contactpage .cp-card textarea,
+.app .contactpage .cp-select .qf-select-btn,
+.app .contactpage .cp-select .qf-select-btn:hover {
+  background: #ffffff !important;
+  border: 1px solid #d8d2c8 !important;
+  border-radius: 4px !important;
+  padding: 0 0.9rem !important;
+  min-height: 3rem;
+  font-size: 0.9375rem !important;
+  color: #1c1814 !important;
+  box-shadow: none !important;
+  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease) !important;
+}
+.app .contactpage .cp-field textarea { padding: 0.8rem 0.9rem !important; min-height: 9rem; line-height: 1.6; resize: vertical; }
+.app .contactpage .cp-field input:hover,
+.app .contactpage .cp-field textarea:hover,
+.app .contactpage .cp-select .qf-select-btn:hover { border-color: #9b948a !important; }
+.app .contactpage .cp-field input:focus,
+.app .contactpage .cp-field input:focus-visible,
+.app .contactpage .cp-field textarea:focus,
+.app .contactpage .cp-field textarea:focus-visible,
+.app .contactpage .cp-select .qf-select-btn[aria-expanded="true"],
+.app .contactpage .cp-select .qf-select-btn:focus-visible {
+  border-color: #1c1814 !important;
+  box-shadow: 0 0 0 3px rgba(28, 24, 20, 0.08) !important;
+  outline: none !important;
+}
+.app .contactpage .cp-field--err input,
+.app .contactpage .cp-field--err textarea { border-color: #b91c1c !important; }
+.app .contactpage .cp-field--err input:focus,
+.app .contactpage .cp-field--err textarea:focus { box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.1) !important; }
+.app .contactpage .cp-field-error { color: #b91c1c !important; font-size: 0.8125rem; margin: 0.4rem 0 0; }
+.app .contactpage .cp-char-count { text-align: right; margin: 0.4rem 0 0; font-size: 0.75rem; color: #6f685f !important; }
+.app .contactpage .cp-select .qf-field { padding: 0 !important; gap: 0.5rem !important; flex-direction: column !important; align-items: stretch !important; }
+.app .contactpage .cp-select .qf-select-btn { width: 100%; justify-content: space-between; display: flex; align-items: center; }
+
+/* Submit row */
+.app .contactpage .cp-form-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.4rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eeeae3;
+}
+.app .contactpage .cp-form-note {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  margin: 0; font-size: 0.8125rem; color: #6f685f !important;
+}
+.app .contactpage .cp-send { margin: 0 !important; justify-self: auto !important; }
+
+/* Details card: quieter rows, no heavy badges */
+.app .contactpage .cp-details-name { font-size: 1.5rem !important; letter-spacing: -0.02em !important; }
+.app .contactpage .cp-rows li { padding: 1.1rem 0 !important; }
+.app .contactpage .cp-row-icon { background: #ffffff !important; border-color: #e7e2da !important; color: #3b352e !important; }
+.app .contactpage .cp-social { margin: 1.5rem 0 0 !important; }
+.app .contactpage .cp-social a { background: #ffffff !important; border: 1px solid #e7e2da !important; color: #3b352e !important; }
+.app .contactpage .cp-social a:hover { background: #1c1814 !important; border-color: #1c1814 !important; color: #ffffff !important; }
+
+@media (max-width: 900px) {
+  .app .contactpage .cp-body { grid-template-columns: 1fr !important; }
+  .app .contactpage .cp-details { position: static; }
+}
+@media (max-width: 560px) {
+  .app .contactpage .cp-form { grid-template-columns: 1fr !important; }
+  .app .contactpage .cp-form-foot { flex-direction: column-reverse; align-items: stretch; }
+  .app .contactpage .cp-send { width: 100%; justify-content: center; }
+}
+
+/* ══ Bronze buttons ═══════════════════════════════════════════
+   Primary actions and selected states take the bronze from the reference:
+   copper to tan, white label. The gradient is held between #9c6942 and
+   #82543a so white text stays above 4.5:1 along its whole length (the
+   reference's lighter tan would sit near 3:1 under small type). Ink stays
+   for text and for the thin rules; only fills change. */
+:root {
+  --bronze:       linear-gradient(135deg, #9c6942 0%, #82543a 100%);
+  --bronze-hover: linear-gradient(135deg, #8a5a38 0%, #6e472f 100%);
+  --bronze-solid: #8a5a38;
+}
+.app .btn-primary:not(:disabled),
+.app .btn-hero,
+.app .auth-submit,
+.app .promo-cta,
+.app .lp-btn:not(.lp-btn--outline),
+.app .salon-card .scd-view,
+.app .page-body--explore .sidebar-foot .btn-primary:not(:disabled),
+.app .pf-signout,
+.app .nav-drawer .btn-hero,
+.contactpage .cp-send:not(:disabled),
+.app .contactpage .cp-send:not(:disabled),
+.app .lp-offer-flag,
+.app .nav-badge {
+  background: var(--bronze) !important;
+  background-color: var(--bronze-solid) !important;
+  border-color: #82543a !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+.app .btn-primary:not(:disabled):hover,
+.app .btn-hero:hover,
+.app .auth-submit:hover,
+.app .promo-cta:hover,
+.app .lp-btn:not(.lp-btn--outline):hover,
+.app .salon-card .scd-view:hover,
+.app .page-body--explore .sidebar-foot .btn-primary:not(:disabled):hover,
+.app .pf-signout:hover,
+.contactpage .cp-send:not(:disabled):hover,
+.app .contactpage .cp-send:not(:disabled):hover {
+  background: var(--bronze-hover) !important;
+  background-color: #6e472f !important;
+  border-color: #6e472f !important;
+  color: #ffffff !important;
+}
+/* Outline variant: bronze rule and label on white */
+.app .lp-btn--outline { border-color: #9c6942 !important; color: #82543a !important; background: #ffffff !important; }
+.app .lp-btn--outline:hover { background: #faf5f0 !important; }
+
+/* Selected states */
+.app .page-body--explore .priority-panel--rail .lvl-opt[data-lvl].is-on,
+.app .page-body--explore .page-btn--active,
+.app .salon-detail .chip.is-on {
+  background: var(--bronze) !important;
+  background-color: var(--bronze-solid) !important;
+  border-color: #82543a !important;
+  color: #ffffff !important;
+}
+.app .page-body--explore .toggle input:checked + .toggle-track { background: var(--bronze-solid) !important; }
+.app .contactpage .cp-social a:hover,
+.app .contactpage .cp-social a:hover svg { background: var(--bronze-solid) !important; border-color: var(--bronze-solid) !important; color: #ffffff !important; }
+
+/* Focus ring that goes with it */
+.app .btn-primary:focus-visible, .app .btn-hero:focus-visible, .app .lp-btn:focus-visible,
+.app .auth-submit:focus-visible, .app .scd-view:focus-visible {
+  outline: 2px solid #9c6942 !important; outline-offset: 3px !important;
+}
+
+/* ══ Button corner radius ═════════════════════════════════════
+   Main actions are pills, as in the reference; small controls that sit in
+   rows (importance levels, page numbers, filter chips) use 8px so a row of
+   them still reads as a row, not as a string of lozenges. */
+:root { --r-pill: 999px; --r-ctl: 8px; }
+.app .btn-primary,
+.app .btn-hero,
+.app .auth-submit,
+.app .promo-cta,
+.app .lp-btn,
+.app .salon-card .scd-view,
+.app .salon-card .scd-fav,
+.app .page-body--explore .sidebar-foot .btn-primary,
+.app .page-body--explore .priority-panel-head .btn-text,
+.app .pf-signout,
+.app .nav-drawer .btn-hero,
+.app .contactpage .cp-send,
+.contactpage .cp-send,
+.app .lp-offer-flag,
+.app .qf-field,
+.app .page-body--explore .qf-field,
+.app .page-body--explore .qf-field:hover,
+.app .page-body--explore .qf-field:focus-within,
+.app .page-body--explore .qf-field:not(:focus-within) {
+  border-radius: var(--r-pill) !important;
+}
+.app .page-body--explore .priority-panel--rail .lvl-opt,
+.app .page-body--explore .priority-panel--rail .lvl-opt[data-lvl],
+.app .page-body--explore .page-btn,
+.app .salon-detail .chip,
+.app .salon-detail .detail-chip,
+.app .salon-detail .badge,
+.app .salon-card .scd-unranked,
+.app .page-body--explore .salon-chip,
+.app .chip {
+  border-radius: var(--r-ctl) !important;
+}
+.app .page-body--explore .page-btn { min-width: 2.25rem; }
+/* The pill's label needs room: a pill with 2px of side padding looks pinched. */
+.app .btn-primary, .app .btn-hero, .app .auth-submit, .app .lp-btn { padding-left: 1.6rem; padding-right: 1.6rem; }
+.app .salon-card .scd-view { padding-left: 1.25rem; padding-right: 1.25rem; }
+.app .btn-hero { padding-right: 0.5rem; }
+
+/* ══ Sign in / Sign up ════════════════════════════════════════
+   The labels were screen-reader-only and the placeholder doubled as the
+   label, in cream at 30% alpha: invisible on white. Labels are real and
+   visible now, fields are boxed like the Contact form, and the legal line
+   is ink-grey. */
+.app .auth-field-label {
+  position: static !important; width: auto !important; height: auto !important;
+  clip: auto !important; overflow: visible !important; white-space: normal !important;
+  display: block; margin: 0 0 0.45rem;
+  font-size: 0.8125rem; font-weight: 500; letter-spacing: 0; text-transform: none;
+  color: #3b352e !important;
+}
+.app .auth-fields { gap: 1.1rem !important; }
+.app .auth-field-control input {
+  min-height: 3rem;
+  padding: 0 2.75rem 0 0.9rem !important;
+  background: #ffffff !important;
+  border: 1px solid #d8d2c8 !important;
+  border-radius: 4px !important;
+  font-size: 0.9375rem !important;
+  color: #1c1814 !important;
+  box-shadow: none !important;
+}
+.app .auth-field-control input::placeholder { color: #6f685f !important; opacity: 1; }
+.app .auth-field-control input:hover { border-color: #9b948a !important; }
+.app .auth-field-control input:focus,
+.app .auth-field-control input:focus-visible {
+  border-color: #1c1814 !important;
+  box-shadow: 0 0 0 3px rgba(28, 24, 20, 0.08) !important;
+  outline: none !important;
+}
+.app .auth-field-control.has-error input { border-color: #b91c1c !important; }
+.app .auth-field-control.has-error input:focus { box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.1) !important; }
+.app .auth-field-control, .app .auth-field-control:focus-within { background: none !important; border: 0 !important; box-shadow: none !important; }
+.app .auth-field-error { color: #b91c1c !important; }
+.app .auth-pw-toggle { color: #6f685f !important; right: 0.5rem; }
+.app .auth-pw-toggle:hover { color: #1c1814 !important; }
+.app .auth-forgot { color: #3b352e !important; text-decoration: underline; text-underline-offset: 3px; }
+.app .auth-forgot:hover { color: #1c1814 !important; }
+.app .auth-title { color: #1c1814 !important; }
+.app .auth-sub { color: #6f685f !important; }
+.app .auth-or { color: #6f685f !important; }
+.app .auth-terms { color: #6f685f !important; font-size: 0.75rem !important; }
+.app .auth-terms button { color: #1c1814 !important; text-decoration: underline; text-underline-offset: 2px; background: none !important; }
+.app .auth-terms button:hover { color: #82543a !important; }
+.app .auth-pw-label { color: #6f685f !important; }
+.app .auth-switch { color: #504a42 !important; }
+
+/* Placeholders anywhere: 4.8:1 on white (the old #9b948a was 2.5:1). */
+.app input::placeholder, .app textarea::placeholder { color: #6f685f !important; opacity: 1; }
+.app .nav-search input[type="search"],
+.app .nav-drawer-search input { color: #1c1814 !important; }
+.app .nav-search.is-open input[type="search"] { border-bottom-color: #d8d2c8 !important; }
+.app .nav-search.is-open:focus-within input[type="search"] { border-bottom-color: #1c1814 !important; }
+.app .nav-search input[type="search"]::placeholder { color: #6f685f !important; }
+
+/* ══ Salon finish for the bronze buttons ══════════════════════
+   Warm copper-bronze with a soft top highlight and a champagne hairline,
+   like brass salon fittings: neutral between a barbershop and a beauty
+   bar. Every button reads these three variables, so a different palette is
+   a three-line change. White labels stay above 4.5:1 along the gradient. */
+:root {
+  --bronze:       linear-gradient(160deg, #9c6942 0%, #8b5a3a 55%, #774b31 100%);
+  --bronze-hover: linear-gradient(160deg, #8a5a38 0%, #7a4c31 55%, #653f29 100%);
+  --bronze-solid: #8b5a3a;
+  --bronze-edge:  #d9b382;
+}
+.app .btn-primary:not(:disabled),
+.app .btn-hero,
+.app .auth-submit,
+.app .promo-cta,
+.app .lp-btn:not(.lp-btn--outline),
+.app .salon-card .scd-view,
+.app .page-body--explore .sidebar-foot .btn-primary:not(:disabled),
+.app .pf-signout,
+.app .nav-drawer .btn-hero,
+.app .contactpage .cp-send:not(:disabled),
+.contactpage .cp-send:not(:disabled) {
+  border: 1px solid rgba(217, 179, 130, 0.55) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.12),
+    0 10px 22px -12px rgba(119, 75, 49, 0.7) !important;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
+  letter-spacing: 0.01em;
+  transition: filter 0.15s var(--ease), transform 0.15s var(--ease), box-shadow 0.15s var(--ease) !important;
+}
+.app .btn-primary:not(:disabled):hover,
+.app .btn-hero:hover,
+.app .auth-submit:hover,
+.app .promo-cta:hover,
+.app .lp-btn:not(.lp-btn--outline):hover,
+.app .salon-card .scd-view:hover,
+.app .page-body--explore .sidebar-foot .btn-primary:not(:disabled):hover,
+.app .contactpage .cp-send:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 14px 26px -12px rgba(119, 75, 49, 0.8) !important;
+}
+.app .btn-primary:not(:disabled):active,
+.app .btn-hero:active, .app .auth-submit:active, .app .lp-btn:active { transform: translateY(0); }
+.app .page-body--explore .priority-panel--rail .lvl-opt[data-lvl].is-on,
+.app .page-body--explore .page-btn--active,
+.app .salon-detail .chip.is-on {
+  border-color: rgba(217, 179, 130, 0.55) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .app .btn-primary, .app .btn-hero, .app .auth-submit, .app .lp-btn { transition: none !important; transform: none !important; }
+}
+
+/* Portraits sit high in their frames; centring would cut off the faces. */
+
+/* Hero photo: the frame matches the picture (735x919, 4:5), so the full
+   length of the hair shows and nothing is cropped. */
+.lp-hero-img { aspect-ratio: 4 / 5 !important; object-fit: contain !important; object-position: center top; max-height: 40rem; justify-self: end; }
+@media (max-width: 900px) { .lp-hero-img { justify-self: center; max-height: none; } }
+
+/* Hero photo, framed: rounded, softly lifted, centred against the copy. */
+.lp-hero-grid { align-items: center; }
+.lp-hero-img {
+  border-radius: 20px;
+  box-shadow: 0 32px 64px -32px rgba(28, 24, 20, 0.38), 0 0 0 1px rgba(28, 24, 20, 0.05);
+  max-height: 38rem;
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+}
+@media (min-width: 901px) {
+  .lp-hero-img { justify-self: end; align-self: center; width: min(100%, 30.5rem); height: auto; }
+}
+@media (max-width: 900px) {
+  .lp-hero-img { width: 100%; height: auto; border-radius: 16px; }
+}
+
+/* Phone menu button: white pill with ink lines and label (it was a dark pill,
+   and the lines were set to ink in the icon-menu fix, so they vanished). */
+.app .nav-burger {
+  background: #ffffff !important;
+  background-image: none !important;
+  border: 1px solid #e7e2da !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+  color: #1c1814 !important;
+}
+.app .nav-burger::after, .app .nav-burger::before { color: #1c1814 !important; }
+.app .nav-burger span { background: #1c1814 !important; }
+
+
+
+/* ══ "No rated salons for this service" notice ════════════════
+   It was cream text on pale grey (about 1.1:1). Now a white card with a
+   bronze edge, a soft icon badge, bold service names and ink text. */
+.app .fallback-notice,
+.app .page-body--explore .fallback-notice,
+.app .fallback-notice--empty {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 0.9rem;
+  padding: 1rem 1.15rem !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  border: 1px solid #e7e2da !important;
+  border-left: 3px solid #9c6942 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 2px rgba(28, 24, 20, 0.04) !important;
+  color: #3b352e !important;
+}
+.app .fallback-notice-icon {
+  flex-shrink: 0;
+  display: grid; place-items: center;
+  width: 2rem; height: 2rem;
+  border-radius: 50% !important;
+  background: #f6efe7 !important;
+  background-image: none !important;
+  border: 1px solid #e8d9c8 !important;
+  color: #82543a !important;
+  box-shadow: none !important;
+}
+.app .fallback-notice-msg {
+  margin: 0;
+  font-size: 0.9375rem !important;
+  line-height: 1.55;
+  color: #262019 !important;
+}
+.app .fallback-notice-msg strong,
+.app .fallback-notice .fallback-notice-msg strong { color: #1c1814 !important; font-weight: 600; }
+.app .fallback-notice-tip {
+  margin: 0.3rem 0 0;
+  font-size: 0.8125rem !important;
+  color: #6f685f !important;
+}
+.app .fallback-notice .btn-text {
+  margin-top: 0.55rem;
+  padding: 0;
+  color: #82543a !important;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  background: none !important;
+}
+.app .fallback-notice .btn-text:hover { color: #5e3a27 !important; }
+
+/* ══ Ranked salon cards ═══════════════════════════════════════
+   Rank badge, score ring and per-category bars, so a card can be read at a
+   glance instead of as a table of numbers. Bronze for good, red only where a
+   score is a warning, the same rule the numbers already follow. */
+.app .salon-card--dossier { transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease), transform 0.18s var(--ease) !important; }
+.app .salon-card--dossier:hover {
+  border-color: #d9b382 !important;
+  box-shadow: 0 18px 36px -24px rgba(119, 75, 49, 0.45) !important;
+  transform: translateY(-2px);
+}
+@media (prefers-reduced-motion: reduce) { .app .salon-card--dossier:hover { transform: none; } }
+
+.app .scd-namerow { display: flex; align-items: center; gap: 0.85rem; }
+.app .scd-rank {
+  flex-shrink: 0;
+  display: grid; place-items: center;
+  width: 2.25rem; height: 2.25rem;
+  border-radius: 50%;
+  font-size: 0.9375rem; font-weight: 600;
+  color: #5b4636;
+  background: #f6efe7;
+  border: 1px solid #e8d9c8;
+}
+.app .salon-card[data-tier="gold"] .scd-rank   { background: linear-gradient(160deg, #e9c98f, #c99a56); border-color: #c99a56; color: #3f2a14; }
+.app .salon-card[data-tier="silver"] .scd-rank { background: linear-gradient(160deg, #ebe6df, #c4c9d1); border-color: #c4c9d1; color: #2d3340; }
+.app .salon-card[data-tier="bronze"] .scd-rank { background: linear-gradient(160deg, #d6a273, #b9825a); border-color: #b07a4f; color: #2e1d10; }
+.app .salon-card .salon-name { font-size: 1.5rem !important; }
+
+/* Score ring */
+.app .scd-ring {
+  position: relative;
+  display: grid; place-items: center;
+  width: 5.25rem; height: 5.25rem;
+  border-radius: 50%;
+  background: conic-gradient(#9c6942 calc(var(--p) * 1%), #ebe6df 0);
+}
+.app .scd-ring::before {
+  content: ""; position: absolute; inset: 7px;
+  border-radius: 50%; background: #ffffff;
+}
+.app .scd-ring .scd-score-main {
+  position: relative; margin: 0 !important;
+  font-size: 1.6rem !important; line-height: 1 !important; font-weight: 600 !important;
+  color: #1c1814 !important;
+}
+.app .scd-ring .scd-score-pct { font-size: 0.7rem !important; }
+.app .scd-score { display: flex; flex-direction: column; align-items: center; gap: 0.45rem; }
+.app .salon-card .scd-score-bench { margin: 0 !important; font-size: 0.6875rem !important; }
+
+/* Category bars */
+.app .scd-chip-bar {
+  display: block; width: 62%; height: 4px; margin: 0.45rem auto 0.35rem;
+  border-radius: 999px; background: #ebe6df; overflow: hidden;
+}
+.app .scd-chip-bar i { display: block; height: 100%; border-radius: inherit; background: #9c6942; }
+.app .scd-chip[data-band="average"] .scd-chip-bar i { background: #c99a56; }
+.app .scd-chip[data-band="below"] .scd-chip-bar i,
+.app .scd-chip[data-band="poor"] .scd-chip-bar i { background: #b91c1c; }
+.app .scd-chip[data-band="excellent"] .scd-chip-bar i { background: #82543a; }
+
+/* ══ Salon card, second layout (`sc2-`) ═══════════════════════
+   Two rows: identity with plain-language highlights beside the score, then
+   a compact grid of six bars. Replaces the earlier six-column table. Only
+   ranked salons use this card; the unranked ones are chips in their own
+   sections (Results.jsx). */
+.app .salon-card.sc2 {
+  display: block; padding: 1.4rem 1.6rem 1.25rem !important;
+  background: #ffffff !important; border: 1px solid #e7e2da !important; border-radius: 12px !important;
+  box-shadow: 0 1px 2px rgba(28, 24, 20, 0.04) !important;
+  transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease), transform 0.18s var(--ease) !important;
+}
+.app .salon-card.sc2:hover { border-color: #d9b382 !important; box-shadow: 0 18px 36px -24px rgba(119, 75, 49, 0.45) !important; transform: translateY(-2px); }
+@media (prefers-reduced-motion: reduce) { .app .salon-card.sc2:hover { transform: none; } }
+
+.sc2-top { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; }
+.sc2-id { min-width: 0; flex: 1; }
+.sc2-namerow { display: flex; align-items: center; gap: 0.8rem; }
+.sc2-rank {
+  flex-shrink: 0; display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%;
+  font-size: 0.875rem; font-weight: 600; color: #5b4636; background: #f6efe7; border: 1px solid #e8d9c8;
+}
+.salon-card[data-tier="gold"] .sc2-rank   { background: linear-gradient(160deg, #e9c98f, #c99a56); border-color: #c99a56; color: #3f2a14; }
+.salon-card[data-tier="silver"] .sc2-rank { background: linear-gradient(160deg, #ebe6df, #c4c9d1); border-color: #c4c9d1; color: #2d3340; }
+.salon-card[data-tier="bronze"] .sc2-rank { background: linear-gradient(160deg, #d6a273, #b9825a); border-color: #b07a4f; color: #2e1d10; }
+.sc2-name {
+  padding: 0; background: none; border: 0; cursor: pointer; text-align: left;
+  font: 500 1.3rem/1.25 var(--font-text); letter-spacing: -0.015em; color: #1c1814;
+}
+.sc2-name:hover { text-decoration: underline; text-underline-offset: 4px; }
+.sc2-meta {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.5rem;
+  margin: 0.4rem 0 0 2.8rem; font-size: 0.8125rem; color: #6f685f;
+}
+.sc2-meta svg { color: #9c6942; flex-shrink: 0; }
+.sc2-meta-dot::before { content: "·"; margin-right: 0.5rem; color: #9b948a; }
+
+.sc2-side { display: flex; align-items: center; gap: 1.5rem; flex-shrink: 0; }
+.sc2-score { display: flex; flex-direction: column; align-items: center; gap: 0.15rem; text-align: center; }
+.sc2-ring {
+  position: relative; display: grid; place-items: center; width: 4.4rem; height: 4.4rem; border-radius: 50%;
+  background: conic-gradient(#9c6942 calc(var(--p) * 1%), #ebe6df 0);
+}
+.sc2-ring::before { content: ""; position: absolute; inset: 6px; border-radius: 50%; background: #ffffff; }
+.sc2-ring span { position: relative; font-size: 1.45rem; font-weight: 600; color: #1c1814; letter-spacing: -0.02em; }
+.sc2-band { margin: 0.35rem 0 0; font-size: 0.75rem; font-weight: 600; color: #5e3a27; }
+.sc2-range { margin: 0; font-size: 0.6875rem; color: #6f685f; }
+.sc2-actions { display: flex; align-items: center; gap: 0.5rem; padding-left: 1.5rem; border-left: 1px solid #eeeae3; align-self: stretch; }
+.sc2-view {
+  padding: 0.6rem 1.25rem; font: 500 0.875rem/1 var(--font-text); color: #ffffff; cursor: pointer;
+  border: 1px solid rgba(217, 179, 130, 0.55); border-radius: 999px;
+  background: var(--bronze); background-color: #8b5a3a;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 10px 22px -12px rgba(119, 75, 49, 0.7);
+}
+.sc2-view:hover { background: var(--bronze-hover); }
+.sc2-fav {
+  display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: 50%;
+  background: #ffffff; border: 1px solid #e7e2da; color: #1c1814; cursor: pointer;
+}
+.sc2-fav:hover { border-color: #9c6942; }
+.sc2-fav.is-on { color: #9c6942; border-color: #9c6942; }
+.sc2-view:focus-visible, .sc2-fav:focus-visible, .sc2-name:focus-visible { outline: 2px solid #9c6942; outline-offset: 3px; }
+
+.sc2-bars {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem 2.25rem;
+  margin: 1.15rem 0 0; padding: 1.1rem 0 0; list-style: none; border-top: 1px solid #eeeae3;
+}
+.sc2-bars li { display: grid; grid-template-columns: 4.2rem 1fr 1.9rem; align-items: center; gap: 0.7rem; }
+.sc2-bar-label { font-size: 0.75rem; font-weight: 500; color: #504a42; }
+.sc2-bar { height: 6px; border-radius: 999px; background: #ebe6df; overflow: hidden; }
+.sc2-bar i { display: block; height: 100%; border-radius: inherit; background: #9c6942; }
+.sc2-bar-num { font-size: 0.8125rem; font-weight: 600; color: #1c1814; text-align: right; font-variant-numeric: tabular-nums; }
+.sc2-bars li[data-band="excellent"] .sc2-bar i { background: #82543a; }
+.sc2-bars li[data-band="average"] .sc2-bar i { background: #c99a56; }
+.sc2-bars li[data-band="below"] .sc2-bar i,
+.sc2-bars li[data-band="poor"] .sc2-bar i { background: #b91c1c; }
+.sc2-bars li[data-band="below"] .sc2-bar-num,
+.sc2-bars li[data-band="poor"] .sc2-bar-num { color: #b91c1c; }
+
+@media (max-width: 900px) {
+  .sc2-top { flex-direction: column; align-items: stretch; }
+  .sc2-side { justify-content: space-between; }
+  .sc2-bars { grid-template-columns: repeat(2, 1fr); gap: 0.7rem 1.5rem; }
+}
+@media (max-width: 560px) {
+  .sc2-meta { margin-left: 0; }
+  .sc2-bars { grid-template-columns: 1fr; }
+  .sc2-actions { padding-left: 0; border-left: 0; }
+}
+
+/* ══ Salon profile: bronze accents ════════════════════════════
+   Same palette as the buttons: bronze for fills and active states, sand for
+   soft surfaces, ink for text. Green and amber badges become bronze and sand;
+   red stays, because it is a warning. */
+.app .salon-detail .detail-hero { border-left: 3px solid #9c6942 !important; }
+
+/* Map button: it was a black pill with no visible label. */
+.app .salon-detail .maps-link {
+  display: inline-flex; align-items: center; gap: 0.55rem;
+  padding: 0.75rem 1.5rem;
+  font: 500 0.875rem/1 var(--font-text);
+  color: #ffffff !important;
+  text-decoration: none !important;
+  background: var(--bronze) !important;
+  background-color: var(--bronze-solid) !important;
+  border: 1px solid rgba(217, 179, 130, 0.55) !important;
+  border-radius: 999px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 10px 22px -12px rgba(119, 75, 49, 0.7) !important;
+  transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+.app .salon-detail .maps-link:hover { background: var(--bronze-hover) !important; transform: translateY(-1px); }
+.app .salon-detail .maps-link:focus-visible { outline: 2px solid #9c6942; outline-offset: 3px; }
+.app .salon-detail .maps-link svg { flex-shrink: 0; }
+@media (prefers-reduced-motion: reduce) { .app .salon-detail .maps-link:hover { transform: none; } }
+
+/* Tabs */
+.app .salon-detail .detail-tab--active,
+.app .salon-detail .detail-tab.is-active { border-bottom-color: #9c6942 !important; }
+.app .salon-detail .detail-tab--active::after { background: #9c6942 !important; }
+
+/* Bars and fills */
+.app .salon-detail .sum-finding-fill,
+.app .salon-detail .csl-bar-fill,
+.app .salon-detail .cat-check-meter > span,
+.app .salon-detail .staff-bar-fill,
+.app .salon-detail .language-bar .lang-english { background: #9c6942 !important; }
+.app .salon-detail .language-bar .lang-sinhala { background: #c99a56 !important; }
+.app .salon-detail .language-bar .lang-english-sinhala-mix { background: #e3d2b8 !important; }
+.app .salon-detail .donut-legend-swatch--positive { background: #9c6942 !important; }
+.app .salon-detail .donut-legend-swatch--negative { background: #d8c3a2 !important; }
+.app .salon-detail .range-bar-mark { background: #82543a !important; }
+.app .salon-detail .range-bar-band { background: #e8d9c8 !important; }
+
+/* Rating badges */
+.app .salon-detail .sum-verdict--excellent,
+.app .salon-detail .csl-band--excellent,
+.app .salon-detail .srl-band--excellent {
+  color: #ffffff !important; background: linear-gradient(160deg, #9c6942, #82543a) !important; border: 1px solid #82543a !important;
+}
+.app .salon-detail .sum-verdict--good,
+.app .salon-detail .csl-band--verygood,
+.app .salon-detail .csl-band--good,
+.app .salon-detail .srl-band--verygood,
+.app .salon-detail .srl-band--good {
+  color: #5e3a27 !important; background: #f6efe7 !important; border: 1px solid #e8d9c8 !important;
+}
+.app .salon-detail .sum-verdict--average,
+.app .salon-detail .csl-band--average,
+.app .salon-detail .srl-band--average {
+  color: #6b5a3f !important; background: #f4f1ea !important; border: 1px solid #e5dfd1 !important;
+}
+.app .salon-detail .sum-check-icon--pos { background: #f6efe7 !important; color: #82543a !important; }
+.app .salon-detail .sum-check-icon--mix { background: #f4f1ea !important; color: #6b5a3f !important; }
+.app .salon-detail .summary-sent-chip--positive .summary-sent-count { color: #82543a !important; }
+.app .salon-detail .polarity-pill--positive { background: #f6efe7 !important; color: #82543a !important; }
+.app .salon-detail .chip-popular-services,
+.app .salon-detail .chip-specialism,
+
+.app .salon-detail .back-link { color: #82543a !important; }
+.app .salon-detail .sum-verdict--excellent,
+.app .salon-detail .csl-band--excellent,
+.app .salon-detail .srl-band--excellent { background-color: #8b5a3a !important; }
+
+/* ══ Priorities panel: tight ══════════════════════════════════
+   Six one-line rows: a short name, then the four levels. The full name and
+   its description are the row's tooltip. */
+.app .page-body--explore .weight-list--tight { margin: 0.6rem 0 0; padding: 0; }
+.app .page-body--explore .weight-list--tight .weight-row {
+  display: grid !important; grid-template-columns: 3.6rem 1fr; align-items: center; gap: 0.6rem;
+  padding: 0.38rem 0 !important; border-top: 0 !important;
+}
+.app .page-body--explore .weight-list--tight .weight-label { margin: 0; font-size: 0.8125rem; font-weight: 500; color: #3b352e !important; }
+.app .page-body--explore .weight-list--tight .lvl-group { gap: 0.25rem; flex-basis: auto; }
+.app .page-body--explore .weight-list--tight .lvl-group > .lvl-opt { flex: 1 1 0; padding: 0.32rem 0 !important; font-size: 0.6875rem; text-align: center; }
+
+/* Home banner button only: the golden brown (#96692f) from the offers palette.
+   Every other button keeps the bronze. White on this brown is ~4.8:1. */
+.app .lp-hero .lp-btn:not(.lp-btn--outline) {
+  background: linear-gradient(160deg, #96692f 0%, #82592a 100%) !important;
+  background-color: #96692f !important;
+  border-color: #b98a4a !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 10px 22px -12px rgba(110, 76, 30, 0.7) !important;
+}
+.app .lp-hero .lp-btn:not(.lp-btn--outline):hover {
+  background: linear-gradient(160deg, #86602a 0%, #6f4b22 100%) !important;
+  background-color: #86602a !important;
+  border-color: #a57a3f !important;
+}
+.app .lp-hero .lp-btn:focus-visible { outline: 2px solid #96692f !important; }
+
+/* ══ Landing: "Explore by service" photo cards ════════════════ */
+.lp-svc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+.lp-svc {
+  display: flex; flex-direction: column; padding: 0; text-align: left; cursor: pointer;
+  font: inherit; color: inherit; background: #ffffff;
+  border: 1px solid #e7e2da; border-radius: 16px; overflow: hidden;
+  box-shadow: 0 1px 2px rgba(28, 24, 20, 0.04);
+  transition: transform 0.2s var(--ease), border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+.lp-svc:hover {
+  transform: translateY(-4px); border-color: #d9b382;
+  box-shadow: 0 22px 40px -26px rgba(119, 75, 49, 0.5);
+}
+.lp-svc:focus-visible { outline: 2px solid #9c6942; outline-offset: 3px; }
+.lp-svc-photo { position: relative; display: block; aspect-ratio: 4 / 3.2; overflow: hidden; background: #f6efe7; }
+.lp-svc-photo img {
+  width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block;
+  transition: transform 0.5s var(--ease);
+}
+.lp-svc:hover .lp-svc-photo img { transform: scale(1.05); }
+.lp-svc-no {
+  position: absolute; top: 0.8rem; left: 0.8rem; padding: 0.25rem 0.65rem; border-radius: 999px;
+  font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; color: #5e3a27;
+  background: rgba(255, 255, 255, 0.92); border: 1px solid rgba(232, 217, 200, 0.9);
+}
+.lp-svc-body { display: flex; flex-direction: column; flex: 1; padding: 1.25rem 1.35rem 1.2rem; }
+.lp-svc-body h3 { margin: 0 0 0.45rem; font-size: 1.125rem; font-weight: 500; letter-spacing: -0.01em; color: #1c1814; }
+.lp-svc-body p { margin: 0; font-size: 0.875rem; line-height: 1.6; color: #6f685f; }
+.lp-svc-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: auto; padding-top: 1.1rem; font-size: 0.8125rem; font-weight: 500; color: #5e3a27;
+}
+.lp-svc-go {
+  display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%;
+  color: #82543a; background: #f6efe7; border: 1px solid #e8d9c8;
+  transition: background 0.2s var(--ease), color 0.2s var(--ease), transform 0.2s var(--ease);
+}
+.lp-svc:hover .lp-svc-go { background: #9c6942; border-color: #9c6942; color: #ffffff; transform: translateX(2px); }
+@media (max-width: 1000px) { .lp-svc-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px)  { .lp-svc-grid { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) {
+  .lp-svc, .lp-svc-photo img, .lp-svc-go { transition: none; }
+  .lp-svc:hover { transform: none; } .lp-svc:hover .lp-svc-photo img { transform: none; }
+}
+
+/* Phones: a compact row (photo left, text right) instead of four tall cards. */
+@media (max-width: 560px) {
+  .lp-svc-grid { gap: 0.85rem; }
+  .lp-svc { flex-direction: row; align-items: stretch; }
+  .lp-svc-photo { flex: 0 0 36%; aspect-ratio: auto; min-height: 9rem; }
+  .lp-svc-photo img { position: absolute; inset: 0; }
+  .lp-svc-no { top: 0.55rem; left: 0.55rem; padding: 0.15rem 0.5rem; font-size: 0.6875rem; }
+  .lp-svc-body { padding: 0.95rem 1rem 0.85rem; }
+  .lp-svc-body h3 { font-size: 1rem; margin-bottom: 0.3rem; }
+  .lp-svc-body p { font-size: 0.8125rem; line-height: 1.5; }
+  .lp-svc-foot { padding-top: 0.7rem; }
+}
+
+/* All backgrounds are white now; the sections that used to alternate colour
+   are separated by a hairline instead. */
+.lp-section--grey { border-top: 1px solid #e7e2da; border-bottom: 1px solid #e7e2da; }
+
+/* ══ Salon card: tight ════════════════════════════════════════
+   Same content, about 40% less height: smaller padding, ring and type, the
+   range moved into the ring's tooltip, and denser bars. */
+.app .salon-card.sc2 { padding: 0.85rem 1.1rem 0.8rem !important; border-radius: 10px !important; }
+.sc2-top { gap: 1rem; align-items: center; }
+.sc2-rank { width: 1.65rem; height: 1.65rem; font-size: 0.75rem; }
+.sc2-namerow { gap: 0.6rem; }
+.sc2-name { font-size: 1.05rem; line-height: 1.2; }
+.sc2-meta { margin: 0.2rem 0 0 2.25rem; font-size: 0.75rem; gap: 0.2rem 0.4rem; }
+.sc2-meta svg { width: 12px; height: 12px; }
+.sc2-side { gap: 1rem; }
+.sc2-score { flex-direction: row; gap: 0.6rem; text-align: left; align-items: center; }
+.sc2-ring { width: 3.1rem; height: 3.1rem; }
+.sc2-ring::before { inset: 4px; }
+.sc2-ring span { font-size: 1.05rem; }
+.sc2-band { margin: 0; font-size: 0.75rem; line-height: 1.25; }
+.sc2-range { display: none; }
+.sc2-actions { padding-left: 1rem; gap: 0.4rem; align-self: auto; }
+.sc2-view { padding: 0.45rem 1rem; font-size: 0.8125rem; }
+.sc2-fav { width: 2rem; height: 2rem; }
+.sc2-fav svg { width: 14px; height: 14px; }
+.sc2-bars { margin: 0.7rem 0 0; padding: 0.65rem 0 0; gap: 0.35rem 1.75rem; }
+.sc2-bars li { grid-template-columns: 3.6rem 1fr 1.6rem; gap: 0.55rem; }
+.sc2-bar-label { font-size: 0.6875rem; }
+.sc2-bar { height: 5px; }
+.sc2-bar-num { font-size: 0.75rem; }
+.app .page-body--explore .salon-grid { gap: 0.7rem; }
+@media (max-width: 900px) {
+  .sc2-side { justify-content: space-between; }
+  .sc2-meta { margin-left: 2.25rem; }
+}
+@media (max-width: 560px) {
+  .sc2-meta { margin-left: 0; }
+  .sc2-bars { grid-template-columns: repeat(2, 1fr); }
+}
+/* Let each level button size to its word; "Very high" is the widest. */
+.app .page-body--explore .weight-list--tight .weight-row { grid-template-columns: 3.1rem 1fr; gap: 0.5rem; }
+.app .page-body--explore .weight-list--tight .lvl-group > .lvl-opt {
+  flex: 1 1 auto; padding: 0.32rem 0.35rem !important; font-size: 0.625rem; white-space: nowrap; letter-spacing: 0;
+}
+
+/* ══ Priorities: meters ═══════════════════════════════════════
+   Four click-to-set bars per priority, bronze up to the chosen level. */
+.meter-list { list-style: none; margin: 0.5rem 0 0; padding: 0; }
+.meter-row { display: grid; grid-template-columns: 3.4rem 1fr 4rem; align-items: center; gap: 0.7rem; padding: 0.42rem 0; }
+.meter-label { font-size: 0.8125rem; font-weight: 500; color: #3b352e; }
+.meter { display: flex; gap: 5px; }
+.meter-seg {
+  position: relative; flex: 1 1 0; height: 1.5rem; padding: 0; cursor: pointer; background: none; border: 0;
+}
+.meter-seg::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 8px; margin-top: -4px;
+  border-radius: 999px; background: #ebe6df; transition: background 0.15s var(--ease), transform 0.15s var(--ease);
+}
+.meter-seg.is-on::before { background: linear-gradient(160deg, #9c6942, #82543a); }
+.meter-seg:hover::before { transform: scaleY(1.25); background: #c9a47c; }
+.meter-seg.is-on:hover::before { background: #82543a; }
+.meter-seg:focus-visible { outline: 2px solid #9c6942; outline-offset: 1px; border-radius: 6px; }
+.meter-word { font-size: 0.75rem; font-weight: 600; color: #5e3a27; text-align: right; }
+@media (prefers-reduced-motion: reduce) { .meter-seg::before { transition: none; } }
+
+/* Priorities: named rows. Heading, then per priority: name + level, a one-line
+   explanation, and the four-bar meter underneath. */
+.meter-heading { margin: 0.9rem 0 0.2rem; font-size: 0.875rem; font-weight: 600; color: #1c1814; }
+.meter-row { display: block; padding: 0.55rem 0 0.4rem; border-top: 1px solid #eeeae3; }
+.meter-row:first-child { border-top: 0; }
+.meter-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; }
+.meter-label { font-size: 0.8125rem; font-weight: 600; color: #1c1814; }
+.meter-tag { margin: 0.15rem 0 0.2rem; font-size: 0.75rem; line-height: 1.4; color: #6f685f; }
+.meter-row .meter { margin-top: 0.15rem; }
+.meter-row .meter-seg { height: 1.25rem; }
+
+/* Explore page title: 52px was too loud next to the filters; ~38px on desktop. */
+.app .page-body--explore .page-head-title,
+.app .page-body--explore .page-head-title.page-head-title--small {
+  font-size: clamp(1.6rem, 2.8vw, 2.4rem) !important;
+  line-height: 1.15 !important;
+}
+
+.app .page-body--explore .no-review-section .no-review-note {
+  margin: -0.4rem 0 0.9rem; font-size: 0.75rem; color: #6f685f !important;
+}
+
+/* Profile header: how many reviews, how many were read. */
+.app .salon-detail .detail-counts { margin: 0.35rem 0 0; font-size: 0.875rem; color: #6f685f; }
+.app .salon-detail .detail-counts strong { color: #1c1814; font-weight: 600; }
+
+/* Provisional salons sit in the same list as the ranked ones, flagged. */
+.sc2-prov {
+  align-self: center; padding: 0.15rem 0.55rem; font-size: 0.6875rem; font-weight: 600;
+  letter-spacing: 0.04em; text-transform: uppercase; color: #6f685f;
+  background: #f2eee8; border: 1px solid #e7e2da; border-radius: 999px; white-space: nowrap;
+}
+.page-gap { display: inline-grid; place-items: center; min-width: 1.5rem; color: #6f685f; user-select: none; }
+
+/* "No rated salons" notice: compact. */
+.app .fallback-notice, .app .page-body--explore .fallback-notice, .app .fallback-notice--empty {
+  gap: 0.65rem; padding: 0.6rem 0.9rem !important; border-radius: 8px !important; align-items: center;
+}
+.app .fallback-notice-icon { width: 1.5rem; height: 1.5rem; }
+.app .fallback-notice-icon svg { width: 13px; height: 13px; }
+.app .fallback-notice-msg, .app .fallback-notice--empty .fallback-notice-msg { font-size: 0.8125rem !important; line-height: 1.45; }
+.app .fallback-notice-tip { margin-top: 0.15rem; font-size: 0.75rem !important; }
+
+/* ══ Text fields: a line, not a box ═══════════════════════════
+   Contact, Sign in / Sign up and Profile. No box, no radius, no fill: one
+   hairline under the text that turns ink on focus. Focus thickens the line
+   with a shadow rather than a wider border, so nothing shifts. */
+.app .contactpage .cp-field input,
+.app .contactpage .cp-field textarea,
+.app .contactpage .cp-card input,
+.app .contactpage .cp-card textarea,
+.app .contactpage .cp-select .qf-select-btn,
+.app .contactpage .cp-select .qf-select-btn:hover,
+.app .auth-field-control input,
+.app .pf-field input {
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 1px solid #d8d2c8 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0.55rem 0 !important;
+  min-height: 2.6rem !important;
+  font-size: 0.9375rem !important;
+  color: #1c1814 !important;
+}
+.app .auth-field-control input { padding-right: 2.5rem !important; }
+.app .contactpage .cp-field textarea { padding: 0.55rem 0 !important; min-height: 7rem !important; }
+.app .contactpage .cp-select .qf-select-btn { padding-right: 0.25rem !important; }
+
+.app .contactpage .cp-field input:hover,
+.app .contactpage .cp-field textarea:hover,
+.app .contactpage .cp-select .qf-select-btn:hover,
+.app .auth-field-control input:hover,
+.app .pf-field input:hover { border-bottom-color: #9b948a !important; }
+
+.app .contactpage .cp-field input:focus,
+.app .contactpage .cp-field input:focus-visible,
+.app .contactpage .cp-field textarea:focus,
+.app .contactpage .cp-field textarea:focus-visible,
+.app .contactpage .cp-select .qf-select-btn[aria-expanded="true"],
+.app .contactpage .cp-select .qf-select-btn:focus-visible,
+.app .auth-field-control input:focus,
+.app .auth-field-control input:focus-visible,
+.app .pf-field input:focus,
+.app .pf-field input:focus-visible {
+  border-bottom-color: #1c1814 !important;
+  box-shadow: 0 1px 0 0 #1c1814 !important;
+  outline: none !important;
+}
+
+.app .contactpage .cp-field--err input,
+.app .contactpage .cp-field--err textarea,
+.app .auth-field-control.has-error input { border-bottom-color: #b91c1c !important; }
+.app .contactpage .cp-field--err input:focus,
+.app .contactpage .cp-field--err textarea:focus,
+.app .auth-field-control.has-error input:focus { box-shadow: 0 1px 0 0 #b91c1c !important; }
+
+/* Profile: read-only email is the same line, muted. */
+.app .pf-field input.pf-readonly { color: #6f685f !important; border-bottom-style: dashed !important; }
+.app .pf-field label, .app .pf-field > span { color: #3b352e; }
+
+/* ══ Sign in / Sign up: fit the screen, no scrolling ══════════
+   The form was about 690px of content in a card that is only as tall as the
+   window, so on a laptop the social buttons, terms and "Already have an
+   account?" fell below the fold inside a scrolling box. Spacing now follows
+   the window height, and the in-card logo (the header already has one) goes
+   on shorter screens. */
+.app .auth-form-panel { padding: clamp(0.75rem, 3.2vh, 2.75rem) clamp(1.25rem, 4vw, 3rem) !important; overflow-y: auto; }
+.app .auth-form { justify-content: center; }
+.app .auth-title { margin: 0 !important; font-size: clamp(1.35rem, 3.6vh, 2.2rem) !important; line-height: 1.15 !important; }
+.app .auth-sub { margin: 0.2rem 0 clamp(0.35rem, 1.4vh, 1.1rem) !important; }
+.app .auth-brand { margin-bottom: clamp(0.5rem, 2vh, 1.5rem) !important; }
+.app .auth-fields { gap: clamp(0.3rem, 1.2vh, 1rem) !important; }
+.app .auth-field-label { margin: 0 0 clamp(0.05rem, 0.4vh, 0.4rem) !important; font-size: 0.75rem !important; }
+.app .auth-field-control input { min-height: clamp(2rem, 4.6vh, 2.6rem) !important; padding-top: 0.3rem !important; padding-bottom: 0.3rem !important; }
+.app .auth-submit { min-height: clamp(2.4rem, 5vh, 3rem) !important; margin-top: clamp(0.3rem, 1.2vh, 0.9rem) !important; }
+.app .auth-or { margin: clamp(0.3rem, 1.4vh, 1.1rem) 0 clamp(0.2rem, 0.8vh, 0.7rem) !important; font-size: 0.75rem !important; }
+.app .auth-terms { margin: clamp(0.25rem, 1vh, 0.8rem) 0 0 !important; font-size: 0.6875rem !important; line-height: 1.4 !important; }
+.app .auth-switch { margin: clamp(0.3rem, 1.2vh, 0.9rem) 0 0 !important; font-size: 0.8125rem !important; }
+.app .auth-forgot { margin: 0 !important; }
+.app .auth-row { margin: 0 !important; }
+.app .auth-pw-strength { margin: 0 !important; }
+.app .auth-field-error { margin: 0.15rem 0 0 !important; font-size: 0.75rem !important; }
+@media (max-height: 860px) { .app .auth-brand { display: none !important; } }
+@media (max-height: 620px) {
+  .app .auth-form-panel { padding-top: 0.4rem !important; padding-bottom: 0.4rem !important; }
+  .app .auth-fields { gap: 0.2rem !important; }
+  .app .auth-sub { margin-bottom: 0.25rem !important; }
+}
+
+/* Field errors sit on the label's line, right-aligned, so a failed submit does
+   not add three lines of height to a form that has to fit the window. */
+.app .auth-field-wrap { position: relative; }
+.app .auth-field-error {
+  position: absolute; top: 0; right: 0; margin: 0 !important; max-width: 70%;
+  font-size: 0.72rem !important; line-height: 1.2; text-align: right;
+}
+
+/* "Sign in with Google": a white pill with a hairline, first on the page. */
+.app .auth-google {
+  display: flex; align-items: center; justify-content: center; gap: 0.7rem; width: 100%;
+  min-height: clamp(2.4rem, 5.2vh, 2.9rem); padding: 0 1.25rem; cursor: pointer;
+  font: 500 0.9375rem/1 var(--font-text); color: #1c1814;
+  background: #ffffff; border: 1px solid #d8d2c8; border-radius: 999px;
+  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+.app .auth-google:hover { border-color: #9b948a; box-shadow: 0 1px 3px rgba(28, 24, 20, 0.08); }
+.app .auth-google:focus-visible { outline: 2px solid #1c1814; outline-offset: 2px; }
+.app .auth-google svg { flex-shrink: 0; }
+.app .auth-google-note { margin: clamp(0.35rem, 1.5vh, 1rem) 0 clamp(0.2rem, 1vh, 0.7rem); font-size: 0.75rem; line-height: 1.2; color: #6f685f; text-align: center; }
+.app .auth-or { margin: clamp(0.35rem, 1.5vh, 1rem) 0 clamp(0.2rem, 1vh, 0.7rem) !important; }
+
+/* Audience filter: the note under the count, and the label on a card. */
+.audience-note { flex-basis: 100%; margin: 0.25rem 0 0; font-size: 0.8125rem; color: #6f685f; }
+.results-head { flex-wrap: wrap; }
+.sc2-aud { color: #5e3a27; font-weight: 600; }
+
+/* ══ Sign in / Sign up: modern ════════════════════════════════
+   White stage; a card with an inset, rounded photo carrying a frosted-glass
+   caption; a segmented Sign in | Sign up switch; bronze focus states. */
+.app .auth { background: #ffffff !important; }
+.app .auth-card {
+  padding: 12px !important; gap: 0;
+  border: 0 !important; border-radius: 30px !important;
+  background: #ffffff !important;
+  box-shadow: 0 0 0 1px #ece7df, 0 44px 90px -56px rgba(28, 24, 20, 0.5) !important;
+  animation: auth-in 0.5s var(--ease) both;
+}
+@keyframes auth-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.app .auth-visual { border-radius: 20px !important; }
+.app .auth-visual.has-photo::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 55%;
+  background: linear-gradient(to top, rgba(28, 24, 20, 0.62), rgba(28, 24, 20, 0));
+  pointer-events: none;
+}
+.app .auth-visual.has-photo .auth-visual-copy {
+  display: block !important; position: absolute; z-index: 2;
+  left: 14px; right: 14px; bottom: 14px; padding: 1rem 1.15rem 1.05rem;
+  color: #ffffff; border-radius: 16px;
+  background: rgba(28, 24, 20, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+}
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .app .auth-visual.has-photo .auth-visual-copy {
+    background: rgba(255, 255, 255, 0.14);
+    -webkit-backdrop-filter: blur(16px) saturate(140%); backdrop-filter: blur(16px) saturate(140%);
+  }
+}
+.app .auth-visual-copy .eyebrow {
+  margin: 0 0 0.3rem; color: rgba(255, 255, 255, 0.85) !important;
+  font-size: 0.6875rem; letter-spacing: 0.14em; text-transform: uppercase;
+}
+.app .auth-quote { color: #ffffff !important; font-size: clamp(1.1rem, 1.9vw, 1.5rem) !important; line-height: 1.22 !important; max-width: none; margin: 0 !important; }
+.app .auth-points { list-style: none; margin: 0.65rem 0 0; padding: 0.6rem 0 0; border-top: 1px solid rgba(255, 255, 255, 0.28); display: grid; gap: 0.25rem; }
+.app .auth-points li { position: relative; padding-left: 1.15rem; font-size: 0.78rem; line-height: 1.35; color: rgba(255, 255, 255, 0.92); }
+.app .auth-points li::before {
+  content: ""; position: absolute; left: 0.1rem; top: 0.42em; width: 0.4rem; height: 0.22rem;
+  border-left: 1.5px solid #f0d9b8; border-bottom: 1.5px solid #f0d9b8; transform: rotate(-45deg);
+}
+@media (max-height: 700px) { .app .auth-points { display: none; } }
+
+.app .auth-form-panel { padding-left: clamp(1.5rem, 4.2vw, 3.4rem) !important; padding-right: clamp(1.5rem, 4.2vw, 3.4rem) !important; }
+
+.app .auth-title { font-weight: 600 !important; letter-spacing: -0.02em !important; color: #1c1814 !important; }
+.app .auth-sub { color: #6f685f !important; font-size: 0.875rem !important; }
+.app .auth-google { border-color: #d8d2c8; box-shadow: 0 1px 2px rgba(28, 24, 20, 0.04); }
+.app .auth-google:hover { transform: translateY(-1px); }
+.app .auth-or { color: #8a8379 !important; letter-spacing: 0.03em; }
+.app .auth-field-label { font-weight: 600 !important; color: #3b352e !important; letter-spacing: 0.01em; transition: color 0.15s var(--ease); }
+.app .auth-field-wrap:focus-within .auth-field-label { color: #82543a !important; }
+.app .auth-field-control input:focus,
+.app .auth-field-control input:focus-visible { border-bottom-color: #9c6942 !important; box-shadow: 0 1px 0 0 #9c6942 !important; }
+.app .auth-submit { letter-spacing: 0.01em; }
+.app .auth-submit::after { content: "\2192"; margin-left: 0.5rem; display: inline-block; transition: transform 0.15s var(--ease); }
+.app .auth-submit:hover::after { transform: translateX(3px); }
+@media (prefers-reduced-motion: reduce) {
+  .app .auth-card { animation: none; }
+  .app .auth-google:hover { transform: none; }
+  .app .auth-submit:hover::after { transform: none; }
+}
+
+/* Short windows: drop the subtitle so the form always fits. */
+@media (max-height: 660px) {
+  .app .auth-sub { display: none !important; }
+  }
+/* A touch more shade behind the white caption so it reads over any part of the photo. */
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .app .auth-visual.has-photo .auth-visual-copy { background: rgba(28, 24, 20, 0.30); }
+}
+
+/* ══ Sign in / Sign up: split screen ══════════════════════════
+   No card: a full-height photo beside a spacious form on white. Labels float
+   up out of the fields; "No account? Sign up" sits in the corner. */
+.app .auth { height: calc(100vh - var(--nav-h) - var(--nav-gap)); padding: 0 !important; display: block !important; background: #ffffff !important; overflow: hidden; }
+.app .auth-card {
+  display: grid !important; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr) !important;
+  width: 100% !important; max-width: none !important; height: 100% !important; max-height: none !important;
+  padding: 14px !important; gap: 14px !important;
+  border: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: transparent !important; animation: none !important;
+}
+.app .auth-visual { border-radius: 28px !important; height: 100% !important; }
+.app .auth-form-panel { position: relative; display: flex; align-items: center; justify-content: center; padding: 1.25rem clamp(1.5rem, 5vw, 4.5rem) !important; overflow-y: auto; }
+.app .auth-form { width: 100%; max-width: 400px; min-height: 0 !important; justify-content: center; }
+
+.app .auth-corner { position: absolute; top: clamp(0.85rem, 3vh, 1.75rem); right: clamp(1.25rem, 3.2vw, 2.5rem); margin: 0; font-size: 0.8125rem; color: #6f685f; }
+.app .auth-corner button { padding: 0; border: 0; background: none; cursor: pointer; font: 600 0.8125rem/1 var(--font-text); color: #1c1814; text-decoration: underline; text-underline-offset: 3px; }
+.app .auth-corner button:hover { color: #82543a; }
+
+.app .auth-eyebrow { margin: 0 0 0.4rem; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: #9c6942; }
+.app .auth-title { font-size: clamp(1.7rem, 4.8vh, 2.5rem) !important; line-height: 1.08 !important; letter-spacing: -0.03em !important; font-weight: 600 !important; }
+.app .auth-sub { margin: 0.4rem 0 clamp(0.7rem, 2.6vh, 1.5rem) !important; font-size: 0.9375rem !important; line-height: 1.45; color: #6f685f !important; }
+.app .auth-google { min-height: clamp(2.6rem, 5.8vh, 3.1rem); }
+.app .auth-or { margin: clamp(0.6rem, 2.2vh, 1.25rem) 0 clamp(0.2rem, 1vh, 0.6rem) !important; }
+.app .auth-fields { gap: clamp(0.15rem, 0.8vh, 0.5rem) !important; }
+
+/* Floating labels, on the line-style fields */
+.app .auth-field-control { position: relative; }
+.app .auth-field-control input {
+  min-height: clamp(2.7rem, 6.4vh, 3.2rem) !important;
+  padding: 1.15rem 2.4rem 0.25rem 0 !important;
+}
+.app .auth-float {
+  position: absolute; left: 0; top: 50%; transform: translateY(-50%); margin: 0; pointer-events: none;
+  font-size: 0.9375rem; font-weight: 400; color: #8a8379; letter-spacing: 0;
+  transition: top 0.16s var(--ease), transform 0.16s var(--ease), font-size 0.16s var(--ease), color 0.16s var(--ease);
+}
+.app .auth-field-control input:focus ~ .auth-float,
+.app .auth-field-control input:not(:placeholder-shown) ~ .auth-float {
+  top: 0.28rem; transform: none; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; color: #6f685f;
+}
+.app .auth-field-control input:focus ~ .auth-float { color: #82543a; }
+.app .auth-field-error { top: 0.28rem; }
+.app .auth-field-wrap:has(.auth-pw-toggle) .auth-field-error { right: 2.3rem; }
+.app .auth-pw-toggle { top: 55% !important; }
+
+.app .auth-submit { min-height: clamp(2.6rem, 5.8vh, 3.1rem) !important; }
+
+@media (max-width: 900px) {
+  .app .auth { overflow: auto; height: auto; min-height: calc(100vh - var(--nav-h)); }
+  .app .auth-card { grid-template-columns: 1fr !important; height: auto !important; }
+  .app .auth-visual { display: none !important; }
+  .app .auth-corner { position: static; text-align: right; margin: 0 0 1rem; }
+  .app .auth-form-panel { display: block; padding: 1.25rem 1.25rem 2rem !important; }
+  .app .auth-form { margin: 0 auto; }
+}
+
+/* The split-screen form has room for the subtitle on all but very short windows,
+   and the show-password eye sits on the field's line. */
+@media (min-height: 601px) { .app .auth-sub { display: block !important; } }
+.app .auth-pw-toggle { top: auto !important; bottom: 0.4rem !important; transform: none !important; }
+
+/* ══ Sign in / Sign up: composed, not stretched ═══════════════
+   The photo is 736px wide, so the panel no longer grows past it: the pair is a
+   centred composition with a portrait photo and a roomier form beside it. */
+.app .auth { display: flex !important; align-items: center; justify-content: center; }
+.app .auth-card {
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr) !important;
+  max-width: 1220px !important; max-height: 820px !important; height: 100% !important; margin: 0 auto;
+}
+.app .auth-visual { background-position: 50% 24% !important; background-size: cover !important; }
+.app .auth-form { max-width: 420px; }
+
+
+/* ══ Sign in / Sign up: floating card on a soft stage ═════════
+   After the reference: a big rounded white card, an inset rounded photo, a
+   centred logo and heading, Google first, Remember me beside Forgot password,
+   and the account link centred at the bottom. */
+.app .auth { flex-direction: column !important; gap: 14px; padding: 14px 16px !important; background: #f1efec !important; }
+.app .auth-chip {
+  display: inline-flex; align-items: center; gap: 0.55rem; margin: 0; padding: 0.4rem 1rem 0.4rem 0.45rem;
+  font-size: 0.8125rem; font-weight: 500; color: #6f685f; background: rgba(255, 255, 255, 0.75); border-radius: 999px;
+}
+.app .auth-chip-dot { display: grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 50%; font-size: 0.75rem; font-weight: 700; color: #ffffff; background: linear-gradient(160deg, #9c6942, #82543a); }
+@media (max-height: 790px) { .app .auth-chip { display: none; } }
+
+.app .auth-card {
+  flex: 0 1 640px; min-height: 0; width: 100% !important; max-width: 1080px !important; height: auto !important; max-height: none !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  padding: clamp(12px, 2.4vh, 28px) !important; gap: clamp(16px, 3vw, 44px) !important;
+  border-radius: 44px !important; background: #ffffff !important;
+  box-shadow: 0 40px 90px -56px rgba(28, 24, 20, 0.35) !important;
+}
+.app .auth-visual { border-radius: 32px !important; }
+.app .auth-points { display: none !important; }
+
+.app .auth-form-panel { padding: 0 clamp(0.25rem, 1.5vw, 1.25rem) !important; }
+.app .auth-form { max-width: 360px; margin: 0 auto; text-align: center; }
+.app .auth-brand { align-self: center; margin-left: auto !important; margin-right: auto !important; }
+.app .auth-eyebrow { display: none; }
+.app .auth-title { font-size: clamp(1.6rem, 4.4vh, 2.2rem) !important; }
+.app .auth-sub { margin-bottom: clamp(0.6rem, 2.2vh, 1.2rem) !important; font-size: 0.875rem !important; }
+.app .auth-google { background: #f6f4f1; border-color: #ece7df; }
+.app .auth-google:hover { background: #f1eeea; border-color: #d8d2c8; }
+.app .auth-fields { text-align: left; }
+.app .auth-field-error { text-align: right; }
+
+.app .auth-row { display: flex !important; align-items: center; justify-content: space-between; margin: 0.15rem 0 0 !important; }
+.app .auth-remember { display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.8125rem; color: #3b352e; }
+.app .auth-remember input { width: 1rem; height: 1rem; margin: 0; accent-color: #82543a; cursor: pointer; }
+.app .auth-forgot { font-size: 0.8125rem; color: #8a8379 !important; text-decoration: none !important; }
+.app .auth-forgot:hover { color: #1c1814 !important; text-decoration: underline !important; }
+
+.app .auth-terms { text-align: center; }
+.app .auth-corner {
+  position: static !important; margin: clamp(0.5rem, 2vh, 1.1rem) 0 0 !important; text-align: center;
+  font-size: 0.8125rem; color: #6f685f;
+}
+@media (max-height: 860px) { .app .auth-brand { display: none !important; } }
+
+@media (max-width: 900px) {
+  .app .auth { padding: 12px !important; }
+  .app .auth-card { flex: 1 1 auto; grid-template-columns: 1fr !important; border-radius: 30px !important; padding: 22px 18px !important; }
+  .app .auth-chip { display: none; }
+}
+
+/* All white: the stage and the Google button. The card keeps a hairline and a soft shadow. */
+.app .auth { background: #ffffff !important; }
+.app .auth-card { box-shadow: 0 0 0 1px #ece7df, 0 40px 90px -58px rgba(28, 24, 20, 0.35) !important; }
+.app .auth-chip { background: #ffffff; box-shadow: 0 0 0 1px #ece7df; }
+.app .auth-google, .app .auth-google:hover { background: #ffffff !important; }
+.app .auth-google { border-color: #d8d2c8; }
+.app .auth-google:hover { border-color: #9b948a; box-shadow: 0 1px 3px rgba(28, 24, 20, 0.08); }
+
+/* The header and its drop-down panels (bell, account) always sit above page
+   content. The Explore filter bar also used z-index 30 and, being later in the
+   page, painted over them. */
+.app .nav, .app .nav.nav--scrolled, .app .nav.nav--landing { z-index: 200 !important; }
+
+.evidence-who { font-weight: 600; color: #3b352e; }
+
+/* ══ Services mega-panel: frosted glass ═══════════════════════
+   A floating rounded pane that blurs whatever is behind it, a glass card per
+   group with its service count, bronze highlight and arrow on hover, and a
+   footer link to the whole domain. */
+.app .page-body--explore .svcbar-panel {
+  top: calc(100% + 10px) !important; left: 0 !important; right: 0 !important; z-index: 60;
+  padding: 14px !important; border: 1px solid rgba(255, 255, 255, 0.75) !important; border-radius: 26px !important;
+  background:
+    radial-gradient(60% 90% at 8% 0%, rgba(217, 179, 130, 0.22), transparent 70%),
+    radial-gradient(50% 80% at 100% 100%, rgba(156, 105, 66, 0.12), transparent 70%),
+    rgba(255, 255, 255, 0.78) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(170%) !important; backdrop-filter: blur(24px) saturate(170%) !important;
+  box-shadow: 0 0 0 1px rgba(28, 24, 20, 0.07), 0 40px 80px -30px rgba(28, 24, 20, 0.4) !important;
+  animation: svc-in 0.22s var(--ease) both;
+}
+@keyframes svc-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+.app .page-body--explore .svcbar-panel::before { display: none !important; }
+.app .page-body--explore .svcbar-panel-inner { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px !important; padding: 0 !important; }
+
+.app .page-body--explore .svcbar-col {
+  padding: 0.9rem 0.8rem 0.7rem !important; border-radius: 18px;
+  background: rgba(255, 255, 255, 0.58); border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 1px 2px rgba(28, 24, 20, 0.04);
+}
+.app .page-body--explore .svcbar-col-head {
+  display: flex !important; align-items: center; justify-content: space-between; gap: 0.5rem; width: 100%;
+  margin: 0 0 0.45rem !important; padding: 0 0.45rem !important; cursor: pointer; text-align: left;
+  background: none !important; border: 0 !important; box-shadow: none !important;
+  font: 700 0.6875rem/1.3 var(--font-text) !important; letter-spacing: 0.14em !important; text-transform: uppercase; color: #82543a !important;
+}
+.app .page-body--explore .svcbar-col-head::before { display: none !important; }
+.app .page-body--explore .svcbar-col-head:hover .svcbar-col-name { text-decoration: underline; text-underline-offset: 3px; }
+.app .page-body--explore .svcbar-col-count {
+  flex: none; min-width: 1.35rem; padding: 0.1rem 0.4rem; text-align: center; border-radius: 999px;
+  font-size: 0.6875rem; font-weight: 600; letter-spacing: 0; color: #5e3a27; background: rgba(156, 105, 66, 0.14);
+}
+.app .page-body--explore .svcbar-col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.app .page-body--explore .svcbar-col li button {
+  position: relative; display: block; width: 100%; padding: 0.5rem 1.6rem 0.5rem 0.55rem !important; text-align: left; cursor: pointer;
+  border: 0 !important; border-radius: 10px !important; background: transparent !important; box-shadow: none !important;
+  font: 400 0.875rem/1.35 var(--font-text) !important; letter-spacing: 0 !important; text-transform: none !important; color: #3b352e !important;
+  transition: background 0.14s var(--ease), color 0.14s var(--ease);
+}
+.app .page-body--explore .svcbar-col li button::after {
+  content: "\2192"; position: absolute; right: 0.6rem; top: 50%; transform: translate(-4px, -50%); opacity: 0;
+  font-size: 0.875rem; color: #82543a; transition: opacity 0.14s var(--ease), transform 0.14s var(--ease);
+}
+.app .page-body--explore .svcbar-col li button:hover, .app .page-body--explore .svcbar-col li button:focus-visible {
+  background: rgba(156, 105, 66, 0.12) !important; color: #1c1814 !important; outline: none;
+}
+.app .page-body--explore .svcbar-col li button:hover::after, .app .page-body--explore .svcbar-col li button:focus-visible::after { opacity: 1; transform: translate(0, -50%); }
+.app .page-body--explore .svcbar-col li button:focus-visible { box-shadow: inset 0 0 0 2px #9c6942 !important; }
+
+.app .page-body--explore .svcbar-all {
+  display: flex; align-items: center; justify-content: flex-end; gap: 0.5rem; width: 100%; margin: 10px 0 0; padding: 0.35rem 0.7rem 0.1rem;
+  cursor: pointer; border: 0; background: none; font: 600 0.8125rem/1 var(--font-text); color: #5e3a27;
+}
+.app .page-body--explore .svcbar-all:hover { color: #1c1814; }
+.app .page-body--explore .svcbar-all span { transition: transform 0.14s var(--ease); }
+.app .page-body--explore .svcbar-all:hover span { transform: translateX(3px); }
+@media (prefers-reduced-motion: reduce) { .app .page-body--explore .svcbar-panel { animation: none; } .app .page-body--explore .svcbar-col li button, .app .page-body--explore .svcbar-col li button::after, .app .page-body--explore .svcbar-all span { transition: none; } }
+
+/* ══ Services panel: calm, cute pastel cards ═══════════════════
+   Softer than the glass version: a quiet cream pane, one pastel tint per group
+   with a small dot, and services as friendly pills that wrap. */
+.app .page-body--explore .svcbar-panel {
+  padding: 12px !important; border-radius: 28px !important; border: 1px solid #efe9e0 !important;
+  background: rgba(253, 251, 247, 0.86) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(140%) !important; backdrop-filter: blur(18px) saturate(140%) !important;
+  box-shadow: 0 24px 50px -30px rgba(28, 24, 20, 0.28) !important;
+}
+.app .page-body--explore .svcbar-panel-inner { gap: 10px !important; }
+.app .page-body--explore .svcbar-col {
+  --tint: #f7efe4; --dot: #d9a86c;
+  padding: 0.95rem 0.85rem 0.9rem !important; border-radius: 22px; border: 0; box-shadow: none;
+  background: var(--tint);
+}
+.app .page-body--explore .svcbar-col:nth-child(4n+2) { --tint: #f6eceb; --dot: #d98f8a; }
+.app .page-body--explore .svcbar-col:nth-child(4n+3) { --tint: #eef2e8; --dot: #9db382; }
+.app .page-body--explore .svcbar-col:nth-child(4n+4) { --tint: #ece9f1; --dot: #a79bc4; }
+.app .page-body--explore .svcbar-col-head {
+  margin: 0 0 0.7rem !important; padding: 0 0.2rem !important; gap: 0.5rem;
+  font: 600 0.8125rem/1.3 var(--font-text) !important; letter-spacing: 0 !important; text-transform: none !important; color: #2b2620 !important;
+}
+.app .page-body--explore .svcbar-col-head .svcbar-col-name { display: inline-flex; align-items: center; gap: 0.5rem; }
+.app .page-body--explore .svcbar-col-head .svcbar-col-name::before {
+  content: ""; flex: none; width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--dot);
+}
+.app .page-body--explore .svcbar-col-count { color: #6f685f; background: rgba(255, 255, 255, 0.7); font-weight: 500; }
+.app .page-body--explore .svcbar-col ul { display: flex; flex-wrap: wrap; gap: 6px; }
+.app .page-body--explore .svcbar-col li { max-width: 100%; }
+.app .page-body--explore .svcbar-col li button {
+  width: auto; max-width: 100%; padding: 0.42rem 0.8rem !important; border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.82) !important; box-shadow: 0 1px 0 rgba(28, 24, 20, 0.04) !important;
+  font: 400 0.8125rem/1.3 var(--font-text) !important; color: #3b352e !important; text-align: left;
+}
+.app .page-body--explore .svcbar-col li button::after { display: none; }
+.app .page-body--explore .svcbar-col li button:hover, .app .page-body--explore .svcbar-col li button:focus-visible {
+  background: #ffffff !important; color: #1c1814 !important; transform: translateY(-1px);
+  box-shadow: 0 0 0 1.5px var(--dot), 0 6px 14px -8px rgba(28, 24, 20, 0.35) !important;
+}
+.app .page-body--explore .svcbar-col li button:focus-visible { box-shadow: 0 0 0 2px #9c6942 !important; }
+.app .page-body--explore .svcbar-all { color: #6f685f; font-weight: 500; }
+.app .page-body--explore .svcbar-col { align-self: stretch !important; flex: none !important; }
+.app .page-body--explore .svcbar-col ul { display: grid; gap: 6px; }
+.app .page-body--explore .svcbar-col li { margin: 0 !important; padding: 0 !important; min-height: 0 !important; }
+.app .page-body--explore .svcbar-col li button { width: 100%; border-radius: 16px !important; }
+
+/* ══ Your priorities: calm pastel cards, like the services panel ═
+   One soft tint per criterion with a matching dot, the level as a white pill,
+   and meter segments in that criterion's colour. */
+.app .meter-list { display: grid; gap: 8px; margin-top: 0.6rem; }
+.app .meter-row {
+  --tint: #f7efe4; --dot: #d9a86c; --on: #c48a4a;
+  padding: 0.7rem 0.85rem 0.65rem !important; border: 0 !important; border-radius: 18px; background: var(--tint);
+}
+.app .meter-row:nth-child(6n+2) { --tint: #f6eceb; --dot: #d98f8a; --on: #c9706a; }
+.app .meter-row:nth-child(6n+3) { --tint: #eef2e8; --dot: #9db382; --on: #7f9a60; }
+.app .meter-row:nth-child(6n+4) { --tint: #ece9f1; --dot: #a79bc4; --on: #8a7bb0; }
+.app .meter-row:nth-child(6n+5) { --tint: #e8f0f2; --dot: #86b3bd; --on: #5f9aa6; }
+.app .meter-row:nth-child(6n+6) { --tint: #f5f0dc; --dot: #cdb860; --on: #b09a3e; }
+.app .meter-label { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 600; color: #2b2620; }
+.app .meter-label::before { content: ""; flex: none; width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--dot); }
+.app .meter-word {
+  padding: 0.12rem 0.55rem; border-radius: 999px; background: rgba(255, 255, 255, 0.75); color: #5e3a27; font-weight: 500;
+}
+.app .meter-seg::before { background: rgba(255, 255, 255, 0.85); }
+.app .meter-seg.is-on::before { background: var(--on); }
+.app .meter-seg:hover::before { background: var(--dot); }
+.app .meter-seg.is-on:hover::before { background: var(--on); filter: brightness(0.92); }
+.app .meter-seg:focus-visible { outline-color: #2b2620; }
+.app .meter-row { padding: 0.7rem 0.7rem 0.65rem !important; }
+.app .meter-label { gap: 0.4rem; font-size: 0.78rem; white-space: nowrap; }
+.app .meter-word { padding: 0.1rem 0.45rem; font-size: 0.6875rem; }
+
+/* Priorities: one quiet tint instead of six colours. */
+.app .meter-row, .app .meter-row:nth-child(n) { --tint: #f8f4ee; --dot: #b98a5a; --on: #9c6942; }
+.app .meter-row { background: var(--tint); }
+.app .meter-seg::before { background: #ece5db; }
+.app .meter-seg:hover::before { background: #c9a47c; }
+.app .meter-word { background: #ffffff; }
+
+/* ══ Soft palette, used sparingly ═══════════════════════════════
+   The four tints from the services panel (cream, blush, sage, lavender), each
+   with a matching dot colour. Used only as quiet card and icon fills; text and
+   buttons stay in the warm greys and bronze. */
+:root {
+  --tint-1: #f7efe4; --dot-1: #d9a86c;
+  --tint-2: #f6eceb; --dot-2: #d98f8a;
+  --tint-3: #eef2e8; --dot-3: #9db382;
+  --tint-4: #ece9f1; --dot-4: #a79bc4;
+}
+/* Landing: offers and client feedback cards */
+.app .lp-offer:nth-child(4n+1), .app .lp-review:nth-child(4n+1) { background: var(--tint-1) !important; }
+.app .lp-offer:nth-child(4n+2), .app .lp-review:nth-child(4n+2) { background: var(--tint-2) !important; }
+.app .lp-offer:nth-child(4n+3), .app .lp-review:nth-child(4n+3) { background: var(--tint-3) !important; }
+.app .lp-offer, .app .lp-review { border-color: transparent !important; border-radius: 22px !important; }
+.app .lp-offer--featured { box-shadow: 0 0 0 1.5px var(--dot-2) !important; }
+.app .lp-offer-tag { display: inline-block; align-self: flex-start; padding: 0.15rem 0.6rem; border-radius: 999px; background: rgba(255, 255, 255, 0.75); }
+
+/* How it works: step rows */
+.app .step-list .step { padding: 1rem 1.1rem !important; border: 0 !important; border-radius: 20px; margin-bottom: 10px; }
+.app .step-list .step:nth-child(4n+1) { background: var(--tint-1); }
+.app .step-list .step:nth-child(4n+2) { background: var(--tint-2); }
+.app .step-list .step:nth-child(4n+3) { background: var(--tint-3); }
+.app .step-list .step:nth-child(4n+4) { background: var(--tint-4); }
+.app .step-list .step-num { color: #82543a !important; }
+
+/* About: numbered checks */
+.app .about-checks > *:nth-child(4n+1) .about-check-no { background: var(--tint-1) !important; border-color: var(--dot-1) !important; }
+.app .about-checks > *:nth-child(4n+2) .about-check-no { background: var(--tint-2) !important; border-color: var(--dot-2) !important; }
+.app .about-checks > *:nth-child(4n+3) .about-check-no { background: var(--tint-3) !important; border-color: var(--dot-3) !important; }
+.app .about-checks > *:nth-child(4n+4) .about-check-no { background: var(--tint-4) !important; border-color: var(--dot-4) !important; }
+
+/* Contact: icon discs */
+.app .contactpage .cp-rows > *:nth-child(3n+1) .cp-row-icon { background: var(--tint-1) !important; border-color: var(--dot-1) !important; }
+.app .contactpage .cp-rows > *:nth-child(3n+2) .cp-row-icon { background: var(--tint-2) !important; border-color: var(--dot-2) !important; }
+.app .contactpage .cp-rows > *:nth-child(3n+3) .cp-row-icon { background: var(--tint-3) !important; border-color: var(--dot-3) !important; }
+
+/* Profile: score rows */
+.app .pf-score-row:not(.pf-score-row--overall):nth-child(4n+1) { background: var(--tint-1); }
+.app .pf-score-row:not(.pf-score-row--overall):nth-child(4n+2) { background: var(--tint-2); }
+.app .pf-score-row:not(.pf-score-row--overall):nth-child(4n+3) { background: var(--tint-3); }
+.app .pf-score-row:not(.pf-score-row--overall):nth-child(4n+4) { background: var(--tint-4); }
+.app .pf-score-row { border-radius: 16px; }
+
+/* ══ One colour: white cards, bronze accent ═════════════════════
+   Shapes stay exactly as they were; every pastel tint becomes white with a
+   hairline edge, and every coloured dot, ring and meter becomes bronze. */
+:root {
+  --tint-1: #ffffff; --tint-2: #ffffff; --tint-3: #ffffff; --tint-4: #ffffff;
+  --dot-1: #9c6942; --dot-2: #9c6942; --dot-3: #9c6942; --dot-4: #9c6942;
+}
+/* Services panel */
+.app .page-body--explore .svcbar-panel { background: #ffffff !important; }
+.app .page-body--explore .svcbar-col, .app .page-body--explore .svcbar-col:nth-child(n) {
+  --tint: #ffffff; --dot: #9c6942; background: #ffffff !important; border: 1px solid #ece6dd !important;
+}
+.app .page-body--explore .svcbar-col li button { background: #faf8f5 !important; }
+.app .page-body--explore .svcbar-col li button:hover, .app .page-body--explore .svcbar-col li button:focus-visible {
+  background: #ffffff !important; box-shadow: 0 0 0 1.5px #9c6942, 0 6px 14px -8px rgba(28, 24, 20, 0.35) !important;
+}
+.app .page-body--explore .svcbar-col-count { background: #f3ece3; color: #82543a; }
+/* Priorities */
+.app .meter-row, .app .meter-row:nth-child(n) {
+  --tint: #ffffff; --dot: #9c6942; --on: #9c6942; background: #ffffff; border: 1px solid #ece6dd !important;
+}
+.app .meter-word { background: #f3ece3; }
+/* Landing, steps, profile */
+.app .lp-offer, .app .lp-review, .app .lp-offer:nth-child(n), .app .lp-review:nth-child(n) {
+  background: #ffffff !important; border: 1px solid #e7e2da !important;
+}
+.app .lp-offer--featured { border-color: #9c6942 !important; box-shadow: none !important; }
+.app .lp-offer-tag { background: #f3ece3; }
+.app .step-list .step, .app .step-list .step:nth-child(n) { background: #ffffff; border: 1px solid #ece6dd !important; }
+.app .pf-score-row:not(.pf-score-row--overall), .app .pf-score-row:not(.pf-score-row--overall):nth-child(n) { background: #ffffff; }

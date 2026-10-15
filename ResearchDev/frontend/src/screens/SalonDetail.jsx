@@ -5,7 +5,7 @@
    card summarises into one number and a handful of chips. */
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { SelectMenu } from "../components/SelectMenu";
-import { IconChevron } from "../components/Icons";
+import { IconChevron, IconPin } from "../components/Icons";
 import {
   getProvider, getFramework, getEvidence, getSentiment, getReplyQuality, getSubPointProof,
   splitBadges, categoryScoreRows,
@@ -14,7 +14,6 @@ import { LEAF_BY_CODE } from "../constants/taxonomy";
 import { SUB_POINTS, subPointsOf } from "../constants/subPoints";
 import { CATEGORY_INFO, isShownCategory } from "../constants/categories";
 import { StaffReputation } from "../components/StaffReputation";
-import { StaffDependentChip } from "../components/StaffDependentChip";
 import { PopularServicesBadge } from "../components/PopularServicesBadge";
 import { SpecialismBadge } from "../components/SpecialismBadge";
 import { LanguageMix } from "../components/LanguageMix";
@@ -22,10 +21,10 @@ import { LanguageMix } from "../components/LanguageMix";
 const EVIDENCE_PAGE = 20;
 
 /* One quoted review. Shared by the browser at the foot of the page and by the
-   drawer that opens under a category score, so a review looks the same
+   drawer that opens under a category score, so a feedback looks the same
    wherever it is read. */
 /* One review can be read for several sub-points, so the raw rows carry the
-   same review text many times. Group by review so each review shows ONCE, with
+   same feedback text many times. Group by feedback so each feedback shows ONCE, with
    its sub-points listed underneath — no duplicated quotes. Order of first
    appearance is kept, so the backend's sort still holds. */
 function groupByReview(rows) {
@@ -43,6 +42,7 @@ function groupByReview(rows) {
         reply_date: e.reply_date,
         published_at: e.published_at,
         stars: e.stars,
+        reviewer_name: e.reviewer_name,
         points: [],
       };
       byId.set(key, g);
@@ -63,7 +63,7 @@ function reviewPolarity(points) {
 /* A staff name is only worth showing when it is genuinely in the review: it
    must appear there as a whole word, and must not be part of the salon's own
    name (so "Boss" from "Saloon Boss" is not read as a person). Returns the
-   distinct valid names found in this review. */
+   distinct valid names found in this feedback. */
 function namedStaffIn(points, reviewText, salonName) {
   const text = reviewText ?? "";
   const salonWords = new Set(
@@ -112,7 +112,7 @@ function EvidenceRows({ rows, salonName }) {
             <EvidenceQuote text={g.review_text} />
 
             {/* Every sub-point this review was read for, on one ash line,
-                separated by a bar — so the one review can say several things
+                separated by a bar — so the one feedback can say several things
                 without being printed twice. */}
             <p className="evidence-points">
               {g.points
@@ -122,8 +122,12 @@ function EvidenceRows({ rows, salonName }) {
                 .join("  |  ")}
             </p>
 
-            {g.published_at && (
-              <p className="evidence-date">{String(g.published_at).slice(0, 10)}</p>
+            {(g.reviewer_name || g.published_at) && (
+              <p className="evidence-date">
+                {g.reviewer_name && <span className="evidence-who">{g.reviewer_name}</span>}
+                {g.reviewer_name && g.published_at && <span aria-hidden="true"> · </span>}
+                {g.published_at && String(g.published_at).slice(0, 10)}
+              </p>
             )}
 
             {/* The owner's answer, shown once per review. */}
@@ -139,7 +143,7 @@ function EvidenceRows({ rows, salonName }) {
 
             {/* Named staff, one line, bottom-right. */}
             {staff.length > 0 && (
-              <p className="evidence-staff-line" title={`This review names ${staff.join(", ")}`}>
+              <p className="evidence-staff-line" title={`This feedback names ${staff.join(", ")}`}>
                 <span className="evidence-staff-line-tag">Mentioned staff:</span>{" "}
                 <span className="evidence-staff-line-name">{staff.join(", ")}</span>
               </p>
@@ -163,7 +167,7 @@ const POLARITIES = [
 // the default order is unchanged and sends no sort at all.
 const SORTS = [
   { value: "", label: "Newest first" },
-  { value: "longest", label: "Longest review first" },
+  { value: "longest", label: "Longest feedback first" },
 ];
 
 /* A review runs to ten or more lines, and a page of them is unreadable. Each
@@ -244,22 +248,20 @@ function DonutDefs() {
   return (
     <svg className="donut-defs" aria-hidden="true" focusable="false">
       <defs>
-        {/* Main arc: brand violet → deep purple */}
+        {/* Outer arc: the score, in bronze */}
         <linearGradient id="sent-positive" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%"   stopColor="#C9A86C" />
-          <stop offset="55%"  stopColor="#9B4FA0" />
-          <stop offset="100%" stopColor="#7B337E" />
+          <stop offset="0%"   stopColor="#b98456" />
+          <stop offset="100%" stopColor="#82543a" />
         </linearGradient>
-        {/* Inner negative arc: gold accent */}
+        {/* Inner arc: share of negative reviews, in sand */}
         <linearGradient id="sent-negative" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%"   stopColor="#E8D4A8" />
-          <stop offset="55%"  stopColor="#C9A86C" />
-          <stop offset="100%" stopColor="#A07840" />
+          <stop offset="0%"   stopColor="#e3d2b8" />
+          <stop offset="100%" stopColor="#bfa27a" />
         </linearGradient>
-        {/* Mixed/mention: muted violet */}
+        {/* Mixed / mention: neutral grey */}
         <linearGradient id="sent-other" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%"   stopColor="#9B7EA8" />
-          <stop offset="100%" stopColor="#6B5278" />
+          <stop offset="0%"   stopColor="#9ca3af" />
+          <stop offset="100%" stopColor="#6b7280" />
         </linearGradient>
       </defs>
     </svg>
@@ -365,7 +367,7 @@ function ScoreRow({ label, short, blurb, score, count, counts, open, onToggle, d
         className={`score-row score-row--btn ${open ? "is-open" : ""} ${dimmed ? "is-dimmed" : ""}`}
         title={`${label}${blurb ? ` — ${blurb}` : ""}. ${count} evidence ${count === 1 ? "item" : "items"}.`}
         aria-expanded={open}
-        aria-label={`${label}, ${count} evidence ${count === 1 ? "item" : "items"}. Show the reviews behind this score.`}
+        aria-label={`${label}, ${count} evidence ${count === 1 ? "item" : "items"}. Show the feedbacks behind this score.`}
         onClick={onToggle}
       >
         <Donut counts={counts} score={score} label={label} />
@@ -617,12 +619,12 @@ function CategoryEvidence({ placeId, serviceCode, categoryCode, categoryNo, labe
   const extras = wide.length + other.length;
 
   /* Strict by default: picking a service and a category means "show me those
-     reviews", so those are what the list holds.
+     feedbacks", so those are what the list holds.
 
      The pooled evidence is still reachable, because the score above was not
      built from this list alone -- but it is an answer to a second question
      ("why is this number what it is?") and it waits to be asked. The one
-     exception is a service with no reviews of its own, where strict would
+     exception is a service with no feedbacks of its own, where strict would
      leave a bare "none" under a score of 74; there the fallback IS the
      answer, so it opens with it. */
   if (!own.length && !extras) {
@@ -650,7 +652,7 @@ function CategoryEvidence({ placeId, serviceCode, categoryCode, categoryNo, labe
     <div className="cat-drawer">
       {/* Proof, not just a definition. "89 for Quality of Work" means little
           until you can see it is built from three separate checks, and that
-          each one has real reviews behind it rather than being asserted. */}
+          each one has real feedbacks behind it rather than being asserted. */}
       <SubPointProofList categoryNo={categoryNo} subPointBy={subPointBy} />
 
       {own.length > 0 ? (
@@ -663,7 +665,7 @@ function CategoryEvidence({ placeId, serviceCode, categoryCode, categoryNo, labe
         </>
       ) : (
         <p className="cat-drawer-head">
-          No review names <strong>{serviceLabel}</strong> for {label}. The score comes from
+          No feedback names <strong>{serviceLabel}</strong> for {label}. The score comes from
           these instead:
         </p>
       )}
@@ -675,7 +677,7 @@ function CategoryEvidence({ placeId, serviceCode, categoryCode, categoryNo, labe
                 taken from them would undersell the pool -- the salon-wide
                 slice behind "6 shown" can be 25. */}
             <summary className="cat-pool-summary">
-              The score also counts reviews that name no service, or another service
+              The score also counts feedbacks that name no service, or another service
             </summary>
             {pooled.map((g) => (
               <Fragment key={g.key}>
@@ -763,7 +765,7 @@ function DetailFilters({ services, categories, sentimentTotals, languages, filte
 
   /* Category 3 is left out of this row. It is scored almost entirely from
      the owner's replies (3.1-3.4), not from what customers write, so
-     "reviews about Management" would return the handful of 3.5 statements
+     "feedbacks about Management" would return the handful of 3.5 statements
      and read as though the salon were barely answered for. The category is
      still shown everywhere it is scored — this row is about what a REVIEW
      is about. */
@@ -801,7 +803,7 @@ function DetailFilters({ services, categories, sentimentTotals, languages, filte
   /* Built from provider.languages, which is already gated at 5+ reviews across
      2+ languages — so a single-language salon shows no row rather than a
      filter whose only options are "All" and "everything". "All" keeps showing
-     'other' and undetected reviews: this narrows, it never quietly drops. */
+     'other' and undetected feedbacks: this narrows, it never quietly drops. */
   const languageChips = [
     { value: "", label: "All" },
     ...(languages ?? []).map((l) => ({ value: l.code, label: l.label, n: l.n })),
@@ -811,7 +813,7 @@ function DetailFilters({ services, categories, sentimentTotals, languages, filte
     <div className="chip-filters">
       <ChipRow caption="Service area" value={filters.category}
                options={categoryChips} onChange={set("category")} />
-      <ChipRow caption="What the review is about" hint="pick a topic"
+      <ChipRow caption="What the feedback is about" hint="pick a topic"
                value={filters.category_no} options={topicChips} onChange={set("category_no")} />
 
       <div className="chip-row" role="group" aria-label="Said how">
@@ -851,7 +853,7 @@ function DetailFilters({ services, categories, sentimentTotals, languages, filte
 /* A sentence saying what is currently on screen.
  
    The chips above already show what is selected, but reading three rows of
-   chips to work out "negative reviews about Safety at this salon" is work.
+   chips to work out "negative feedbacks about Safety at this salon" is work.
    This says it once, in words, so a reader who arrived mid-scroll is not
    left guessing why the list is short. */
 function SelectionSummary({ filters, categories, services }) {
@@ -859,14 +861,14 @@ function SelectionSummary({ filters, categories, services }) {
   const service = services.find((x) => x.service_code === filters.service_code);
   const bits = [];
   if (filters.polarity) bits.push(filters.polarity);
-  bits.push("reviews");
+  bits.push("feedbacks");
   if (topic) bits.push(`about ${CATEGORY_DISPLAY[topic.category_no] ?? topic.name}`);
   if (service) bits.push(`for ${service.service}`);
   else if (filters.category) bits.push(`for ${filters.category}`);
 
   const narrowed = filters.polarity || filters.category_no || filters.service_code || filters.category;
   if (!narrowed) {
-    return <p className="detail-note">Every review behind this salon's scores. Use the chips above to narrow them.</p>;
+    return <p className="detail-note">Every feedback behind this salon's scores. Use the chips above to narrow them.</p>;
   }
   return <p className="detail-note selection-summary">Showing {bits.join(" ")}.</p>;
 }
@@ -1024,7 +1026,7 @@ function ServiceScores({ service, categoryName, categoryTrait, sentimentBy, subP
 }
 
 /** The paged "browse all reviews" list, filtered by DetailFilters' chips.
-    Independent of the per-category drawers above it: this is every review
+    Independent of the per-category drawers above it: this is every feedback
     matching the filters, not the evidence behind one score. */
 function EvidenceList({ placeId, filters, salonName }) {
   const [rows, setRows] = useState([]);
@@ -1088,7 +1090,7 @@ function EvidenceList({ placeId, filters, salonName }) {
           capped at 100 characters, so it arrives cut mid-word ("...my all
           time trusted beau") and would read as a truncated sentence quoted
           as the customer's own words. review_text, from raw.review, is the
-          whole review and is what gets quoted whenever it is present. */}
+          whole feedback and is what gets quoted whenever it is present. */}
       <EvidenceRows rows={rows} salonName={salonName} />
 
       {loading && <p className="loading-text">Loading evidence</p>}
@@ -1103,11 +1105,11 @@ function EvidenceList({ placeId, filters, salonName }) {
 
 /** The salon profile page. Loads getProvider and getFramework once, then
     renders identity, gates/safety, every service's score tiles
-    (ServiceScores) and the filtered review browser (EvidenceList).
+    (ServiceScores) and the filtered feedback browser (EvidenceList).
     consistencyWindow carries the 6m/1y/3y/anytime choice from wherever the
     reader opened the profile from, so every category score and the
     specialism badge match what they were looking at. */
-export function SalonDetail({ salonId, onBack, consistencyWindow = "1y" }) {
+export function SalonDetail({ salonId, onBack, consistencyWindow = "anytime" }) {
   const [provider, setProvider] = useState(null);
   const [categories, setCategories] = useState([]);
   const [sentiment, setSentiment] = useState([]);
@@ -1195,11 +1197,14 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "1y" }) {
             {p.address}
             {p.city && !String(p.address ?? "").includes(p.city) ? ` · ${p.city}` : ""}
           </p>
+          {provider.review_counts?.reviews > 0 && (
+            <p className="detail-counts">
+              <strong>{provider.review_counts.reviews}</strong> feedbacks
+              <span aria-hidden="true"> · </span>
+              <strong>{provider.review_counts.written}</strong> with comments, all read
+            </p>
+          )}
           <div className="detail-chips">
-            <StaffDependentChip
-              show={provider.staff_reputation?.staff_dependent}
-              linkTo="#staff-reputation"
-            />
             <PopularServicesBadge data={provider.popular_services} />
             <SpecialismBadge data={provider.specialism} />
             {closed && (
@@ -1219,7 +1224,7 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "1y" }) {
         {[
           { id: "summary", label: "Summary" },
           { id: "scores",  label: "Scores by Service" },
-          { id: "reviews", label: "Customer Feedbacks" },
+          { id: "feedbacks", label: "Customer Feedbacks" },
           { id: "info",    label: "Salon Info" },
         ].map(({ id, label }) => (
           <button
@@ -1243,11 +1248,11 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "1y" }) {
             </li>
             <li>
               <span className="donut-legend-swatch donut-legend-swatch--negative" aria-hidden="true" />
-              Inner ring: share of negative reviews
+              Inner ring: share of negative feedbacks
             </li>
           </ul>
           {services.length === 0 ? (
-            <p className="subtle">No service has review evidence for this salon yet.</p>
+            <p className="subtle">No service has feedback evidence for this salon yet.</p>
           ) : (
             <ServiceScoreList
               services={services}
@@ -1278,7 +1283,7 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "1y" }) {
           )}
 
           {/* Who the reviews name, and what language they are in: two facts
-              about the review set itself rather than about the salon's work,
+              about the feedback set itself rather than about the salon's work,
               so they sit together as a pair above the category findings. */}
           <div className="summary-side-cards">
             <StaffReputation data={provider.staff_reputation} placeId={salonId} />
@@ -1539,7 +1544,7 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "1y" }) {
       )}
 
       {/* ── Reviews tab ─────────────────────────────────────────── */}
-      {tab === "reviews" && (
+      {tab === "feedbacks" && (
         <section className="detail-panel">
           <DetailFilters
             services={services}
@@ -1572,7 +1577,8 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "1y" }) {
           {p.place_url && (
             <div className="info-block">
               <a href={p.place_url} target="_blank" rel="noopener noreferrer" className="maps-link">
-                View on Google Maps →
+                <IconPin size={16} />
+                View on Google Maps
               </a>
             </div>
           )}

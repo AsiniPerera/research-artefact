@@ -21,10 +21,10 @@ export const SUB_POINTS = {
   "2.3": { label: "Gave aftercare advice",         question: "Do they explain how to care for the result?",       blurb: "Gave home-care instructions or follow-up advice after the service" },
 
   // 3 — Management Responsiveness
-  "3.1": { label: "Replies to complaints",  question: "Does management respond to customer complaints?",             blurb: "Share of complaints (reviews that are not positive) that received a reply from the owner" },
+  "3.1": { label: "Replies to complaints",  question: "Does management respond to customer complaints?",             blurb: "Share of complaints (feedbacks that are not positive) that received a reply from the owner" },
   "3.2": { label: "Personal replies",       question: "Does management address the specific concern raised?",       blurb: "Whether the reply addresses what that specific reviewer said — a generic template counts as negative" },
   "3.3": { label: "Takes responsibility",   question: "Does management take ownership of the concern?",              blurb: "Accepts the problem and offers a redo, refund or contact — a factual rebuttal scores higher than ignoring the concern" },
-  "3.4": { label: "Keeps promises",         question: "Does management follow through on improvement commitments?", blurb: "A specific promised change tested against later reviews to see if it actually happened" },
+  "3.4": { label: "Keeps promises",         question: "Does management follow through on improvement commitments?", blurb: "A specific promised change tested against later feedbacks to see if it actually happened" },
   "3.5": { label: "Puts mistakes right",    question: "If something goes wrong, do they put it right?",              blurb: "Free redo or refund for the salon's own mistake — refusing to fix it counts as negative" },
 
   // 4 — Customer Trust & Recommendation

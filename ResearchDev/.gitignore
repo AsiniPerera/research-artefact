@@ -13,3 +13,6 @@ data/processed/
 pipeline/expert_weights.json
 evaluation/gold_set.csv
 docs/results/
+
+# Reviewer names are personal data: kept on this machine, never committed
+backend/salon_db/data/review_reviewer.csv

@@ -4,22 +4,26 @@
 import { useState } from "react";
 import logoMark from "../assets/images/logo/logo-mark.png";
 import authBg   from "../assets/images/Auth/bridal.jpg";
-import { IconFacebookBrand, IconGoogleBrand, IconInstagramBrand } from "../components/Icons";
+import { IconGoogleBrand } from "../components/Icons";
 import { signIn, signUp } from "../api/client";
 
 const COPY = {
   signin: {
-    title: "Welcome Back!",
-    sub: "Sign in to your account",
+    eyebrow: "Sign in",
+    title: "Welcome back",
+    sub: "Sign in to see salons ranked for you.",
     submit: "Log in",
+    google: "Sign in with Google",
     switchText: "Don't have an account?",
     switchCta: "Sign Up",
     switchTo: "signup",
   },
   signup: {
-    title: "Create Account",
-    sub: "Fill in your details to get started",
+    eyebrow: "Join Amore",
+    title: "Create your account",
+    sub: "Save favourites and get rankings that remember you.",
     submit: "Sign Up",
+    google: "Sign up with Google",
     switchText: "Already have an account?",
     switchCta: "Log in",
     switchTo: "signin",
@@ -46,23 +50,23 @@ function validate(mode, form) {
 function Field({ id, label, type = "text", value, onChange, onBlur, autoComplete, error, children }) {
   return (
     <div className="auth-field-wrap">
-      <label className="auth-field" htmlFor={id}>
-        <span className="auth-field-label sr-only">{label}</span>
-        <div className={`auth-field-control ${error ? "has-error" : ""}`}>
-          <input
-            id={id}
-            type={type}
-            value={value}
-            onChange={onChange}
-            onBlur={onBlur}
-            autoComplete={autoComplete}
-            placeholder={label}
-            aria-describedby={error ? `${id}-err` : undefined}
-            aria-invalid={!!error}
-          />
-          {children}
-        </div>
-      </label>
+      <div className={`auth-field-control ${error ? "has-error" : ""}`}>
+        {/* The placeholder is a single space: it lets CSS tell an empty field
+            from a filled one (:placeholder-shown) so the label can float. */}
+        <input
+          id={id}
+          type={type}
+          value={value}
+          onChange={onChange}
+          onBlur={onBlur}
+          autoComplete={autoComplete}
+          placeholder=" "
+          aria-describedby={error ? `${id}-err` : undefined}
+          aria-invalid={!!error}
+        />
+        <label className="auth-float" htmlFor={id}>{label}</label>
+        {children}
+      </div>
       {error && (
         <p className="auth-field-error" id={`${id}-err`} role="alert">
           {error}
@@ -77,8 +81,10 @@ export function Auth({ mode, onSwitch, onHome, onSignedIn }) {
   const [form, setForm]       = useState({ name: "", email: "", password: "" });
   const [fieldErrs, setFieldErrs] = useState({});
   const [showPw, setShowPw]   = useState(false);
+  const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
+  const [googleNote, setGoogleNote] = useState("");
 
   /* Reset field errors when mode switches */
   const switchMode = (to) => { setFieldErrs({}); setApiError(""); onSwitch(to); };
@@ -107,7 +113,7 @@ export function Auth({ mode, onSwitch, onHome, onSignedIn }) {
       const result = mode === "signup"
         ? await signUp(form.name, form.email, form.password)
         : await signIn(form.email, form.password);
-      onSignedIn?.(result.token, result.user);
+      onSignedIn?.(result.token, result.user, mode === "signin" ? remember : true);
     } catch (err) {
       setApiError(err.message);
     } finally {
@@ -117,6 +123,7 @@ export function Auth({ mode, onSwitch, onHome, onSignedIn }) {
 
   return (
     <div className="auth">
+      <p className="auth-chip" aria-hidden="true"><span className="auth-chip-dot">A</span>amorebeauty.app</p>
       <div className="auth-card">
         {/* ── Image panel ─────────────────────────── */}
         <aside
@@ -127,6 +134,11 @@ export function Auth({ mode, onSwitch, onHome, onSignedIn }) {
           <div className="auth-visual-copy">
             <p className="eyebrow">The pinnacle of beauty standards</p>
             <p className="auth-quote">Chosen on evidence,<br />never on averages.</p>
+            <ul className="auth-points">
+              <li>Every written feedback read, not star averages</li>
+              <li>No sponsored placement, ever</li>
+              <li>Ranked around what matters to you</li>
+            </ul>
           </div>
         </aside>
 
@@ -137,6 +149,7 @@ export function Auth({ mode, onSwitch, onHome, onSignedIn }) {
               <img src={logoMark} alt="Amore Beauty" />
             </button>
 
+            <p className="auth-eyebrow">{c.eyebrow}</p>
             <h1 className="auth-title">{c.title}</h1>
             <p className="auth-sub">{c.sub}</p>
 
@@ -145,11 +158,31 @@ export function Auth({ mode, onSwitch, onHome, onSignedIn }) {
               <p className="auth-error" role="alert">{apiError}</p>
             )}
 
+            {/* Google first, then the email and password form. Real Google
+                sign-in needs a Google client ID and a server-side check of the
+                ID token; until those exist the button says so rather than
+                pretending to work. */}
+            <button
+              type="button"
+              className="auth-google"
+              onClick={() => setGoogleNote("Google sign-in isn't connected yet. Please use your email below.")}
+            >
+              <IconGoogleBrand size={20} />
+              {c.google}
+            </button>
+            {/* The message takes the divider's place rather than adding a line. */}
+            {googleNote ? (
+              <p className="auth-google-note" role="status">{googleNote}</p>
+            ) : (
+              <p className="auth-or" aria-hidden="true"><span>or use your email</span></p>
+            )}
+
             <form onSubmit={handleSubmit} className="auth-fields" noValidate>
               {mode === "signup" && (
                 <Field
                   id="auth-name"
                   label="Full name"
+                  placeholder="e.g. Ananya Perera"
                   value={form.name}
                   onChange={set("name")}
                   onBlur={blur("name")}
@@ -161,6 +194,7 @@ export function Auth({ mode, onSwitch, onHome, onSignedIn }) {
               <Field
                 id="auth-email"
                 label="Email address"
+                placeholder="you@example.com"
                 type="email"
                 value={form.email}
                 onChange={set("email")}
@@ -172,6 +206,7 @@ export function Auth({ mode, onSwitch, onHome, onSignedIn }) {
               <Field
                 id="auth-password"
                 label="Password"
+                placeholder={mode === "signup" ? "At least 8 characters" : "Your password"}
                 type={showPw ? "text" : "password"}
                 value={form.password}
                 onChange={set("password")}
@@ -206,27 +241,17 @@ export function Auth({ mode, onSwitch, onHome, onSignedIn }) {
 
               {mode === "signin" && (
                 <div className="auth-row">
-                  <button type="button" className="auth-forgot">Forgot your password?</button>
+                  <label className="auth-remember">
+                    <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+                    Remember me
+                  </label>
+                  <button type="button" className="auth-forgot">Forgot password?</button>
                 </div>
               )}
 
               <button type="submit" className="auth-submit" disabled={loading}>
                 {loading ? "Please wait…" : c.submit}
               </button>
-
-              <p className="auth-or" aria-hidden="true">Or continue with</p>
-
-              <div className="auth-social">
-                <button type="button" className="auth-social-btn" aria-label="Continue with Facebook" disabled title="Coming soon">
-                  <IconFacebookBrand size={36} />
-                </button>
-                <button type="button" className="auth-social-btn" aria-label="Continue with Google" disabled title="Coming soon">
-                  <IconGoogleBrand size={36} />
-                </button>
-                <button type="button" className="auth-social-btn" aria-label="Continue with Instagram" disabled title="Coming soon">
-                  <IconInstagramBrand size={36} />
-                </button>
-              </div>
 
               {mode === "signup" && (
                 <p className="auth-terms">
@@ -237,12 +262,11 @@ export function Auth({ mode, onSwitch, onHome, onSignedIn }) {
               )}
             </form>
 
-            <p className="auth-switch">
+            <p className="auth-corner">
               {c.switchText}{" "}
-              <button type="button" onClick={() => switchMode(c.switchTo)}>
-                {c.switchCta}
-              </button>
+              <button type="button" onClick={() => switchMode(c.switchTo)}>{c.switchCta}</button>
             </p>
+
           </div>
         </div>
       </div>

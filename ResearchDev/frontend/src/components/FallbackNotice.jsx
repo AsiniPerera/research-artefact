@@ -18,19 +18,24 @@ import { IconInfo } from "./Icons";
  */
 export function FallbackNotice({ fallback, city, onSearchAllCities }) {
   const { level, requested, shown } = fallback;
-  const asked = requested?.name;
-  const showing = shown?.name;
+  /* The database still tags beard and shave work with the retired "Gents'
+     Grooming" category, which the taxonomy folds under Hair. */
+  const plain = (name) => (name && /gents|grooming/i.test(name) ? "Hair" : name);
+  const asked = plain(requested?.name);
+  const showing = plain(shown?.name);
 
   /* Nothing to say without the names, and a notice that names no service
      would be worse than none. */
   if (!showing) return null;
 
   const message =
-    level === "none"
-      ? `No rated salons found for ${showing} yet. Try another service or search all cities.`
-      : level === "category"
-        ? `No rated salons for ${asked}, or for its service, yet. Showing the best in the ${showing} category instead.`
-        : `No rated salons for ${asked} yet. Showing the best in the ${showing} service instead, which includes it.`;
+    level === "none" ? (
+      <>No rated salons found for <strong>{showing}</strong> yet. {city ? "Try another service or search all cities." : "Try another service."}</>
+    ) : level === "category" ? (
+      <>No rated salons for <strong>{asked}</strong>, or for its service, yet. Showing the best in the <strong>{showing}</strong> category instead.</>
+    ) : (
+      <>No rated salons for <strong>{asked}</strong> yet. Showing the best in the <strong>{showing}</strong> service instead, which includes it.</>
+    );
 
   return (
     /* role="status" so a screen reader announces the change of service

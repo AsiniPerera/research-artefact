@@ -1,6 +1,7 @@
 /* Rendered by Rankings.jsx above the Results list. */
 import { SelectMenu } from "./SelectMenu";
-import { IconCalendar, IconClock, IconPin } from "./Icons";
+import { IconCalendar, IconClock, IconPin, IconUser } from "./Icons";
+import { AUDIENCE, AUDIENCE_OPTIONS } from "../constants/audience";
 import { CITIES } from "../constants/cities";
 
 /* Google's business status: no opening hours are held, so "Open" means
@@ -25,7 +26,7 @@ export const CONSISTENCY_WINDOWS = [
   { value: "3y", label: "3 years" },
   { value: "anytime", label: "All time" },
 ];
-export const DEFAULT_CONSISTENCY_WINDOW = "1y";
+export const DEFAULT_CONSISTENCY_WINDOW = "anytime";
 
 /**
  * The constraints you re-try while reading results, sitting directly above
@@ -37,18 +38,15 @@ export function QuickFilters({
   onChange,
   onReset,
   isDefault = true,
-  includeNearby = false,
-  onIncludeNearbyChange,
   consistencyWindow = DEFAULT_CONSISTENCY_WINDOW,
   onConsistencyWindowChange,
+  audience = "",
+  onAudienceChange,
 }) {
   const options = [
     { value: "", label: "All cities" },
     ...CITIES.map((c) => ({ value: c, label: c })),
   ];
-  /* Nearby means "just outside the chosen city", so it only has meaning once
-     a city is chosen — "All cities" already shows everyone. */
-  const nearbyReady = Boolean(filters.city);
 
   return (
     <div className="quick-filters">
@@ -68,6 +66,19 @@ export function QuickFilters({
       )}
 
       <div className="qf-row">
+        {/* Who the salon is for: the first filter. It hides salons on screen at
+            once and never changes a score or a rank. */}
+        {onAudienceChange && (
+          <SelectMenu
+            label="For"
+            icon={<IconUser size={14} />}
+            value={audience}
+            options={AUDIENCE_OPTIONS}
+            display={AUDIENCE[audience]?.label ?? "Everyone"}
+            onChange={onAudienceChange}
+          />
+        )}
+
         <SelectMenu
           label="City"
           icon={<IconPin size={14} />}
@@ -75,28 +86,6 @@ export function QuickFilters({
           options={options}
           onChange={(city) => onChange({ ...filters, city })}
         />
-
-        {/* Sits beside the city it depends on. Inert until a city is picked —
-            there is no "outside" of "All cities" to be near. */}
-        <label
-          className="qf-field qf-toggle qf-toggle--nearby"
-          aria-disabled={!nearbyReady}
-          title={nearbyReady
-            ? "Also show salons just outside this city, nearest first"
-            : "Pick a city first to see what's nearby"}
-        >
-          <span className="filter-toggle-icon" aria-hidden="true"><IconPin size={14} /></span>
-          <span className="qf-field-label">Nearby areas</span>
-          <span className="toggle">
-            <input
-              type="checkbox"
-              checked={nearbyReady && includeNearby}
-              disabled={!nearbyReady}
-              onChange={(e) => onIncludeNearbyChange?.(e.target.checked)}
-            />
-            <span className="toggle-track" />
-          </span>
-        </label>
 
         <SelectMenu
           label="Availability"
@@ -109,11 +98,11 @@ export function QuickFilters({
         {/* Only reviews published inside this period count toward any score —
             every category, the final ranking and the specialism indicator
             alike. Sits beside the other query constraints, not in the
-            priorities rail: it narrows which reviews are read, it is not a
+            priorities rail: it narrows which feedbacks are read, it is not a
             priority to weigh. */}
         {onConsistencyWindowChange && (
           <SelectMenu
-            label="Reviews from"
+            label="Feedbacks from"
             icon={<IconCalendar size={14} />}
             value={consistencyWindow}
             options={CONSISTENCY_WINDOWS}
