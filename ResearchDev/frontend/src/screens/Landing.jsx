@@ -16,7 +16,7 @@ const TRUST = [
 /* Placeholder marketing content, carried over from the previous homepage. */
 const REVIEWS = [
   {
-    quote: "Amore matched me with a colourist who finally understood what I wanted. Booked in two minutes and walked out thrilled.",
+    quote: "Amore Beauty matched me with a colourist who finally understood what I wanted. Booked in two minutes and walked out thrilled.",
     name: "Ananya Sharma",
     role: "Colour client · Maharagama",
   },
@@ -166,7 +166,7 @@ export function Landing({ onExplore, scrollToOffers = false, scrollToServices = 
         <div className="lp-wrap lp-why">
           {WHY_IMG && <img src={WHY_IMG} alt="" />}
           <div>
-            <p className="lp-eyebrow">Why Amore</p>
+            <p className="lp-eyebrow">Why Amore Beauty</p>
             <h2 className="lp-h2">What makes us different</h2>
             <ul className="lp-checks">
               {TRUST.map(({ title, note }) => (

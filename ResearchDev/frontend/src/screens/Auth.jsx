@@ -19,7 +19,7 @@ const COPY = {
     switchTo: "signup",
   },
   signup: {
-    eyebrow: "Join Amore",
+    eyebrow: "Join Amore Beauty",
     title: "Create your account",
     sub: "Save favourites and get rankings that remember you.",
     submit: "Sign Up",
