@@ -11,7 +11,7 @@ export function ChatWidget({ token, user }) {
   return (
     <div className="chatw">
       {open && (
-        <section className="chatw-panel" role="dialog" aria-label="Chat with Amore">
+        <section className="chatw-panel" role="dialog" aria-label="Chat with Amore Beauty">
           <button type="button" className="chatw-x" onClick={() => setOpen(false)} aria-label="Close chat">×</button>
           <ContactChat token={token} user={user} />
         </section>

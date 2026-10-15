@@ -63,7 +63,7 @@ export function ContactChat({ token, user }) {
     setRefId(null);
     setStep("topic");
     say([
-      knownName ? `Hi ${knownName.split(" ")[0]}, I'm the Amore help assistant.` : "Hi, I'm the Amore help assistant.",
+      knownName ? `Hi ${knownName.split(" ")[0]}, I'm the Amore Beauty help assistant.` : "Hi, I'm the Amore Beauty help assistant.",
       "What can I help you with today?",
     ]);
   };
@@ -173,7 +173,7 @@ export function ContactChat({ token, user }) {
       <header className="chat-head">
         <span className="chat-avatar" aria-hidden="true">A</span>
         <div>
-          <p className="chat-title">Amore help assistant</p>
+          <p className="chat-title">Amore Beauty help assistant</p>
           <p className="chat-status"><i aria-hidden="true" />Replies within one working day</p>
         </div>
       </header>
