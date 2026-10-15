@@ -4,6 +4,15 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   build: { sourcemap: false },
+  // Vitest reads this same config. jsdom gives the component tests a DOM;
+  // CSS imports are stubbed (left unprocessed) so a component can import its
+  // stylesheet without the test needing to parse it.
+  test: {
+    environment: "jsdom",
+    globals: true,
+    setupFiles: "./src/test/setup.js",
+    include: ["src/**/*.test.{js,jsx}"],
+  },
   server: {
     // Pinned. Without strictPort, a dev server left running from an earlier
     // session makes Vite silently pick 5174 instead, and the app then loads
