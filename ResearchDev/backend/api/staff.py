@@ -5,10 +5,19 @@ staff_for when building a provider profile. Display only: it reads existing
 extraction output and changes no score, no rank and no stored data.
 
 ATTRIBUTION IS REVIEW-LEVEL. A name is attached to the review that
-mentions it, not to the individual statement, so a review reading
-"Nimal was lovely but the colour was patchy" counts its negative outcome
-against Nimal. The UI says so rather than implying a precision the
-extraction does not have.
+mentions it, not to the individual statement. The review then counts by its
+OVERALL sentiment (extract.review_assessment) -- the same classification the
+Customer Feedbacks tab badges every review with -- so a person is not marked
+down by a statement the extractor tagged negative on a review that praises
+them, nor by a complaint about something else in the same review.
+
+That replaced "the worst statement anywhere in the review". At Salon Zero it
+counted six of Surith's feedbacks as negative: four were 5-star reviews of him
+("amazing job... staff very friendly") that carried a stray negative tag at
+sub-point 5.1, and two were complaints about waiting and general customer
+care. All six have a positive overall sentiment. The worst-statement rule is
+kept only as a fallback for a review with no overall sentiment on record.
+The UI still says attribution is by feedback, not by statement.
 """
 
 STAFF_MIN_REVIEWS = 3
@@ -24,6 +33,25 @@ STAFF_MIN_REVIEWS = 3
 # measured difference in the people. Section 15 records the sensitivity.
 STAFF_DEPENDENT_MIN_STAFF = 2
 STAFF_DEPENDENT_GAP = 0.25
+
+# The outcome of one review -- 0 positive / 1 neutral-or-mixed / 2 negative --
+# as an aggregate over that review's evidence rows. Defined once and
+# substituted into every query that needs an outcome (the staff list, the
+# staff-dependent flag, the ranking-card pass and the per-person review
+# drawer): they must agree, and four copies drift. Expects the evidence table
+# aliased `e` and extract.review_assessment aliased `ra`.
+#
+# max() rather than a bare column so a review with more than one assessment
+# row cannot be counted twice. The second branch is the old worst-statement
+# rule, used only when a review has no overall sentiment.
+_REVIEW_OUTCOME = """coalesce(
+        max(case ra.overall_sentiment when 'positive' then 0
+                                      when 'negative' then 2
+                                      when 'neutral'  then 1
+                                      when 'mixed'    then 1 end),
+        max(case when e.polarity = 'negative' then 2
+                 when e.polarity = 'mixed'    then 1
+                 else 0 end))"""
 
 # staging.staff_names.evidence_id keys into staging.evidence_item (ids
 # 1-9999), NOT extract.evidence_item, whose ids occupy the same range and
@@ -42,10 +70,9 @@ any_outcome as (
     -- review counts once however many statements it makes. Someone
     -- choosing a stylist wants the whole picture, not quality alone.
     select e.place_id, e.review_id,
-           max(case when e.polarity = 'negative' then 2
-                    when e.polarity = 'mixed'    then 1
-                    else 0 end) as worst
+           __REVIEW_OUTCOME__ as worst
     from extract.evidence_item e
+    left join extract.review_assessment ra on ra.review_id = e.review_id
     where e.place_id = any(%(ids)s)
       and e.polarity in ('positive', 'negative', 'mixed')
       and not e.reviewer_fault
@@ -61,7 +88,7 @@ join named n on n.place_id = c.place_id and n.review_id = c.review_id
 group by c.place_id, n.staff_name
 having count(*) >= %(min)s
 order by c.place_id, reviews desc, n.staff_name
-"""
+""".replace("__REVIEW_OUTCOME__", _REVIEW_OUTCOME)
 
 
 # The same shape as the list query, carried only as far as a rate per staff
@@ -79,10 +106,9 @@ with named as (
 ),
 any_outcome as (
     select e.place_id, e.review_id,
-           max(case when e.polarity = 'negative' then 2
-                    when e.polarity = 'mixed'    then 1
-                    else 0 end) as worst
+           __REVIEW_OUTCOME__ as worst
     from extract.evidence_item e
+    left join extract.review_assessment ra on ra.review_id = e.review_id
     where e.place_id = any(%(ids)s)
       and e.polarity in ('positive', 'negative', 'mixed')
       and not e.reviewer_fault
@@ -101,7 +127,7 @@ select p.place_id,
        count(*) as n_staff
 from per_staff p
 group by p.place_id
-"""
+""".replace("__REVIEW_OUTCOME__", _REVIEW_OUTCOME)
 
 
 def staff_dependent_flag(staff):
@@ -176,10 +202,9 @@ with named as (
 ),
 any_outcome as (
     select e.review_id,
-           max(case when e.polarity = 'negative' then 2
-                    when e.polarity = 'mixed'    then 1
-                    else 0 end) as worst
+           __REVIEW_OUTCOME__ as worst
     from extract.evidence_item e
+    left join extract.review_assessment ra on ra.review_id = e.review_id
     where e.place_id = %(place_id)s
       and e.polarity in ('positive', 'negative', 'mixed')
       and not e.reviewer_fault
@@ -193,7 +218,7 @@ join raw.review r on r.review_id = a.review_id
 where r.place_id = %(place_id)s
 order by r.published_at desc nulls last, r.review_id
 limit 50
-"""
+""".replace("__REVIEW_OUTCOME__", _REVIEW_OUTCOME)
 
 _OUTCOME = {0: "positive", 1: "mixed", 2: "negative"}
 
@@ -284,10 +309,9 @@ with named as (
 ),
 any_outcome as (
     select e.place_id, e.review_id,
-           max(case when e.polarity = 'negative' then 2
-                    when e.polarity = 'mixed'    then 1
-                    else 0 end) as worst
+           __REVIEW_OUTCOME__ as worst
     from extract.evidence_item e
+    left join extract.review_assessment ra on ra.review_id = e.review_id
     where e.place_id = any(%(ids)s)
       and e.polarity in ('positive', 'negative', 'mixed')
       and not e.reviewer_fault
@@ -308,7 +332,7 @@ select place_id,
        (array_agg(staff_name order by reviews desc, staff_name))[1:2] as top
 from per_staff
 group by place_id
-"""
+""".replace("__REVIEW_OUTCOME__", _REVIEW_OUTCOME)
 
 
 def staff_card_for(cur, place_ids):

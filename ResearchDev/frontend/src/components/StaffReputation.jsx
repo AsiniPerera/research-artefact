@@ -2,11 +2,11 @@
    endpoint returns. */
 import { useState } from "react";
 import { StaffReviewsDrawer } from "./StaffReviewsDrawer";
+import { RingChart } from "./RingChart";
+import { getScoreStyle } from "../lib/scoreScale";
 
-/* The band the positive rate falls in, which colours the figure and the bar.
-   Three bands rather than two: a row at 60% is neither good news nor bad,
-   and colouring it red would say something the number does not. */
-const band = (rate) => (rate >= 0.8 ? "good" : rate >= 0.5 ? "mixed" : "poor");
+/* Each ring takes its colour from the site-wide score scale, read on the
+   person's positive rate (0-100), so staff and salon scores share one key. */
 
 /** Staff named in this business's reviews. Display only, never scored. */
 export function StaffReputation({ data, placeId }) {
@@ -33,15 +33,25 @@ export function StaffReputation({ data, placeId }) {
     <section id="staff-reputation" className="staff-mentions">
       <h3 className="staff-head">Staff mentioned in feedbacks</h3>
       <p className="staff-note">
-        Counts reflect feedbacks naming each person — attribution is at the
-        feedback level, not statement level.
+        Counts reflect feedbacks naming each person. Attribution is at the
+        feedback level, not statement level: each feedback counts by its
+        overall sentiment.
       </p>
       <ul className="staff-list">
         {staff.map((s) => {
           const pct = Math.round(s.positive / s.reviews * 100);
+          const st = getScoreStyle(pct);
           return (
-            <li key={s.name} className="staff-item" data-band={band(s.positive / s.reviews)}>
-              <div className="staff-row-head">
+            <li key={s.name} className="staff-item" data-band={st.cls}>
+              <RingChart
+                size={56}
+                stroke={7}
+                center={`${pct}%`}
+                label={`${pct}% positive, from ${s.reviews} feedbacks`}
+                segments={[{ value: pct, color: st.color, label: "positive" },
+                           { value: 100 - pct, color: "transparent", label: "rest" }]}
+              />
+              <div className="staff-item-body">
                 <button
                   type="button"
                   className="staff-name-link"
@@ -49,23 +59,11 @@ export function StaffReputation({ data, placeId }) {
                 >
                   {s.name}
                 </button>
-                <span className="staff-rate">{pct}% positive</span>
-              </div>
-              {/* One fill on a track, not a split: the question a reader
-                  brings here is "how often did this go well", and a single
-                  length answers it at a glance where three segments ask to
-                  be compared first. The counts beneath carry the detail. */}
-              <div
-                className="staff-bar"
-                role="img"
-                aria-label={`${pct}% positive, from ${s.reviews} feedbacks`}
-              >
-                <span className="staff-bar-fill" style={{ width: `${pct}%` }} />
-              </div>
-              <div className="staff-counts">
-                {s.positive} positive
-                {s.mixed ? ` · ${s.mixed} mixed` : ""}
-                {` · ${s.negative} negative · ${s.reviews} relevant feedback${s.reviews === 1 ? "" : "s"}`}
+                <div className="staff-counts">
+                  {s.positive} positive
+                  {s.mixed ? ` · ${s.mixed} neutral` : ""}
+                  {` · ${s.negative} negative · ${s.reviews} relevant feedback${s.reviews === 1 ? "" : "s"}`}
+                </div>
               </div>
             </li>
           );

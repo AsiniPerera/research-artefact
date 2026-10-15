@@ -142,6 +142,16 @@ export const getSubPointProof = (placeId, opts) =>
 export const getEvidence = (placeId, filters = {}, opts) =>
   get(`/providers/${encodeURIComponent(placeId)}/evidence`, filters, opts);
 
+/** The salon's overall score: every category plus the Overall Verdict, all
+ *  feedbacks, all services, weighted by the visitor's priorities (the same
+ *  seven numbers /rankings takes; omitted means Medium). Display only. */
+export const getOverall = (placeId, { weights, window = "anytime" } = {}, opts) =>
+  get(
+    `/providers/${encodeURIComponent(placeId)}/overall`,
+    { consistency_window: window, ...(weights ? { weights: weights.join(",") } : {}) },
+    opts,
+  );
+
 /** "gate 3.1; badge 9.2" → ["gate 3.1", "badge 9.2"]. */
 export const splitBadges = (badges) =>
   (badges ?? "").split(";").map((b) => b.trim()).filter(Boolean);

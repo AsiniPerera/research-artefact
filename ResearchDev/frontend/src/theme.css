@@ -697,7 +697,7 @@ body { background: var(--c-white); color: var(--body); }
 .app .salon-detail .summary-sent-chip--mention {
   background: var(--c-white) !important;
   border: 1px solid var(--c-line) !important;
-  border-radius: 2px !important;
+  border-radius: 12px !important;
   box-shadow: none !important;
 }
 .app .salon-detail .summary-sent-count { color: var(--c-ink) !important; }
@@ -2785,6 +2785,22 @@ body { background: var(--c-white); color: var(--body); }
 .app .contactpage .chat-input input:disabled,
 .app .contactpage .cp-card .chat-input input:disabled { background: #f6efe7 !important; color: #7a6553 !important; }
 
+/* The text box takes the bot bubble's colour (#f6efe7), in every state and on
+   every page that uses the chat (contact, survey, widget). */
+.app .chat-input input,
+.app .chat-input input:disabled,
+.app .contactpage .chat-input input,
+.app .contactpage .cp-card .chat-input input,
+.app .contactpage .chat-input input:disabled,
+.app .contactpage .cp-card .chat-input input:disabled {
+  background: #f6efe7 !important;
+  background-color: #f6efe7 !important;
+  border-color: #f6efe7 !important;
+  color: #1c1814 !important;
+}
+.app .chat-input input::placeholder { color: #7a6553; opacity: 1; }
+.app .chat-input input:focus { border-color: #cd8549 !important; }
+
 /* ══ Usability survey (#/survey) ══════════════════════════════
    Reuses the .chat styles from the Contact assistant; only the page frame,
    the progress bar and the wider Likert chips are new. */
@@ -2821,3 +2837,142 @@ body { background: var(--c-white); color: var(--body); }
 }
 .contactpage .cp-survey-btn:hover { background: #efe3d5; border-color: #d9b382; }
 .contactpage .cp-survey-btn:focus-visible { outline: 2px solid #cd8549; outline-offset: 2px; }
+
+/* ══ Profile: ring charts in "Staff mentioned in feedbacks" ═══════════════ */
+.salon-detail .staff-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: 0.9rem 1.25rem; padding: 0; list-style: none; }
+.salon-detail .staff-item { display: flex; align-items: center; gap: 0.85rem; padding: 0.7rem 0.8rem; border: 1px solid #e7e2da; border-radius: 12px; background: #fff; }
+.salon-detail .staff-item .ring-chart { flex-shrink: 0; }
+.salon-detail .staff-item-body { min-width: 0; }
+.salon-detail .staff-item .staff-name-link { display: block; padding: 0; font-size: 0.9375rem; font-weight: 600; color: #1c1814; text-align: left; }
+.salon-detail .staff-item .staff-counts { margin-top: 0.15rem; font-size: 0.75rem; line-height: 1.4; color: #6f685f; }
+
+/* ══ Profile: "Responsiveness and adaptability" ring section ═══════════════ */
+.salon-detail .resp-body { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; margin-top: 0.5rem; }
+.salon-detail .resp-body .ring-chart { flex-shrink: 0; }
+.salon-detail .resp-detail { display: grid; gap: 0.6rem; min-width: 0; flex: 1 1 11rem; }
+.salon-detail .resp-detail .sum-verdict { justify-self: start; }
+.salon-detail .resp-parts { display: grid; gap: 0.35rem; margin: 0; padding: 0; list-style: none; }
+.salon-detail .resp-parts li { display: flex; justify-content: space-between; gap: 0.75rem; font-size: 0.8125rem; }
+.salon-detail .resp-parts span { color: #6f685f; }
+.salon-detail .resp-parts strong { color: #1c1814; font-weight: 600; }
+
+/* ══ Profile information tab: the salon's own details lead the page ════════ */
+.salon-detail .profile-info { margin: 0 0 1.75rem; padding-bottom: 1.5rem; border-bottom: 1px solid #e7e2da; }
+.salon-detail .profile-info-head { margin: 0 0 0.9rem; font-size: 0.95rem; font-weight: 600; color: #1c1814; }
+.salon-detail .profile-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1rem 2rem; align-items: start; }
+.salon-detail .profile-info .info-block { margin: 0; }
+.salon-detail .profile-info > .info-block { margin-top: 1.25rem; }
+
+/* Scores by Service: a sub-service is listed only when it has feedbacks about
+   it, and each row says how many. */
+.salon-detail .detail-service-count { margin-left: 0.75rem; font-size: 0.75rem; font-weight: 400; color: #6f685f; }
+
+/* "Show feedbacks" under a score: a quiet text toggle, then the same review
+   cards the Customer Feedbacks tab uses. */
+.salon-detail .evidence-panel { margin-top: 0.75rem; }
+.salon-detail .evidence-toggle { padding: 0; font-size: 0.8125rem; font-weight: 500; color: #a06839; text-decoration: underline; text-underline-offset: 3px; }
+.salon-detail .evidence-toggle:hover { color: #7e4f2a; }
+.salon-detail .evidence-panel-more { margin-top: 0.75rem; padding: 0; font-size: 0.8125rem; color: #a06839; }
+.salon-detail .evidence-panel .evidence-list { margin-top: 0.85rem; }
+
+/* ══ Profile side sections: staff | language over overall score | responsiveness ═══
+   Three columns. Staff and Responsiveness are tall and take both rows of their
+   column; the Overall salon score sits on top of Feedbacks by language. */
+.salon-detail .summary-side-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+.salon-detail .summary-side-cards > .staff-mentions { grid-column: 1; grid-row: 1 / span 2; }
+.salon-detail .summary-side-cards > .language-mix { grid-column: 2; grid-row: 2; }
+.salon-detail .summary-side-cards > .overall-mix { grid-column: 2; grid-row: 1; }
+.salon-detail .summary-side-cards > .resp-mix { grid-column: 3; grid-row: 1 / span 2; }
+.app .salon-detail .summary-side-cards > .staff-mentions,
+.app .salon-detail .summary-side-cards > .language-mix,
+.app .salon-detail .summary-side-cards > .overall-mix,
+.app .salon-detail .summary-side-cards > .resp-mix {
+  background: var(--c-white);
+  border: 1px solid var(--c-line);
+  border-radius: 12px;
+  padding: 1.25rem 1.4rem 1.4rem;
+  margin-top: 0;
+  box-shadow: none;
+}
+/* Staff cards sit in a one-third-width column: one per row, sized to fit it */
+.salon-detail .summary-side-cards .staff-list { grid-template-columns: minmax(0, 1fr); gap: 0.7rem; }
+.app .salon-detail .summary-side-cards .staff-item {
+  padding: 0.65rem 0.75rem; min-width: 0;
+  border: 1px solid var(--c-line) !important;   /* index.css strips the first card's top border */
+  border-radius: 12px !important;
+  background: var(--c-white);
+  overflow: hidden;
+}
+.salon-detail .summary-side-cards .staff-item-body { flex: 1 1 auto; overflow-wrap: anywhere; }
+
+/* Profile header: a compact rounded card. Name and address on the left, the
+   map button pinned to the top right. */
+.app .salon-detail .detail-hero {
+  border-radius: 16px !important;
+  padding: clamp(1.25rem, 3vw, 2rem) clamp(1.25rem, 3vw, 2.25rem) !important;
+  gap: 1.5rem;
+  align-items: start;
+  overflow: hidden;
+}
+.app .salon-detail .detail-name {
+  font-size: clamp(1.75rem, 3.4vw, 2.5rem) !important;
+  line-height: 1.12 !important;
+  margin: 0.45rem 0 0.5rem !important;
+  max-width: 24ch;
+}
+.app .salon-detail .detail-meta { margin: 0 !important; font-size: 0.9rem; }
+.app .salon-detail .detail-chips { margin-top: 1rem; }
+.app .salon-detail .detail-hero-side { align-self: start; }
+.app .salon-detail .maps-link { padding: 0.65rem 1.2rem; font-size: 0.8125rem; }
+.app .salon-detail .detail-chip,
+.app .salon-detail .badge { border-radius: 999px !important; }
+@media (max-width: 700px) {
+  .app .salon-detail .detail-hero { grid-template-columns: minmax(0, 1fr); }
+  .app .salon-detail .detail-hero-side { order: -1; }
+}
+
+/* Verdict badges take the site-wide score scale (lib/scoreScale.js badgeStyle).
+   Stronger than the bronze .sum-verdict--* / .csl-band--* rules above. */
+.app .salon-detail .sum-verdict[style],
+.app .salon-detail .csl-band[style] {
+  color: var(--badge-ink) !important;
+  border: 1px solid var(--badge-rim) !important;
+  background: var(--badge-fill) !important;
+  background-color: var(--badge-fill) !important;
+}
+
+/* Rounded corners on every bordered card of the profile */
+.app .salon-detail .sum-card,
+.app .salon-detail .detail-service,
+.app .salon-detail .evidence-item,
+.app .salon-detail .evidence-reply,
+.app .salon-detail .cat-drawer { border-radius: 12px !important; }
+
+/* Service rows: each one a complete rounded card, all laid out the same way
+   (name on the left, feedback count on the right) whatever the name's length. */
+.app .salon-detail .detail-service {
+  border: 1px solid var(--c-line) !important;
+  padding: 0 1rem !important;
+  margin: 0 0 0.6rem;
+  overflow: hidden;
+}
+.app .salon-detail .detail-service:first-of-type { border-top: 1px solid var(--c-line) !important; }
+.app .salon-detail .detail-service > summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: 0.8rem 0;
+}
+.app .salon-detail .detail-service-name { flex: 1 1 auto; min-width: 0; flex-wrap: nowrap; }
+.app .salon-detail .detail-service-count { margin-left: 0; flex: 0 0 auto; white-space: nowrap; }
+.salon-detail .overall-mix .resp-body { flex-wrap: nowrap; }
+.salon-detail .overall-mix .resp-detail { flex: 0 1 auto; }
+.salon-detail .overall-count { margin: 0; font-size: 0.75rem; color: #6f685f; }
+@media (max-width: 1000px) {
+  .salon-detail .summary-side-cards { grid-template-columns: minmax(0, 1fr); }
+  .salon-detail .summary-side-cards > * { grid-column: auto !important; grid-row: auto !important; }
+}
+
+/* Overall salon score: the category rows and each one's weight */
+.salon-detail .overall-cats { margin-top: 1rem; padding-top: 0.9rem; border-top: 1px solid #eeeae3; }
+.salon-detail .overall-weight { margin-left: 0.5rem; font-size: 0.6875rem; font-style: normal; color: #9b948a; }
+.salon-detail .overall-cat--none span, .salon-detail .overall-cat--none strong { color: #9b948a; }
+.salon-detail .overall-mix > .overall-count { margin-top: 0.6rem; }

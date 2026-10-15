@@ -8,6 +8,7 @@ import { toggleFavorite } from "../lib/favorites";
 import { splitBadges } from "../api/client";
 import { CATEGORY_INFO, isShownCategory } from "../constants/categories";
 import { AUDIENCE } from "../constants/audience";
+import { getScoreStyle } from "../lib/scoreScale";
 
 const isCardCategory = (no) => isShownCategory(no) && Number(no) !== 3;
 const CARD_ORDER = [1, 7, 2, 5, 6, 4];
@@ -15,41 +16,17 @@ const CARD_ORDER = [1, 7, 2, 5, 6, 4];
 /** 0–1 score → 0–100 for display. */
 const pct = (x) => Math.round(Number(x ?? 0) * 100);
 
-/* A qualitative band word under each number, so a score reads as a standing,
-   not just a figure. */
-function bandWord(v) {
-  if (v >= 90) return "Excellent";
-  if (v >= 80) return "Great";
-  if (v >= 70) return "Good";
-  if (v >= 60) return "Okay";
-  if (v >= 50) return "Fair";
-  return "Weak";
-}
-
-/* A band key that drives the colour, so word + number share one hue. */
-function bandKey(v) {
-  if (v >= 90) return "excellent";
-  if (v >= 80) return "verygood";
-  if (v >= 70) return "good";
-  if (v >= 60) return "average";
-  if (v >= 50) return "below";
-  return "poor";
-}
-
-/* Three tones, used the same way for the ring, the bars and the numbers:
-   green 70 and up, amber 50-69, red below 50. */
-const tone = (v) => (v >= 70 ? "good" : v >= 50 ? "avg" : "low");
-
-const TONE_TEXT = {
-  good: "Good: feedback is mostly positive about this.",
-  avg: "Average: feedback is mixed, or there is not much of it.",
-  low: "Below average: feedback is mostly negative, or there is very little of it.",
+/* The ring, the bars and the numbers all take their colour from the site-wide
+   score scale (lib/scoreScale.js); the CSS reads --tone and --tone-ink. */
+const toneStyle = (v) => {
+  const s = getScoreStyle(v);
+  return { "--tone": s.color, "--tone-ink": s.ink };
 };
 
-/* Hover text for one category bar: the full name, the score, what it means and
+/* Hover text for one category bar: the full name, the score, its band and
    what the category covers. The card shows the short name; this is the long one. */
 const barTip = (no, v) =>
-  `${CATEGORY_INFO[no].name} — ${v} out of 100. ${TONE_TEXT[tone(v)]} (${CATEGORY_INFO[no].description}.)`;
+  `${CATEGORY_INFO[no].name} — ${v} out of 100, ${getScoreStyle(v).label}. (${CATEGORY_INFO[no].description}.)`;
 
 const joinNames = (xs) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
 
@@ -148,11 +125,11 @@ export function SalonCard({ salon, onSelect, ratedFor, position, provisional = f
         </div>
 
         <div className="sc2-side">
-          <div className="sc2-score" data-tone={tone(score)} title={`Range ${pct(salon.range_low)}–${pct(salon.range_high)}`}>
+          <div className="sc2-score" data-tone={getScoreStyle(score).cls} style={toneStyle(score)} title={`Range ${pct(salon.range_low)}–${pct(salon.range_high)}`}>
             <div className="sc2-ring" style={{ "--p": score }}>
               <span>{score}</span>
             </div>
-            <p className="sc2-band">{bandWord(score)}</p>
+            <p className="sc2-band">{getScoreStyle(score).label}</p>
             <p className="sc2-range">{pct(salon.range_low)}–{pct(salon.range_high)}</p>
           </div>
           <div className="sc2-actions">
@@ -174,7 +151,7 @@ export function SalonCard({ salon, onSelect, ratedFor, position, provisional = f
       {scored.length > 0 && (
         <ul className="sc2-bars" aria-label="Category scores">
           {scored.map(({ no, v }) => (
-            <li key={no} data-band={bandKey(v)} data-tone={tone(v)} data-tip={barTip(no, v)} tabIndex={0}>
+            <li key={no} data-tone={getScoreStyle(v).cls} style={toneStyle(v)} data-tip={barTip(no, v)} tabIndex={0}>
               <span className="sc2-bar-label">{CATEGORY_INFO[no].short}</span>
               <span className="sc2-bar"><i style={{ width: `${v}%` }} /></span>
               <span className="sc2-bar-num">{v}</span>

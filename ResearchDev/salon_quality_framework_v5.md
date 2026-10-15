@@ -351,7 +351,9 @@ Assigned by the researcher using this written rule.
 
 ## 8. Overall Verdict
 
-General statements that name no quality aspect ("great place", "worst experience") are stored separately as an Overall Verdict. It carries no weight, is not one of the seven categories or 25 sub-points, does not enter the score, and is not shown in the prototype.
+General statements that name no quality aspect ("great place", "worst experience") are stored separately as an Overall Verdict. It carries no weight, is not one of the seven categories or 25 sub-points, and does not enter the ranking score.
+
+**Profile overall salon score (display only).** The salon profile shows one overall score for the whole salon that does include the Overall Verdict. It is the weighted average of the whole-salon scores of categories 1, 2, 4, 5, 6 and 7 (weighted by the visitor's priorities, Medium if unset) and the Overall Verdict (a fixed Medium weight), each worked out from every feedback the salon has across all services with the same per-statement rules as the ranking. Category 3 is not included (it is read from owner replies and is reported only). A category with no feedbacks counts as 0.5. This figure is computed for display only and does not change the ranking, where the Overall Verdict still carries no weight.
 
 ---
 
@@ -454,7 +456,7 @@ General statements that name no quality aspect ("great place", "worst experience
 | Presets (Q1–Q7) | balanced 2,2,2,2,2,2,2 · quality 8,4,1,2,2,1,2 · budget 4,1,1,1,2,8,2 · hygiene 2,2,2,2,4,1,8 · bridal 8,4,2,4,2,1,2 |
 | Safety advisory notice on the card | Removed |
 | "Monitored" band word for Category 7 | Removed; Category 7 shows its normal band |
-| Overall Verdict | Not shown |
+| Overall Verdict | Not shown on its own; counted only inside the profile's overall salon score |
 | Google rating | Shown as "reference only"; never part of the score |
 | Fallback | `FallbackNotice` shows what was requested and what is shown |
 | Category 1 label | "Quality of the Result" |
@@ -485,6 +487,7 @@ General statements that name no quality aspect ("great place", "worst experience
 | 10 Oct | Priority labels changed to Low / Medium / High / Very high | The buttons set importance, not quality |
 | 10 Oct | Accuracy is evaluated on a checked sample of 300 reviews, not a blind hand-coded set | Researcher's decision; recorded as a limitation |
 | 11 Oct | Category 3 scored from replies to complaints only | 90% of replies were thank-yous to 5-star reviews; the category is about complaint handling |
+| 15 Oct | The profile's overall salon score includes the Overall Verdict (display only; the ranking is unchanged) | Researcher's decision, reversing the 10 Oct entry for the profile only. Overall Verdict is a generic signal close to the star rating, and about a third of its reviews also carry a Trust & Recommendation statement, so it is fixed at Medium weight and stated as an interpretive choice |
 | 11 Oct | Evidence-table copies of owner replies (3.1–3.4) removed from all scoring and from the ranking threshold | They double-counted replies and contradicted the reply table |
 | 11 Oct | Minimum of 5 replies removed | The 0.5 starting point already handles thin evidence |
 | 11 Oct | Sub-point 5.5 moved to Category 3 as 3.5 | Putting a mistake right is management responsiveness; it also gives Category 3 more evidence |

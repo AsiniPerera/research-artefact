@@ -70,8 +70,9 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
     submitted?.availability ?? "open",
     cwUsed
   );
-  /* The profile shows the badge for the same window as the list it was opened from. */
-  const openSalon = (id) => onSelectSalon(id, cwUsed);
+  /* The profile uses the same review period and the same priorities as the
+     list it was opened from: the badge and the overall salon score follow them. */
+  const openSalon = (id) => onSelectSalon(id, cwUsed, submitted?.weightList ?? weightList);
 
   /* Moving a priority re-ranks at once, once a list is on screen: only the
      weights follow the sliders, so a filter changed but not yet applied stays
