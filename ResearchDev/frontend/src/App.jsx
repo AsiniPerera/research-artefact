@@ -193,7 +193,8 @@ export default function App() {
   return (
     <div className="app">
       <div className={`shell ${isLanding ? "shell--landing" : ""}`}>
-        <nav className={`nav ${isLanding ? "nav--landing" : ""} ${scrolled ? "nav--scrolled" : ""}`}>
+        <header className="site-header">
+        <nav className={`nav ${isLanding ? "nav--landing" : ""} ${scrolled ? "nav--scrolled" : ""}`} aria-label="Primary">
           <button
             className="nav-brand"
             onClick={() => go("home")}
@@ -301,6 +302,7 @@ export default function App() {
             </button>
           </div>
         </nav>
+        </header>
 
         {/* ── Mobile navigation drawer ─────────────────────── */}
         <div
