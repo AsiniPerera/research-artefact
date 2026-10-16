@@ -39,7 +39,6 @@ services:
     rootDir: ResearchDev/frontend
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
-    plan: free
     routes:
       - type: rewrite
         source: /api/*
