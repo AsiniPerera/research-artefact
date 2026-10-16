@@ -33,13 +33,8 @@ not "this service": every statement counts in full, whichever service it names
 or whether it names none.
 """
 import os
-import sys
 
-_BACKEND = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if _BACKEND not in sys.path:
-    sys.path.insert(0, _BACKEND)
-
-import scoring_core as sc  # noqa: E402
+import scoring_core as sc
 
 WEIGHTED = (1, 2, 4, 5, 6, 7)      # follow the visitor's priorities
 VERDICT = 8                        # Overall Verdict

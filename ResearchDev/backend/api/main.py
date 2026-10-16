@@ -215,19 +215,30 @@ def _warm_rankings() -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Close the pooled connections on shutdown so Supabase does not hold
-    sessions open for a process that has gone."""
-    threading.Thread(target=_warm_rankings, daemon=True).start()
+    sessions open for a process that has gone.
+
+    Warmup is skipped on Render: free-plan processes recycle on idle and the
+    Supabase pooler already handles the first real request without a stall."""
+    if not os.environ.get("RENDER"):
+        threading.Thread(target=_warm_rankings, daemon=True).start()
     yield
     if _pool is not None:
         _pool.close()
 
+
+# Comma-separated origins, read from the environment so a deployed frontend can
+# be added without a code change. Defaults cover the Vite dev server.
+ALLOWED_ORIGINS = [o.strip() for o in os.environ.get(
+    "ALLOWED_ORIGINS",
+    "http://localhost:5173,http://127.0.0.1:5173",
+).split(",") if o.strip()]
 
 app = FastAPI(title="Beauty Service Ranking API", lifespan=lifespan)
 # JSON of salon rows is highly repetitive: a 200 KB ranking compresses to ~25 KB.
 app.add_middleware(GZipMiddleware, minimum_size=1024)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["GET", "POST", "PUT"],
     allow_headers=["*"],
 )
