@@ -18,8 +18,10 @@ What it is
 
     Each category score is a Beta(1, 1) posterior over ALL of the salon's
     statements in that category, across every service. A category with no
-    statements stays at 0.5 and remains in the average (the framework's 10 Oct
-    decision), so one silent category cannot be dropped to flatter a salon.
+    statements is left out of the average, weight and all, rather than counted
+    as 0.5 or as 0 -- the same rule as the ranking
+    (backend/salon_db/29_no_data_dimensions.sql), so a salon is judged only on
+    the dimensions its customers actually wrote about.
 
 The per-statement maths is scoring_core's (the tested reference of
 06_run_scoring.py), not a second copy:
@@ -121,8 +123,15 @@ def overall_figure(rows, ref_date, weights=None, window="all", today=None):
     categories, num, den = [], 0.0, 0.0
     for c in CATEGORIES:
         pos, neg, n = mass[c]
-        score = sc.category_score(pos, neg)           # 0.5 with no evidence
         w = category_weight(c, weights)
+        if n == 0:
+            # No data: reported as such and kept out of the average, weight and
+            # all. This covers an empty weighted category and a missing verdict
+            # alike -- neither moves num or den.
+            categories.append({"category_no": c, "name": NAMES[c],
+                               "score": None, "statements": 0, "weight": w})
+            continue
+        score = sc.category_score(pos, neg)
         categories.append({"category_no": c, "name": NAMES[c],
                            "score": round(score, 4), "statements": n, "weight": w})
         num += w * score

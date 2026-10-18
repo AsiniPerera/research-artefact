@@ -407,6 +407,7 @@ def duration_mask(d, months):
 cat_rows = []
 trust_frames = []
 dropped_no_targets = defaultdict(list)   # window_code -> [place_id, ...]
+no_weighted_data = defaultdict(int)      # window_code -> pairs with no data in any weighted category
 
 for window_code, months in DURATION_WINDOWS.items():
     evw = ev[duration_mask(ev['d'], months)]
@@ -491,9 +492,14 @@ for window_code, months in DURATION_WINDOWS.items():
             use = w > 0
             Pw, Nw = w * pos, w * neg
             # Every category, weighted and reported alike, scored from its
-            # own evidence as a Beta posterior. No evidence leaves the
-            # Beta(1,1) prior, which is 0.5 — neutral, not bad. Category 9
-            # always lands here, since 9.1/9.2 are never coded in `sc`.
+            # own evidence as a Beta posterior. A category with NO qualifying
+            # statement is "no data": it is still written (score 0.5, the
+            # Beta(1,1) prior, because the column is NOT NULL) but its
+            # evidence_count of 0 is the marker every reader uses to score it
+            # 0 -- the composite below, the ranking functions
+            # (29_no_data_dimensions.sql) and every screen. 0.5 is a storage
+            # placeholder, never a score. Category 9 always lands here, since
+            # 9.1/9.2 are never coded in `sc`.
             scores = {}
             for c in ALL_CATS:
                 m = use & (cno == c)
@@ -527,10 +533,24 @@ for window_code, months in DURATION_WINDOWS.items():
             for c in ALL_CATS:
                 cat_rows.append((pid, s, c, round(float(scores[c][0]), 4), round(float(scores[c][1]), 3), int(scores[c][2]), window_code))
 
-            # Equal weights over the WEIGHTED categories only, 1/7 each.
+            # Equal weights over the WEIGHTED categories (1,2,4,5,6,7 today)
+            # THAT HAVE DATA. A category with no qualifying statement is left
+            # out of the mean entirely -- its weight drops from the
+            # denominator too -- rather than counted as 0 or as the 0.5 prior:
+            # a business is judged only on the dimensions its customers
+            # actually wrote about, and silence neither helps nor hurts
+            # (researcher's decision, 19 Oct, reversing the 18 Oct "count as 0"
+            # entry). Category 2 is empty for ~93% of pairs, so this matters.
             # Category 8 (Overall Verdict) is stored above but never enters
             # the mean; Category 9 is weight 0 so it is not in WEIGHTED at all.
-            base = float(np.mean([scores[c][0] for c in WEIGHTED]))
+            present = [c for c in WEIGHTED if scores[c][2] > 0]
+            if not present:
+                # Nothing in any weighted category for this pair: there is no
+                # score to give, so no trust_score row. Its category_score rows
+                # above are kept (all no-data) so the profile can say so.
+                no_weighted_data[window_code] += 1
+                continue
+            base = float(np.mean([scores[c][0] for c in present]))
             t = tier[s]
             # A gate not named in gate_min_tier applies from tier 1 up.
             #
@@ -577,6 +597,8 @@ for window_code, months in DURATION_WINDOWS.items():
 for window_code, pids in dropped_no_targets.items():
     if pids:
         print(f'[{window_code}] businesses with evidence but no scorable service in this window: {len(pids)}')
+for window_code, n in no_weighted_data.items():
+    print(f'[{window_code}] provider x sub-service pairs with no data in any weighted category (not scored): {n}')
 
 tr = pd.concat(trust_frames, ignore_index=True)
 

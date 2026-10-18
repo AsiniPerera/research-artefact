@@ -3,7 +3,6 @@
    toWeightList (the API call). The review-period control lives in
    QuickFilters.jsx now -- it narrows which reviews are read, it is not a
    priority to weigh. */
-import { useState } from "react";
 import { CATEGORY_INFO } from "../constants/categories";
 
 // `label` is the category's name and `tag` a one-line plain-language gloss
@@ -92,56 +91,45 @@ const indexOf = (value) => {
    reviews are read, it is not a priority to weigh. */
 const PANEL_ORDER = [1, 7, 2, 5, 6, 4];
 
-const TIP_KEY = "amore.prioritiesTipSeen";
-const tipSeen = () => { try { return localStorage.getItem(TIP_KEY) === "1"; } catch { return false; } };
-const markTipSeen = () => { try { localStorage.setItem(TIP_KEY, "1"); } catch { /* storage blocked */ } };
+/* One row per priority: the category's full name and the level it is set to
+   on one line, four steps beneath. The steps are a radio group, so the arrow
+   keys, Home/End and screen readers work without extra code, and each radio
+   names the level it sets. Filling every step up to the chosen one makes the
+   row read as a meter rather than four unrelated buttons.
 
-/* One slider per priority: the category's full name and the chosen level on
-   one line, a draggable handle beneath. The level word changes as the handle
-   moves, and the ranking follows (Rankings.jsx re-ranks as the weights change).
-   A native range input, so the keyboard (arrow keys, Home, End) and screen
-   readers work without extra code. The names are the ones the rest of the site
-   uses (constants/categories.js). */
+   The ranking follows as the level changes (Rankings.jsx re-ranks on the new
+   weights). The names are the ones the rest of the site uses
+   (constants/categories.js). */
 export function WeightLevels({ weights, onChange }) {
   const rows = PANEL_ORDER.map((no) => WEIGHTABLE_CATEGORIES.find((c) => c.no === no)).filter(Boolean);
-  const [tip, setTip] = useState(() => !tipSeen());
-  const dismissTip = () => { if (tip) { setTip(false); markTipSeen(); } };
 
   return (
     <>
       <p className="meter-heading">How important is each to you?</p>
       <ul className="meter-list">
-        {rows.map(({ key, label, tag }, n) => {
+        {rows.map(({ key, label, tag }) => {
           const idx = indexOf(weights[key] ?? DEFAULT_LEVEL);
-          const id = `w-${key}`;
+          const labelId = `w-${key}-label`;
           return (
             <li className="meter-row" key={key} title={tag}>
-              {n === 0 && tip && (
-                <div className="prio-tip" role="note">
-                  <span>Drag to set your priority — the ranking updates instantly</span>
-                  <button type="button" onClick={dismissTip} aria-label="Dismiss tip">&times;</button>
-                </div>
-              )}
               <div className="meter-head">
-                <label htmlFor={id} className="meter-label">{label}</label>
+                <span className="meter-label" id={labelId}>{label}</span>
                 <span className="meter-word" aria-hidden="true">{LEVELS[idx].label}</span>
               </div>
-              <input
-                id={id}
-                type="range"
-                className="prio-range"
-                min={0}
-                max={LEVELS.length - 1}
-                step={1}
-                value={idx}
-                style={{ "--fill": `${(idx * 100) / (LEVELS.length - 1)}%` }}
-                aria-valuetext={LEVELS[idx].label}
-                onPointerDown={dismissTip}
-                onChange={(e) => {
-                  dismissTip();
-                  onChange({ ...weights, [key]: LEVELS[Number(e.target.value)].value });
-                }}
-              />
+              <div className="prio-steps" role="radiogroup" aria-labelledby={labelId}>
+                {LEVELS.map((lv, i) => (
+                  <label className={`prio-step ${i <= idx ? "is-on" : ""}`} key={lv.value}>
+                    <input
+                      type="radio"
+                      name={`w-${key}`}
+                      value={i}
+                      checked={i === idx}
+                      aria-label={`${label}: ${lv.label}`}
+                      onChange={() => onChange({ ...weights, [key]: lv.value })}
+                    />
+                  </label>
+                ))}
+              </div>
             </li>
           );
         })}

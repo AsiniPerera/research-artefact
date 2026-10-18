@@ -44,13 +44,25 @@ def test_ov03_each_category_is_a_whole_salon_beta_posterior():
     assert by_cat(out)[1]["statements"] == 10
 
 
-def test_ov04_an_empty_category_stays_at_half_and_stays_in_the_average():
-    # only category 1 has evidence; the other six sit at 0.5 and are averaged in
+def test_ov04_an_empty_category_is_left_out_of_the_average_not_scored():
+    # only category 1 has evidence; the other five weighted categories and the
+    # verdict are no data, so they are dropped from the mean, weight and all
+    # (29_no_data_dimensions.sql). The overall is category 1's score alone.
     out = ov.overall_figure([stmt(1)] * 10, REF, weights=MEDIUM)
     s1 = (1 + 10) / (2 + 10)
-    expected = (s1 + 0.5 * 6) / 7           # six at Medium + the verdict at Medium
-    assert out["score"] == pytest.approx(expected, abs=1e-4)
-    assert by_cat(out)[5]["score"] == 0.5 and by_cat(out)[5]["statements"] == 0
+    assert out["score"] == pytest.approx(s1, abs=1e-4)
+    assert by_cat(out)[5]["score"] is None and by_cat(out)[5]["statements"] == 0
+    assert by_cat(out)[8]["score"] is None
+
+
+def test_ov04b_a_missing_category_drops_its_weight_too():
+    # Quality at Very high (8) with no Quality data: its weight leaves the
+    # denominator, so the score is the plain mean of the two categories that
+    # do have data, not pulled toward 0.
+    rows = [stmt(4)] * 10 + [stmt(5, "negative")] * 10
+    out = ov.overall_figure(rows, REF, weights=[8, 1, 0, 1, 1, 1, 1])
+    s4, s5 = (1 + 10) / (2 + 10), 1 / (2 + 10)
+    assert out["score"] == pytest.approx((s4 + s5) / 2, abs=1e-4)
 
 
 def test_ov05_the_visitors_priorities_move_the_score():
@@ -65,13 +77,13 @@ def test_ov06_no_weights_means_medium_for_every_category():
     assert ov.overall_figure(rows, REF)["score"] == ov.overall_figure(rows, REF, weights=MEDIUM)["score"]
 
 
-def test_ov07_scaling_all_six_priorities_barely_moves_it():
+def test_ov07_scaling_all_six_priorities_leaves_it_unchanged_without_a_verdict():
     rows = [stmt(1)] * 7 + [stmt(5, "negative")] * 3
     a = ov.overall_figure(rows, REF, weights=[2, 2, 0, 2, 2, 2, 2])["score"]
     b = ov.overall_figure(rows, REF, weights=[1, 1, 0, 1, 1, 1, 1])["score"]
-    # Not exactly equal: category 8 is fixed at Medium, so halving the six
-    # priorities does raise the verdict's share a little.
-    assert abs(a - b) < 0.05
+    # No verdict statements, so the fixed-weight category 8 is left out: only
+    # the relative priorities matter, exactly.
+    assert a == b
 
 
 def test_ov08_the_verdict_is_fixed_at_medium_whatever_the_priorities():

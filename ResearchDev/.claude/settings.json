@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(timeout 120 npx vite build)",
+      "Bash(curl -s -o /dev/null -w \"api:%{http_code}\\\\n\" http://127.0.0.1:8000/health --max-time 4)",
+      "Bash(curl -s -o /dev/null -w \"vite:%{http_code}\\\\n\" http://localhost:5173 --max-time 4)",
+      "Bash(curl -s http://127.0.0.1:8000/health --max-time 4)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:9333/json/version --max-time 3)"
+    ]
+  }
+}

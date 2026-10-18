@@ -287,7 +287,7 @@ These words have more than one meaning in reviews. Read the sentence before codi
 |---|---|
 | **Combining statements** | All statements coded to a category are combined into one category score. Sub-points are used to code and report the evidence; they are not scored separately |
 | **Starting point** | Every category score starts at 0.5 and moves toward the evidence: score = (1 + positive weight) ÷ (2 + positive weight + negative weight). A business with few reviews cannot receive an extreme score |
-| **No evidence** | A category with no evidence takes the neutral 0.5 and stays in the calculation |
+| **No evidence** | A weighted category with no qualifying statement is left out of the score entirely: it has no score, and its weight leaves the average too, so the remaining categories share the score in the customer's proportions. Silence neither helps nor hurts. A business with no evidence in any weighted category is not scored for that service. On screen it shows a dash, marked "no feedbacks about this yet" |
 | **Statement weight** | Confidence × recency × specificity |
 | **Confidence** | High 1.0, medium 0.7, low 0.3 |
 | **Recency** | Half-life of 24 months: a statement 24 months old counts half as much as a new one |
@@ -353,7 +353,7 @@ Assigned by the researcher using this written rule.
 
 General statements that name no quality aspect ("great place", "worst experience") are stored separately as an Overall Verdict. It carries no weight, is not one of the seven categories or 25 sub-points, and does not enter the ranking score.
 
-**Profile overall salon score (display only).** The salon profile shows one overall score for the whole salon that does include the Overall Verdict. It is the weighted average of the whole-salon scores of categories 1, 2, 4, 5, 6 and 7 (weighted by the visitor's priorities, Medium if unset) and the Overall Verdict (a fixed Medium weight), each worked out from every feedback the salon has across all services with the same per-statement rules as the ranking. Category 3 is not included (it is read from owner replies and is reported only). A category with no feedbacks counts as 0.5. This figure is computed for display only and does not change the ranking, where the Overall Verdict still carries no weight.
+**Profile overall salon score (display only).** The salon profile shows one overall score for the whole salon that does include the Overall Verdict. It is the weighted average of the whole-salon scores of categories 1, 2, 4, 5, 6 and 7 (weighted by the visitor's priorities, Medium if unset) and the Overall Verdict (a fixed Medium weight), each worked out from every feedback the salon has across all services with the same per-statement rules as the ranking. Category 3 is not included (it is read from owner replies and is reported only). A weighted category with no feedbacks is left out of the average, weight and all. This figure is computed for display only and does not change the ranking, where the Overall Verdict still carries no weight.
 
 ---
 
@@ -362,7 +362,7 @@ General statements that name no quality aspect ("great place", "worst experience
 | # | Limitation |
 |---|---|
 | L1 | Statements are combined per category, so rare complaints on one sub-point can be outweighed by frequent praise on another |
-| L2 | A category with no evidence stays at 0.5, so a customer's priority on a thinly evidenced category changes the order little |
+| L2 | A weighted category with no evidence is left out, so a business is judged only on the dimensions its customers wrote about, and two businesses can be compared on different sets of categories. Silence neither helps nor hurts. About 93% of business x sub-service pairs have no Consultation evidence, so most comparisons omit it |
 | L3 | Category 4 counts positive against negative statements. Customers seldom write "I do not recommend", so scores lean high |
 | L4 | Few owners reply to complaints, so 3.2 to 3.4 rest on little evidence for most businesses |
 | L5 | A business with unanswered complaints scores below a business with no complaints at all on Category 3. Businesses with many reviews are more likely to have complaints, so Category 3 tends to be lower for them |
@@ -487,6 +487,7 @@ General statements that name no quality aspect ("great place", "worst experience
 | 10 Oct | Priority labels changed to Low / Medium / High / Very high | The buttons set importance, not quality |
 | 10 Oct | Accuracy is evaluated on a checked sample of 300 reviews, not a blind hand-coded set | Researcher's decision; recorded as a limitation |
 | 11 Oct | Category 3 scored from replies to complaints only | 90% of replies were thank-yous to 5-star reviews; the category is about complaint handling |
+| 19 Oct | A weighted category with no evidence is left out of the weighted average entirely — no score, and its weight leaves the denominator — instead of counting as the 0.5 prior or as 0. A business with no evidence in any weighted category is not scored. Reverses the 10 Oct (0.5) and 18 Oct (0) entries | Researcher's decision: judge a business only on the dimensions its customers actually wrote about. 0.5 gives a neutral mark for something nobody mentioned (measuring coverage, not quality); 0 penalises silence (a business never reviewed on hygiene is marked down on hygiene as if reviewed badly). Leaving the dimension out avoids both. Consultation & Aftercare is empty for about 93% of business x sub-service pairs, so this is a large, frequent effect. Being *ranked* still requires the 80% range test on the service's own reviews, which this change does not touch. Applied by `29_no_data_dimensions.sql` (ranking) and `06_run_scoring.py` (stored scores) |
 | 15 Oct | The profile's overall salon score includes the Overall Verdict (display only; the ranking is unchanged) | Researcher's decision, reversing the 10 Oct entry for the profile only. Overall Verdict is a generic signal close to the star rating, and about a third of its reviews also carry a Trust & Recommendation statement, so it is fixed at Medium weight and stated as an interpretive choice |
 | 11 Oct | Evidence-table copies of owner replies (3.1–3.4) removed from all scoring and from the ranking threshold | They double-counted replies and contradicted the reply table |
 | 11 Oct | Minimum of 5 replies removed | The 0.5 starting point already handles thin evidence |

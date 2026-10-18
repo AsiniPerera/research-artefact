@@ -1,16 +1,28 @@
-/* The main ranking screen: service picker (ServicesNav) + filters
-   (QuickFilters) + priorities (WeightLevels) on one side, the ranked list
-   (Results) on the other. Owns the filter/weight state and the useRanking
-   call; everything else here renders from it. */
-import { useEffect, useMemo, useState } from "react";
+/* The main ranking screen: filters (QuickFilters) and priorities
+   (WeightLevels) above the ranked list (Results). The service itself is
+   picked from the mega menu in the nav and arrives as a prop.
+
+   There is no submit step: the ranking follows the controls, so picking a
+   service or moving a priority re-ranks on its own. Owns the filter/weight
+   state and the useRanking call; everything else here renders from it. */
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { QuickFilters, DEFAULT_CONSISTENCY_WINDOW } from "../components/QuickFilters";
-import { ServicesNav } from "../components/ServicesNav";
 import { WeightLevels, toWeightList } from "../components/WeightLevels";
+import { IconSliders, IconChevron } from "../components/Icons";
+import { SelectMenu } from "../components/SelectMenu";
 import { Results } from "./Results";
 import { useRanking } from "../hooks/useRanking";
 import { getServices, getNearbyRankings } from "../api/client";
 import { PRESETS } from "../constants/presets";
 import { DOMAINS, GROUP_BY_ID, LEAF_BY_CODE, LEAF_BY_VALUE } from "../constants/taxonomy";
+
+/* The orders the Sort control offers. */
+const SORT_OPTIONS = [
+  { value: "best", label: "Best match" },
+  { value: "score", label: "Highest score" },
+  { value: "reviewed", label: "Most reviewed" },
+  { value: "name", label: "Name A–Z" },
+];
 
 /* "HR.CUT.01" -> the domain slug its tab uses. */
 const DOMAIN_BY_ID = Object.fromEntries(DOMAINS.map((d) => [d.id, d.value]));
@@ -29,73 +41,105 @@ const DEFAULT_FILTERS = {
   audience: "",
 };
 
-export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
+export function Rankings({ onSelectSalon, initialFamily, initialSubService, initialSubGroup = "" }) {
   const [filters, setFilters] = useState(() => {
     if (!initialFamily) return DEFAULT_FILTERS;
     return {
       ...DEFAULT_FILTERS,
       serviceFamily: initialFamily,
+      subGroup: initialSubGroup ?? "",
       /* A leaf is only meaningful under its own family, and the caller
          always sends the pair together. */
       subService: initialSubService ?? "",
     };
   });
   const [weights, setWeights] = useState(DEFAULT_WEIGHTS);
-  /* Whether the reader has moved any priority yet; until then a short note
-     explains that the sliders change the ranking. */
-  const [touched, setTouched] = useState(false);
-  /* On a phone the priorities fold away above the list. */
+  /* The priorities open from a chip in the filter row rather than holding a
+     rail, so the list runs the full width. */
   const [prioOpen, setPrioOpen] = useState(false);
-  /* What the visible results were ranked FOR, set by the Rank Salons button.
-     Controls can change afterwards and the list does not follow until the
-     button is pressed again — so the page says when they disagree. */
-  const [submitted, setSubmitted] = useState(null);
+  /* On a phone the four chips and the priorities would fill the screen before
+     a single salon showed, so they fold behind one Filters button. */
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [sort, setSort] = useState("best");
+  /* Reported up by Results once a response is in: only it knows how many
+     salons survived the filters and how many carry a confident score. */
+  const [counts, setCounts] = useState({ total: 0, confident: 0 });
+  const prioRef = useRef(null);
+  const sortRef = useRef(null);
+
+  /* A click or a tap outside the panel closes it — SelectMenu already does
+     this for the other filter chips (QuickFilters.jsx), but the priorities
+     chip builds its own panel here and had no such handler, so it was the
+     one control on the row a stray click never dismissed. */
+  useEffect(() => {
+    if (!prioOpen) return undefined;
+    const onDown = (e) => {
+      if (prioRef.current && !prioRef.current.contains(e.target)) setPrioOpen(false);
+    };
+    const onKey = (e) => { if (e.key === "Escape") setPrioOpen(false); };
+    document.addEventListener("pointerdown", onDown);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [prioOpen]);
   /* The services with the most ranked salons, offered as shortcuts on the
      empty state. Taken from /services rather than hard-coded, so they can
      never name a service that has nothing to show. */
   const [popular, setPopular] = useState([]);
 
-  /* Rankings exist per sub-service, so only a leaf can be ranked. A domain or
-     group pick narrows the menu; Results asks for a specific service. */
-  const code = LEAF_BY_VALUE[filters.subService]?.id ?? null;
+  /* Any of the three levels can be ranked: a sub-service (Haircut & Trim), a
+     service (Haircuts) or a whole category (Hair). A service pick arrives as
+     its group id in subGroup ("HR.CUT"); a whole-category pick puts the
+     category code there instead ("HR", which never contains a dot, so the two
+     cannot be confused). A bare family with nothing picked -- the page's
+     default -- ranks nothing and asks the reader to choose. */
+  const pickedCategory = DOMAINS.find((d) => d.id === filters.subGroup);
+  const code = LEAF_BY_VALUE[filters.subService]?.id
+    ?? GROUP_BY_ID[filters.subGroup]?.id
+    ?? pickedCategory?.id
+    ?? null;
+  /* How many priorities sit off the default level; the chip shows the number
+     so a moved slider is never hidden behind a closed panel. */
+  const changedPriorities = Object.keys(DEFAULT_WEIGHTS)
+    .filter((k) => k !== "consistency_window" && weights[k] !== DEFAULT_WEIGHTS[k]).length;
   const weightList = useMemo(() => toWeightList(weights), [weights]);
   const cw = weights.consistency_window ?? DEFAULT_CONSISTENCY_WINDOW;
-  const querySig = JSON.stringify({ code, weightList, cw, city: filters.city, availability: filters.availability });
-  const stale = submitted !== null && submitted.sig !== querySig;
-  const cwUsed = submitted?.cw ?? cw;
+  /* The page is about one service, so it is named at the top. Without a leaf
+     the reader has not chosen one yet and the page says so instead. */
+  const heading = LEAF_BY_VALUE[filters.subService]?.label
+    ?? GROUP_BY_ID[filters.subGroup]?.label
+    ?? DOMAINS.find((d) => d.value === filters.serviceFamily)?.label
+    ?? "Ranked for you";
+  /* What the Filters button's badge counts: only the ones doing something, so
+     a reader can see at a glance whether the list is narrowed. */
+  const activeFilters =
+    (filters.city ? 1 : 0)
+    + (filters.audience ? 1 : 0)
+    + (filters.availability !== DEFAULT_FILTERS.availability ? 1 : 0)
+    + (cw !== DEFAULT_CONSISTENCY_WINDOW ? 1 : 0)
+    + (changedPriorities > 0 ? 1 : 0);
+  const filtersAreDefault = !filters.city && !filters.audience && filters.availability === DEFAULT_FILTERS.availability;
+  /* The ranking follows the controls: picking a service or moving a priority
+     re-ranks on its own. useRanking debounces and aborts, so dragging a
+     slider across three stops sends one request and a slow earlier answer can
+     never overwrite a newer one. */
   const { results, loading, error } = useRanking(
-    submitted?.code ?? null,
-    submitted?.weightList ?? weightList,
-    submitted?.city ?? "",
-    submitted?.availability ?? "open",
-    cwUsed
+    code, weightList, filters.city, filters.availability, cw
   );
   /* The profile uses the same review period and the same priorities as the
      list it was opened from: the badge and the overall salon score follow them. */
-  const openSalon = (id) => onSelectSalon(id, cwUsed, submitted?.weightList ?? weightList);
+  const openSalon = (id) => onSelectSalon(id, cw, weightList);
 
-  /* Moving a priority re-ranks at once, once a list is on screen: only the
-     weights follow the sliders, so a filter changed but not yet applied stays
-     waiting for the button. (useRanking debounces, so dragging sends one request.) */
-  useEffect(() => {
-    setSubmitted((s) => {
-      if (!s || JSON.stringify(s.weightList) === JSON.stringify(weightList)) return s;
-      return {
-        ...s,
-        weightList,
-        sig: JSON.stringify({ code: s.code, weightList, cw: s.cw, city: s.city, availability: s.availability }),
-      };
-    });
-  }, [weightList]);
 
   /* Salons just outside the chosen city. Shown automatically once a city is
      picked and the list has been ranked; with "All cities" there is no outside
-     to be near, so it stays idle. Keyed on the SUBMITTED query, not the live
-     filters, so the nearby set always matches the ranked list on screen. */
+     to be near, so it stays idle. */
   const [nearby, setNearby] = useState({ status: "idle", data: null, error: null });
 
   useEffect(() => {
-    if (!submitted?.city || !results) {
+    if (!filters.city || !code || !results) {
       setNearby({ status: "idle", data: null, error: null });
       return undefined;
     }
@@ -103,7 +147,7 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
     const ctrl = new AbortController();
     setNearby({ status: "loading", data: null, error: null });
     getNearbyRankings(
-      submitted.code, submitted.weightList, submitted.city, submitted.availability, submitted.cw,
+      code, weightList, filters.city, filters.availability, cw,
       { signal: ctrl.signal },
     )
       .then((d) => { if (active) setNearby({ status: "done", data: d, error: null }); })
@@ -112,7 +156,7 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
         if (active) setNearby({ status: "error", data: null, error: e.message });
       });
     return () => { active = false; ctrl.abort(); };
-  }, [results, submitted?.city, submitted?.code]);
+  }, [results, filters.city, code]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -135,168 +179,129 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
     return () => ctrl.abort();
   }, []);
 
-  /* A shortcut picks the service and ranks it in one go, at the default
-     equal weights. */
+  /* A shortcut picks the service; the ranking follows on its own. */
   function startWith(item) {
-    const next = {
+    setFilters({
       ...filters,
       serviceFamily: DOMAIN_BY_ID[item.code.split(".")[0]] ?? filters.serviceFamily,
       subGroup: "",
       subService: item.value,
-    };
-    setFilters(next);
-    setSubmitted({
-      sig: JSON.stringify({ code: item.code, weightList, cw, city: next.city, availability: next.availability }),
-      code: item.code,
-      weightList,
-      cw,
-      city: next.city,
-      availability: next.availability,
-      filters: next,
     });
   }
 
-  /* The notice's "Search all cities": drop the city and rank again at once,
-     because widening the area is the one thing that may find the exact
-     service. Everything else about the query is kept. */
+  /* A category tile ranks the whole category: the category code goes in the
+     group slot, which Rankings reads as a whole-category pick. */
+  function startWithCategory(domain) {
+    setFilters({ ...filters, serviceFamily: domain.value, subGroup: domain.id, subService: "" });
+  }
+
+  /* The notice offers to widen the area, which is the one thing that may find
+     the exact service. Everything else about the query is kept. */
   function searchAllCities() {
-    const base = submitted?.filters ?? filters;
-    const next = { ...base, city: "" };
-    const weightsUsed = submitted?.weightList ?? weightList;
-    const codeUsed = submitted?.code ?? code;
-    if (!codeUsed) return;
-    setFilters(next);
-    setSubmitted({
-      sig: JSON.stringify({ code: codeUsed, weightList: weightsUsed, cw: cwUsed, city: "", availability: next.availability }),
-      code: codeUsed,
-      weightList: weightsUsed,
-      cw: cwUsed,
-      city: "",
-      availability: next.availability,
-      filters: next,
-    });
-  }
-
-  function handleSubmit(e) {
-    e.preventDefault();
-    if (!code) return;
-    setSubmitted({ sig: querySig, code, weightList, cw, city: filters.city, availability: filters.availability, filters });
+    setFilters({ ...filters, city: "" });
   }
 
   return (
-    /* One form: the service, the city and the priorities are a single query. */
-    <form onSubmit={handleSubmit}>
     <div className="page-body page-body--explore">
-      <header className="page-head page-head--bar">
-        <div>
-          <p className="eyebrow">Explore</p>
-          <h1 className="page-head-title page-head-title--small">
-            Ranked for <em>you.</em>
-          </h1>
+      <header className="page-head xp-head">
+        <div className="xp-headline">
+          <h1 className="page-head-title xp-title">{heading}</h1>
+          <p className="xp-sub">
+            {code && counts.total > 0
+              ? `${counts.total} ${counts.total === 1 ? "salon" : "salons"}, ${counts.confident} ranked with confidence. Every score comes from what customers wrote.`
+              : "Every score comes from what customers wrote."}
+          </p>
         </div>
 
-        <QuickFilters
-          filters={filters}
-          onChange={setFilters}
-          onReset={() => setFilters({ ...filters, city: "", availability: DEFAULT_FILTERS.availability, audience: "" })}
-          isDefault={!filters.city && !filters.audience && filters.availability === DEFAULT_FILTERS.availability}
-          consistencyWindow={cw}
-          audience={filters.audience}
-          onAudienceChange={(audience) => setFilters({ ...filters, audience })}
-          onConsistencyWindowChange={(v) => setWeights({ ...weights, consistency_window: v })}
-        />
-      </header>
-
-      <div className="discover">
-        {/* ── Sidebar: HOW to rank ───────────────────── */}
-        <aside className={`sidebar ${prioOpen ? "" : "is-collapsed"}`}>
+        <div className="xp-controls">
+          {/* Phone only: the chips and the priorities live behind this. */}
           <button
             type="button"
-            className="prio-toggle"
-            aria-expanded={prioOpen}
-            onClick={() => setPrioOpen((v) => !v)}
+            className={`xp-filters-btn ${filtersOpen ? "is-open" : ""}`}
+            aria-expanded={filtersOpen}
+            aria-controls="xp-filterset"
+            onClick={() => setFiltersOpen((v) => !v)}
           >
-            Your priorities <span aria-hidden="true">{prioOpen ? "−" : "+"}</span>
+            <IconSliders size={14} />
+            Filters
+            {activeFilters > 0 && <span className="xp-filters-count">{activeFilters}</span>}
           </button>
-          <div className="sidebar-scroll">
-            <section className="priority-panel priority-panel--rail">
-              <div className="priority-panel-head">
-                <div>
-                  <h3>Your priorities</h3>
-                </div>
-                <button
-                  type="button"
-                  className="btn-text"
-                  onClick={() => setWeights({ ...DEFAULT_WEIGHTS, consistency_window: cw })}
-                  title="Set every priority back to the same level"
-                >
-                  Reset
-                </button>
-              </div>
-              <WeightLevels
-                weights={weights}
-                onChange={(w) => { setTouched(true); setWeights(w); }}
-              />
-            </section>
-          </div>
 
-          <div className="sidebar-foot">
-            <button
-              type="submit"
-              className="btn-primary"
-              style={{ width: "100%" }}
-              disabled={!code}
-              title={code ? undefined : "Pick a specific service first"}
-            >
-              {stale ? "Update ranking" : "Rank Salons"}
-            </button>
-
-            {/* Only when the list has fallen behind the controls. */}
-            {!code && <p className="rank-note">Pick a service above to rank salons for it.</p>}
-            {code && stale && (
-              <p className="rank-note">
-                Choices changed — the list shows the last ranking.
-              </p>
-            )}
-          </div>
-        </aside>
-
-        {/* ── Results column ─────────────────────────── */}
-        <section>
-          {/* WHAT to rank. It sets the filter in place rather than routing, so
-              the priorities set in the rail survive a change of service. */}
-          <ServicesNav
-            activeFamily={filters.serviceFamily}
-            onPick={(fam, leaf, groupId) =>
-              setFilters({
-                ...filters,
-                serviceFamily: fam,
-                subGroup: groupId ?? "",
-                subService: leaf ?? "",
-              })
-            }
+          <div className="xp-filterset" id="xp-filterset" data-open={filtersOpen ? "true" : "false"}>
+          <QuickFilters
+            filters={filters}
+            onChange={setFilters}
+            onReset={() => setFilters({ ...filters, city: "", availability: DEFAULT_FILTERS.availability, audience: "" })}
+            isDefault={filtersAreDefault}
+            consistencyWindow={cw}
+            audience={filters.audience}
+            onAudienceChange={(audience) => setFilters({ ...filters, audience })}
+            onConsistencyWindowChange={(v) => setWeights({ ...weights, consistency_window: v })}
           />
 
-          {!code && filters.subGroup && (
-            <div className="info-banner">
-              Rankings are per service. Pick one under{" "}
-              {GROUP_BY_ID[filters.subGroup]?.label} to see who ranks for it.
-            </div>
-          )}
+          <div className="xp-prio-wrap" ref={prioRef}>
+            <button
+              type="button"
+              className={`xp-chip ${prioOpen ? "is-open" : ""} ${changedPriorities > 0 ? "is-set" : ""}`}
+              aria-expanded={prioOpen}
+              aria-controls="prio-panel"
+              onClick={() => setPrioOpen((v) => !v)}
+            >
+              <IconSliders size={14} />
+              Your priorities
+              {changedPriorities > 0 && <span className="xp-chip-count">{changedPriorities}</span>}
+              <IconChevron size={12} />
+            </button>
 
-          {submitted && !touched && (
-            <p className="prio-hint" role="note">
-              All priorities are set to Medium. Adjust them under “Your priorities” to see how rankings change based on what matters most to you.
-            </p>
-          )}
+            {prioOpen && (
+              <div className="xp-prio-panel" id="prio-panel">
+                <div className="xp-prio-head">
+                  <h2 className="xp-prio-title">Your priorities</h2>
+                  <button
+                    type="button"
+                    className="btn-text xp-prio-reset"
+                    onClick={() => setWeights({ ...DEFAULT_WEIGHTS, consistency_window: cw })}
+                    title="Set every priority back to the same level"
+                  >
+                    Reset
+                  </button>
+                </div>
+                <p className="xp-prio-note">Four levels each — tap a step. The ranking re-orders as you set them.</p>
+                <WeightLevels weights={weights} onChange={setWeights} />
+              </div>
+            )}
+          </div>
+          </div>
+
+          {/* A native <select>'s open list is drawn by the OS, not the page, so it
+              stays a square system menu whatever colour the closed control is
+              given — SelectMenu rebuilds the listbox in markup so it can be
+              styled like the rest of the panel. */}
+          <div className="xp-sort" ref={sortRef}>
+            <SelectMenu
+              label="Sort"
+              value={sort}
+              onChange={setSort}
+              options={SORT_OPTIONS}
+            />
+          </div>
+        </div>
+      </header>
+
+      <div className="discover discover--wide">
+        <section>
+          {!code && <p className="rank-note">Pick a service from Explore in the menu above.</p>}
 
           <Results
-            priorities={submitted?.weightList ?? weightList}
-            filters={submitted?.filters ?? filters}
+            priorities={weightList}
+            consistencyWindow={cw}
+            filters={filters}
             serviceChosen={Boolean(code)}
-            submitted={submitted !== null}
+            sort={sort}
+            onCounts={setCounts}
             popular={popular}
             onStartWith={startWith}
+            onStartCategory={startWithCategory}
             data={results}
             loading={loading}
             error={error}
@@ -308,6 +313,5 @@ export function Rankings({ onSelectSalon, initialFamily, initialSubService }) {
         </section>
       </div>
     </div>
-    </form>
   );
 }

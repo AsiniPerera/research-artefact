@@ -22,6 +22,8 @@ import { Auth } from "./screens/Auth";
 import { Contact } from "./screens/Contact";
 import { Profile } from "./screens/Profile";
 import { DOMAINS } from "./constants/taxonomy";
+import { ServicesMegaPanel } from "./components/ServicesNav";
+import { CLOSE_GRACE_MS } from "./components/flyoutPlacement";
 import { readUrl, buildUrl } from "./utils/url";
 
 const NAV = [
@@ -60,6 +62,10 @@ export default function App() {
   const [sub, setSub] = useState(initial.sub);
   // Set when a service card sends you to the ranking pre-filtered.
   const [family, setFamily] = useState(initial.family);
+  /* A group pick from the services menu ("any service under Hair Colour").
+     Not in the URL: family and sub are the shareable pair, and a group is a
+     narrowing aid rather than a destination. */
+  const [subGroup, setSubGroup] = useState("");
   const [authMode, setAuthMode] = useState(initial.authMode);
   const [draftQuery, setDraftQuery] = useState(initial.q);
   const [submittedQuery, setSubmittedQuery] = useState(initial.q);
@@ -167,18 +173,47 @@ export default function App() {
   }
 
 
-  function go(next, nextFamily = null, nextSub = null) {
+  /* The services mega menu hangs off Explore in the nav. It is a child of
+     <nav>, so the pointer moving from the link into the panel never leaves
+     the element the close handler watches; the grace period covers the trip
+     back out. */
+  const [megaOpen, setMegaOpen] = useState(false);
+  const megaTimer = useRef(null);
+  const holdMega = () => clearTimeout(megaTimer.current);
+  const openMega = () => { clearTimeout(megaTimer.current); setMegaOpen(true); };
+  const closeMegaSoon = () => {
+    clearTimeout(megaTimer.current);
+    megaTimer.current = setTimeout(() => setMegaOpen(false), CLOSE_GRACE_MS);
+  };
+  const closeMegaNow = () => { clearTimeout(megaTimer.current); setMegaOpen(false); };
+  useEffect(() => () => clearTimeout(megaTimer.current), []);
+  useEffect(() => {
+    if (!megaOpen) return undefined;
+    const onKey = (e) => e.key === "Escape" && closeMegaNow();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [megaOpen]);
+
+  function go(next, nextFamily = null, nextSub = null, nextGroup = "") {
     setRoute(next);
     setFamily(nextFamily);
     setSub(nextSub);
+    setSubGroup(nextGroup);
     setSelectedSalon(null);
     setMenuOpen(false);
     window.scrollTo({ top: 0 });
   }
 
-  // The landing's CTAs: no argument means "go rank something".
+  // The landing's CTAs: no argument means "go rank something". A category
+  // card ("Explore by service" -> Hair) opens Explore with that whole category
+  // already ranked, rather than the empty "what are you looking for?" page:
+  // the reader chose a category, so the answer is that category's ranking,
+  // narrowed by the menu from there. The category code goes in the group slot,
+  // which Rankings reads as a whole-category pick.
   function explore(target = "services", nextFamily = null) {
-    go(target, nextFamily);
+    const domain = DOMAINS.find((d) => d.value === nextFamily);
+    if (target === "services" && domain) go(target, nextFamily, null, domain.id);
+    else go(target, nextFamily);
   }
 
   function handleSearch(e) {
@@ -194,7 +229,7 @@ export default function App() {
     <div className="app">
       <div className={`shell ${isLanding ? "shell--landing" : ""}`}>
         <header className="site-header">
-        <nav className={`nav ${isLanding ? "nav--landing" : ""} ${scrolled ? "nav--scrolled" : ""}`} aria-label="Primary">
+        <nav className={`nav ${isLanding ? "nav--landing" : ""} ${scrolled ? "nav--scrolled" : ""}`} aria-label="Primary" onMouseLeave={closeMegaSoon} onMouseEnter={holdMega}>
           <button
             className="nav-brand"
             onClick={() => go("home")}
@@ -204,16 +239,23 @@ export default function App() {
           </button>
 
           <div className="nav-links">
-            {NAV.map(({ key, label }) => (
-              <button
-                key={key}
-                className={`nav-link ${route === key ? "nav-link--active" : ""}`}
-                onClick={() => go(key)}
-                aria-current={route === key ? "page" : undefined}
-              >
-                {label}
-              </button>
-            ))}
+            {NAV.map(({ key, label }) => {
+              const isExplore = key === "services";
+              return (
+                <button
+                  key={key}
+                  className={`nav-link ${route === key ? "nav-link--active" : ""}`}
+                  onClick={() => { closeMegaNow(); go(key); }}
+                  aria-current={route === key ? "page" : undefined}
+                  aria-expanded={isExplore ? megaOpen : undefined}
+                  aria-haspopup={isExplore ? "true" : undefined}
+                  onMouseEnter={isExplore ? openMega : closeMegaSoon}
+                  onFocus={isExplore ? openMega : undefined}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </div>
 
           <div className="nav-actions">
@@ -301,6 +343,15 @@ export default function App() {
               <span /><span /><span />
             </button>
           </div>
+
+          {megaOpen && (
+            <ServicesMegaPanel
+              activeFamily={family}
+              activeSub={sub}
+              activeGroup={subGroup}
+              onPick={(fam, leaf, groupId) => { closeMegaNow(); go("services", fam, leaf, groupId ?? ""); }}
+            />
+          )}
         </nav>
         </header>
 
@@ -398,9 +449,10 @@ export default function App() {
           {route === "services" && (
             <div hidden={!!selectedSalon}>
               <Rankings
-                key={`${family ?? "all"}-${sub ?? ""}`}
+                key={`${family ?? "all"}-${sub ?? ""}-${subGroup}`}
                 initialFamily={family}
                 initialSubService={sub}
+                initialSubGroup={subGroup}
                 onSelectSalon={openSalon}
               />
             </div>

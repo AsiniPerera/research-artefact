@@ -38,6 +38,8 @@ headers changed to say what moved where.
 | `15_subpoint_is_computed_fix.sql` | Marks 3.2, 3.3 and 3.4 `is_computed`, matching 3.1 — they're all owner-reply parts. |
 | `16_category9_weight_zero.sql` | Drops Category 9's weight to 0: its ranked part (9.1, consistency) was removed once duration filtering became universal (17_), and its other part (9.2, specialism) was never ranked. |
 | `17_window_scoped_scores.sql` | Widens `category_score` and `trust_score` with `window_code`, so every category and the final ranking are scoped to the reader's chosen duration (6m/1y/3y/anytime) — not just a Category-9-only display, which is all this used to do. |
+| `28_usability_task_completion.sql` | Adds `task1_completed`..`task5_completed` to the usability survey, so the evaluation reports task completion from the data. |
+| `29_no_data_dimensions.sql` | A weighted category with no evidence is left out of the score entirely — no score, and its weight leaves the average — instead of counting as 0.5 or 0. **Supersedes the function bodies in `13_ranking_v6.sql`.** Takes effect on the live ranking as soon as it is applied; `06_run_scoring.py` applies the same rule to the stored scores on its next run. |
 
 **`13_ranking_v6.sql`'s body has been replaced twice since its own migration
 ran**: once by `14_`'s safety fix (applied directly, not by re-running this

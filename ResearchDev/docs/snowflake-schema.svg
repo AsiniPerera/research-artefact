@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 1020" font-family="Inter, Arial, sans-serif" font-size="12">
+  <!-- Snowflake schema diagram of the Amore Beauty database.
+       Facts in the centre, dimension hierarchies snowflake outward.
+       Colour-coded by schema: ref blue, raw orange, extract green,
+       score purple, public grey. -->
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4b5563" />
+    </marker>
+    <style>
+      .title    { font-size: 20px; font-weight: 700; fill: #111827; }
+      .caption  { font-size: 12px; font-style: italic; fill: #4b5563; }
+      .thead    { font-size: 13px; font-weight: 700; fill: #ffffff; }
+      .col      { font-size: 11px; fill: #111827; }
+      .pk       { font-weight: 700; }
+      .fk       { fill: #0b4a6f; }
+      .fact-head{ font-size: 14px; font-weight: 700; fill: #ffffff; }
+      .fact-col { font-size: 11.5px; fill: #111827; }
+      .edge     { stroke: #4b5563; stroke-width: 1.2; fill: none; }
+      .edge-hier{ stroke: #1f2937; stroke-width: 1.6; fill: none; stroke-dasharray: 4 3; }
+      .legend-l { font-size: 12px; fill: #111827; }
+      .ref-fill   { fill: #3b82f6; }
+      .raw-fill   { fill: #f97316; }
+      .extract-fill { fill: #10b981; }
+      .score-fill { fill: #a855f7; }
+      .public-fill{ fill: #9ca3af; }
+      .box      { fill: #ffffff; stroke-width: 1.2; }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="750" y="36" text-anchor="middle" class="title">Figure 4.1: Snowflake Schema — Database Architecture</text>
+  <text x="750" y="58" text-anchor="middle" class="caption">Fact tables at the centre; service and framework dimensions snowflake outward to normalised hierarchies.</text>
+
+  <!-- =================== LEFT: data-source dimensions =================== -->
+
+  <!-- score.scoring_run -->
+  <g>
+    <rect x="40" y="100" width="240" height="110" rx="6" class="box" stroke="#a855f7"/>
+    <rect x="40" y="100" width="240" height="26" rx="6" class="score-fill"/>
+    <text x="160" y="118" text-anchor="middle" class="thead">score.scoring_run</text>
+    <text x="52" y="146" class="col pk">PK  scoring_run_id : serial</text>
+    <text x="52" y="164" class="col">run_at : timestamptz</text>
+    <text x="52" y="180" class="col">reference_date : date</text>
+    <text x="52" y="196" class="col">parameters : jsonb</text>
+  </g>
+
+  <!-- extract.extraction_run -->
+  <g>
+    <rect x="40" y="260" width="240" height="110" rx="6" class="box" stroke="#10b981"/>
+    <rect x="40" y="260" width="240" height="26" rx="6" class="extract-fill"/>
+    <text x="160" y="278" text-anchor="middle" class="thead">extract.extraction_run</text>
+    <text x="52" y="306" class="col pk">PK  run_id : serial</text>
+    <text x="52" y="324" class="col">method : rule_based | llm | manual</text>
+    <text x="52" y="340" class="col">model, framework_version</text>
+    <text x="52" y="356" class="col">run_at : timestamptz</text>
+  </g>
+
+  <!-- raw.provider -->
+  <g>
+    <rect x="40" y="430" width="240" height="150" rx="6" class="box" stroke="#f97316"/>
+    <rect x="40" y="430" width="240" height="26" rx="6" class="raw-fill"/>
+    <text x="160" y="448" text-anchor="middle" class="thead">raw.provider</text>
+    <text x="52" y="476" class="col pk">PK  place_id : text</text>
+    <text x="52" y="494" class="col">name, google_category</text>
+    <text x="52" y="510" class="col">address, city, lat, lng</text>
+    <text x="52" y="526" class="col">google_rating, google_review_count</text>
+    <text x="52" y="542" class="col">permanently_closed, temporarily_closed</text>
+    <text x="52" y="558" class="col">place_url</text>
+  </g>
+
+  <!-- raw.review -->
+  <g>
+    <rect x="40" y="620" width="240" height="140" rx="6" class="box" stroke="#f97316"/>
+    <rect x="40" y="620" width="240" height="26" rx="6" class="raw-fill"/>
+    <text x="160" y="638" text-anchor="middle" class="thead">raw.review</text>
+    <text x="52" y="666" class="col pk">PK  review_id : text</text>
+    <text x="52" y="684" class="col fk">FK  place_id → raw.provider</text>
+    <text x="52" y="700" class="col">stars, review_text, published_at</text>
+    <text x="52" y="716" class="col">source_language, likes_count</text>
+    <text x="52" y="732" class="col">review_url</text>
+  </g>
+
+  <!-- raw.owner_reply -->
+  <g>
+    <rect x="40" y="810" width="240" height="90" rx="6" class="box" stroke="#f97316"/>
+    <rect x="40" y="810" width="240" height="26" rx="6" class="raw-fill"/>
+    <text x="160" y="828" text-anchor="middle" class="thead">raw.owner_reply</text>
+    <text x="52" y="856" class="col pk fk">PK/FK  review_id → raw.review</text>
+    <text x="52" y="874" class="col">reply_text, reply_date</text>
+  </g>
+
+  <!-- =================== CENTRE: fact tables =================== -->
+
+  <!-- score.category_score (fact #1) -->
+  <g>
+    <rect x="560" y="140" width="330" height="180" rx="8" fill="#faf5ff" stroke="#a855f7" stroke-width="2.5"/>
+    <rect x="560" y="140" width="330" height="30" rx="8" class="score-fill"/>
+    <text x="725" y="161" text-anchor="middle" class="fact-head">FACT · score.category_score</text>
+    <text x="572" y="190" class="fact-col pk fk">PK/FK  scoring_run_id → score.scoring_run</text>
+    <text x="572" y="208" class="fact-col pk fk">PK/FK  place_id → raw.provider</text>
+    <text x="572" y="226" class="fact-col pk fk">PK/FK  sub_service_code → ref.sub_service</text>
+    <text x="572" y="244" class="fact-col pk fk">PK/FK  category_no → ref.framework_category</text>
+    <text x="572" y="266" class="fact-col">score : numeric(5,4)        [0..1]</text>
+    <text x="572" y="282" class="fact-col">evidence_weight : numeric(9,3)</text>
+    <text x="572" y="298" class="fact-col">evidence_count : int</text>
+    <text x="572" y="314" class="fact-col" fill="#6b7280">one row per salon × service × category per run</text>
+  </g>
+
+  <!-- extract.evidence_item (fact #2) -->
+  <g>
+    <rect x="560" y="470" width="330" height="340" rx="8" fill="#ecfdf5" stroke="#10b981" stroke-width="2.5"/>
+    <rect x="560" y="470" width="330" height="30" rx="8" class="extract-fill"/>
+    <text x="725" y="491" text-anchor="middle" class="fact-head">FACT · extract.evidence_item</text>
+    <text x="572" y="520" class="fact-col pk">PK  evidence_id : bigserial</text>
+    <text x="572" y="538" class="fact-col fk">FK  run_id → extract.extraction_run</text>
+    <text x="572" y="554" class="fact-col fk">FK  review_id → raw.review</text>
+    <text x="572" y="570" class="fact-col fk">FK  place_id → raw.provider</text>
+    <text x="572" y="586" class="fact-col fk">FK  service_category_code → ref.service_category</text>
+    <text x="572" y="602" class="fact-col fk">FK  service_code → ref.service</text>
+    <text x="572" y="618" class="fact-col fk">FK  sub_service_code → ref.sub_service</text>
+    <text x="572" y="634" class="fact-col fk">FK  sub_point_code → ref.sub_point</text>
+    <text x="572" y="658" class="fact-col">polarity : positive | negative | mixed | mention</text>
+    <text x="572" y="674" class="fact-col">severity : ineffective … damage</text>
+    <text x="572" y="690" class="fact-col">time_since_visit, confidence</text>
+    <text x="572" y="706" class="fact-col">reviewer_fault : bool</text>
+    <text x="572" y="722" class="fact-col">needs_manual_check : bool</text>
+    <text x="572" y="738" class="fact-col">evidence_text : text</text>
+    <text x="572" y="762" class="fact-col" fill="#6b7280">one row per extracted statement</text>
+    <text x="572" y="782" class="fact-col" fill="#6b7280">the largest fact table (statement-level grain)</text>
+  </g>
+
+  <!-- =================== RIGHT: taxonomy snowflake branches =================== -->
+
+  <!-- Service branch: category → service → sub_service -->
+  <g>
+    <rect x="1180" y="100" width="280" height="92" rx="6" class="box" stroke="#3b82f6"/>
+    <rect x="1180" y="100" width="280" height="26" rx="6" class="ref-fill"/>
+    <text x="1320" y="118" text-anchor="middle" class="thead">ref.service_category</text>
+    <text x="1192" y="146" class="col pk">PK  code : text  (HR, SK, NL, BO)</text>
+    <text x="1192" y="164" class="col">name, sort_order</text>
+  </g>
+
+  <g>
+    <rect x="1180" y="230" width="280" height="100" rx="6" class="box" stroke="#3b82f6"/>
+    <rect x="1180" y="230" width="280" height="26" rx="6" class="ref-fill"/>
+    <text x="1320" y="248" text-anchor="middle" class="thead">ref.service</text>
+    <text x="1192" y="276" class="col pk">PK  code : text  (e.g. HR.COL)</text>
+    <text x="1192" y="294" class="col fk">FK  category_code → ref.service_category</text>
+    <text x="1192" y="312" class="col">name, sort_order</text>
+  </g>
+
+  <g>
+    <rect x="1180" y="370" width="280" height="100" rx="6" class="box" stroke="#3b82f6"/>
+    <rect x="1180" y="370" width="280" height="26" rx="6" class="ref-fill"/>
+    <text x="1320" y="388" text-anchor="middle" class="thead">ref.sub_service</text>
+    <text x="1192" y="416" class="col pk">PK  code : text  (e.g. HR.COL.01)</text>
+    <text x="1192" y="434" class="col fk">FK  service_code → ref.service</text>
+    <text x="1192" y="452" class="col">name, sort_order, tier (1..5)</text>
+  </g>
+
+  <!-- Framework branch: category → sub_point -->
+  <g>
+    <rect x="1180" y="520" width="280" height="110" rx="6" class="box" stroke="#3b82f6"/>
+    <rect x="1180" y="520" width="280" height="26" rx="6" class="ref-fill"/>
+    <text x="1320" y="538" text-anchor="middle" class="thead">ref.framework_category</text>
+    <text x="1192" y="566" class="col pk">PK  category_no : smallint (1..8)</text>
+    <text x="1192" y="584" class="col">name  (Quality, Staff, Safety…)</text>
+    <text x="1192" y="602" class="col">weight : numeric(6,5)</text>
+    <text x="1192" y="620" class="col" fill="#6b7280">8 categories (plus v6 cat.9)</text>
+  </g>
+
+  <g>
+    <rect x="1180" y="670" width="280" height="190" rx="6" class="box" stroke="#3b82f6"/>
+    <rect x="1180" y="670" width="280" height="26" rx="6" class="ref-fill"/>
+    <text x="1320" y="688" text-anchor="middle" class="thead">ref.sub_point</text>
+    <text x="1192" y="716" class="col pk">PK  code : text  ('1.1' … '7.5')</text>
+    <text x="1192" y="734" class="col fk">FK  category_no → ref.framework_category</text>
+    <text x="1192" y="752" class="col">customer_question, research_meaning</text>
+    <text x="1192" y="770" class="col">is_score, is_gate, is_veto</text>
+    <text x="1192" y="788" class="col">is_safety, is_reported_only</text>
+    <text x="1192" y="806" class="col">is_computed</text>
+    <text x="1192" y="828" class="col" fill="#6b7280">the detail checks each category rolls up from</text>
+  </g>
+
+  <!-- =================== Snowflake hierarchy arrows (dashed) =================== -->
+  <!-- service_category → service → sub_service -->
+  <path d="M 1320 192  L 1320 230" class="edge-hier" marker-end="url(#arrow)"/>
+  <path d="M 1320 330  L 1320 370" class="edge-hier" marker-end="url(#arrow)"/>
+  <!-- framework_category → sub_point -->
+  <path d="M 1320 630  L 1320 670" class="edge-hier" marker-end="url(#arrow)"/>
+  <!-- raw.provider → raw.review (hierarchy within raw) -->
+  <path d="M 160 580  L 160 620" class="edge-hier" marker-end="url(#arrow)"/>
+  <!-- raw.review → raw.owner_reply -->
+  <path d="M 160 760  L 160 810" class="edge-hier" marker-end="url(#arrow)"/>
+
+  <!-- =================== Fact → dim FK edges (solid) =================== -->
+
+  <!-- category_score FKs: scoring_run, provider, sub_service, framework_category -->
+  <path d="M 560 200  C 440 190, 360 170, 280 155"       class="edge" marker-end="url(#arrow)"/>  <!-- scoring_run -->
+  <path d="M 560 240  C 450 265, 360 380, 280 480"       class="edge" marker-end="url(#arrow)"/>  <!-- provider -->
+  <path d="M 890 230  C 1020 240, 1100 350, 1180 410"    class="edge" marker-end="url(#arrow)"/>  <!-- sub_service -->
+  <path d="M 890 270  C 1020 320, 1100 480, 1180 560"    class="edge" marker-end="url(#arrow)"/>  <!-- framework_category -->
+
+  <!-- evidence_item FKs: extraction_run, review, provider, 3 service levels, sub_point -->
+  <path d="M 560 540  C 460 490, 380 400, 280 360"      class="edge" marker-end="url(#arrow)"/>  <!-- extraction_run -->
+  <path d="M 560 560  C 460 605, 360 620, 280 680"      class="edge" marker-end="url(#arrow)"/>  <!-- review -->
+  <path d="M 560 575  C 450 560, 370 540, 280 510"      class="edge" marker-end="url(#arrow)"/>  <!-- provider -->
+  <path d="M 890 590  C 1020 500, 1100 240, 1180 150"   class="edge" marker-end="url(#arrow)"/>  <!-- service_category -->
+  <path d="M 890 605  C 1020 530, 1100 310, 1180 280"   class="edge" marker-end="url(#arrow)"/>  <!-- service -->
+  <path d="M 890 622  C 1030 580, 1100 480, 1180 420"   class="edge" marker-end="url(#arrow)"/>  <!-- sub_service -->
+  <path d="M 890 638  C 1030 680, 1100 740, 1180 760"   class="edge" marker-end="url(#arrow)"/>  <!-- sub_point -->
+
+  <!-- =================== Legend =================== -->
+  <g transform="translate(40, 940)">
+    <rect x="0" y="0" width="1420" height="68" rx="6" fill="#f9fafb" stroke="#e5e7eb"/>
+    <text x="16" y="22" font-weight="700" fill="#111827">Legend</text>
+
+    <rect x="100" y="10" width="16" height="16" class="ref-fill"/>
+    <text x="124" y="22" class="legend-l">ref — taxonomy / dimensions</text>
+
+    <rect x="330" y="10" width="16" height="16" class="raw-fill"/>
+    <text x="354" y="22" class="legend-l">raw — ingested Google data</text>
+
+    <rect x="580" y="10" width="16" height="16" class="extract-fill"/>
+    <text x="604" y="22" class="legend-l">extract — LLM extraction output</text>
+
+    <rect x="840" y="10" width="16" height="16" class="score-fill"/>
+    <text x="864" y="22" class="legend-l">score — computed scores and rankings</text>
+
+    <rect x="1150" y="10" width="16" height="16" class="public-fill"/>
+    <text x="1174" y="22" class="legend-l">public — app-level (survey, auth)</text>
+
+    <line x1="100" y1="46" x2="150" y2="46" class="edge" marker-end="url(#arrow)"/>
+    <text x="160" y="50" class="legend-l">solid arrow: FK from fact to dimension</text>
+
+    <line x1="440" y1="46" x2="490" y2="46" class="edge-hier" marker-end="url(#arrow)"/>
+    <text x="500" y="50" class="legend-l">dashed arrow: snowflake dimension hierarchy</text>
+
+    <text x="900" y="50" class="legend-l">PK = primary key · FK = foreign key · PK/FK = part of composite key and FK</text>
+  </g>
+</svg>

@@ -11,7 +11,13 @@
   --c-accent-wash: #f3ece3;
   --c-accent-rgb: 226 169 132;
   --c-accent-strong-rgb: 217 154 114;
-  --c-on-accent: #2b1a10;
+  --c-on-accent: #ffffff;
+  /* Button fills, darker than --c-accent-strong so a white label clears
+     4.5:1 along the whole gradient: #a3682f is 4.59:1, #87532a is 6.36:1.
+     The lighter accent stays for rules, edges and tints, which carry no
+     white text. */
+  --c-accent-btn: #a3682f;
+  --c-accent-btn-deep: #87532a;
   --c-ink: #1c1814;
   --c-ink-2: #3b352e;
   --c-ink-3: #504a42;
@@ -118,8 +124,11 @@
   --warn: #b45309;
   --bad:  var(--c-danger);
 
-  --font-display: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-text:    "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Bricolage carries the display sizes; Instrument Sans holds the dense UI,
+     where it has to stay legible at 12-14px. Inter everywhere was part of
+     what made the product read as generic. */
+  --font-display: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-text:    "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
   --track-display: -0.02em;
   --track-eyebrow:  0.12em;
 
@@ -475,7 +484,7 @@ body { background: var(--c-white); color: var(--body); }
 .app .page-body--explore .sidebar-foot .btn-primary:hover:not(:disabled) { background: var(--c-ink-hover) !important; }
 .app .page-body--explore .sidebar-foot .btn-primary:disabled {
   background: var(--c-hover-warm) !important;
-  color: var(--c-faint) !important;
+  color: var(--c-muted) !important;
   border-color: var(--c-line) !important;
 }
 .app .page-body--explore .rank-note { color: var(--c-muted) !important; }
@@ -641,7 +650,7 @@ body { background: var(--c-white); color: var(--body); }
   background-image: none;
 }
 .app .btn-primary:hover, .app .btn-hero:hover, .app .auth-submit:hover { color: var(--c-white); }
-.app .btn-primary:disabled { color: var(--c-faint); background: var(--c-hover-warm); border-color: var(--c-line); }
+.app .btn-primary:disabled { color: var(--c-muted); background: var(--c-hover-warm); border-color: var(--c-line); }
 .app .btn-hero-disc { background: rgba(255, 255, 255, 0.16); color: var(--c-white); }
 .app .auth-submit { background: var(--c-ink); border: 1px solid var(--c-ink); border-radius: 2px; box-shadow: none; }
 .app .auth-submit:hover { background: var(--c-ink-hover); }
@@ -708,7 +717,7 @@ body { background: var(--c-white); color: var(--body); }
   border-radius: 4px !important;
   box-shadow: none !important;
 }
-.app .salon-detail .sum-card-no { color: var(--c-faint) !important; }
+.app .salon-detail .sum-card-no { color: var(--c-muted) !important; }
 .app .salon-detail .sum-card-title strong,
 .app .salon-detail strong { color: var(--c-ink) !important; }
 .app .salon-detail .sum-card-sub,
@@ -759,7 +768,7 @@ body { background: var(--c-white); color: var(--body); }
 .app .salon-detail .info-sub { color: var(--c-ink-2) !important; }
 
 /* Scores by service */
-.app .salon-detail .csl-no { color: var(--c-faint) !important; }
+.app .salon-detail .csl-no { color: var(--c-muted) !important; }
 .app .salon-detail .csl-name,
 .app .salon-detail .csl-score,
 .app .salon-detail .detail-service-name,
@@ -901,7 +910,7 @@ body { background: var(--c-white); color: var(--body); }
   box-shadow: none !important;
 }
 .app .about-cat-no,
-.app .about-check-no { color: var(--c-faint) !important; font-style: normal !important; }
+.app .about-check-no { color: var(--c-muted) !important; font-style: normal !important; }
 .app .about-cats li::before, .app .about-cats li::after { display: none !important; }
 .app .about-cat-no::after { background: var(--c-line-strong) !important; }
 .app .about-cat-no, .app .about-check-no { color: var(--c-muted) !important; }
@@ -1117,7 +1126,7 @@ body { background: var(--c-white); color: var(--body); }
   background-image: none !important;
 }
 .contactpage .cp-send:hover { background: var(--c-ink-hover) !important; border-color: var(--c-ink-hover) !important; color: var(--c-white) !important; }
-.contactpage .cp-send:disabled { background: var(--c-hover-warm) !important; border-color: var(--c-hover-warm) !important; color: var(--c-faint) !important; }
+.contactpage .cp-send:disabled { background: var(--c-hover-warm) !important; border-color: var(--c-hover-warm) !important; color: var(--c-muted) !important; }
 .contactpage .cp-send .btn-hero-disc { background: rgba(255, 255, 255, 0.18) !important; color: var(--c-white) !important; }
 
 /* Details card */
@@ -1292,9 +1301,9 @@ body { background: var(--c-white); color: var(--body); }
    reference's lighter tan would sit near 3:1 under small type). Ink stays
    for text and for the thin rules; only fills change. */
 :root {
-  --bronze:       linear-gradient(135deg, var(--c-accent) 0%, var(--c-accent-strong) 100%);
-  --bronze-hover: linear-gradient(135deg, var(--c-accent-strong) 0%, var(--c-accent-deep) 100%);
-  --bronze-solid: var(--c-accent-strong);
+  --bronze:       linear-gradient(135deg, var(--c-accent-btn) 0%, var(--c-accent-btn-deep) 100%);
+  --bronze-hover: linear-gradient(135deg, var(--c-accent-btn-deep) 0%, #6f4422 100%);
+  --bronze-solid: var(--c-accent-btn);
 }
 .app .btn-primary:not(:disabled),
 .app .btn-hero,
@@ -1326,8 +1335,8 @@ body { background: var(--c-white); color: var(--body); }
 .contactpage .cp-send:not(:disabled):hover,
 .app .contactpage .cp-send:not(:disabled):hover {
   background: var(--bronze-hover) !important;
-  background-color: var(--c-accent-deep) !important;
-  border-color: var(--c-accent-deep) !important;
+  background-color: var(--c-accent-btn-deep) !important;
+  border-color: var(--c-accent-btn-deep) !important;
   color: var(--c-on-accent) !important;
 }
 /* Outline variant: bronze rule and label on white */
@@ -1458,9 +1467,9 @@ body { background: var(--c-white); color: var(--body); }
    bar. Every button reads these three variables, so a different palette is
    a three-line change. White labels stay above 4.5:1 along the gradient. */
 :root {
-  --bronze:       linear-gradient(160deg, var(--c-accent) 0%, var(--c-accent-strong) 55%, var(--c-accent-strong) 100%);
-  --bronze-hover: linear-gradient(160deg, var(--c-accent-strong) 0%, var(--c-accent-deep) 55%, var(--c-accent-deep) 100%);
-  --bronze-solid: var(--c-accent-strong);
+  --bronze:       linear-gradient(160deg, var(--c-accent-btn) 0%, var(--c-accent-btn-deep) 55%, var(--c-accent-btn-deep) 100%);
+  --bronze-hover: linear-gradient(160deg, var(--c-accent-btn-deep) 0%, #6f4422 55%, #6f4422 100%);
+  --bronze-solid: var(--c-accent-btn);
   --bronze-edge:  var(--c-accent-edge);
 }
 .app .btn-primary:not(:disabled),
@@ -1711,7 +1720,7 @@ body { background: var(--c-white); color: var(--body); }
 .sc2-view {
   padding: 0.6rem 1.25rem; font: 500 0.875rem/1 var(--font-text); color: var(--c-on-accent); cursor: pointer;
   border: 1px solid rgba(217, 179, 130, 0.55); border-radius: 999px;
-  background: var(--bronze); background-color: var(--c-accent-strong);
+  background: var(--bronze); background-color: var(--c-accent-btn);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 10px 22px -12px rgb(var(--c-accent-strong-rgb) / 0.7);
 }
 .sc2-view:hover { background: var(--bronze-hover); }
@@ -1888,7 +1897,7 @@ body { background: var(--c-white); color: var(--body); }
   .lp-svc { flex-direction: row; align-items: stretch; }
   .lp-svc-photo { flex: 0 0 36%; aspect-ratio: auto; min-height: 9rem; }
   .lp-svc-photo img { position: absolute; inset: 0; }
-  .lp-svc-no { top: 0.55rem; left: 0.55rem; padding: 0.15rem 0.5rem; font-size: 0.6875rem; }
+  .lp-svc-no { top: 0.55rem; left: 0.55rem; padding: 0.15rem 0.5rem; font-size: 0.75rem; }
   .lp-svc-body { padding: 0.95rem 1rem 0.85rem; }
   .lp-svc-body h3 { font-size: 1rem; margin-bottom: 0.3rem; }
   .lp-svc-body p { font-size: 0.8125rem; line-height: 1.5; }
@@ -2167,7 +2176,7 @@ body { background: var(--c-white); color: var(--body); }
 .app .auth-sub { color: var(--c-muted) !important; font-size: 0.875rem !important; }
 .app .auth-google { border-color: var(--c-line-strong); box-shadow: 0 1px 2px rgb(var(--c-ink-rgb) / 0.04); }
 .app .auth-google:hover { transform: translateY(-1px); }
-.app .auth-or { color: #8a8379 !important; letter-spacing: 0.03em; }
+.app .auth-or { color: var(--c-muted) !important; letter-spacing: 0.03em; }
 .app .auth-field-label { font-weight: 600 !important; color: var(--c-ink-2) !important; letter-spacing: 0.01em; transition: color 0.15s var(--ease); }
 .app .auth-field-wrap:focus-within .auth-field-label { color: var(--c-ink-2) !important; }
 .app .auth-field-control input:focus,
@@ -2223,7 +2232,7 @@ body { background: var(--c-white); color: var(--body); }
 }
 .app .auth-float {
   position: absolute; left: 0; top: 50%; transform: translateY(-50%); margin: 0; pointer-events: none;
-  font-size: 0.9375rem; font-weight: 400; color: #8a8379; letter-spacing: 0;
+  font-size: 0.9375rem; font-weight: 400; color: var(--c-muted); letter-spacing: 0;
   transition: top 0.16s var(--ease), transform 0.16s var(--ease), font-size 0.16s var(--ease), color 0.16s var(--ease);
 }
 .app .auth-field-control input:focus ~ .auth-float,
@@ -2299,7 +2308,7 @@ body { background: var(--c-white); color: var(--body); }
 .app .auth-row { display: flex !important; align-items: center; justify-content: space-between; margin: 0.15rem 0 0 !important; }
 .app .auth-remember { display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.8125rem; color: var(--c-ink-2); }
 .app .auth-remember input { width: 1rem; height: 1rem; margin: 0; accent-color: var(--c-accent-strong); cursor: pointer; }
-.app .auth-forgot { font-size: 0.8125rem; color: #8a8379 !important; text-decoration: none !important; }
+.app .auth-forgot { font-size: 0.8125rem; color: var(--c-muted) !important; text-decoration: none !important; }
 .app .auth-forgot:hover { color: var(--c-ink) !important; text-decoration: underline !important; }
 
 .app .auth-terms { text-align: center; }
@@ -2688,10 +2697,10 @@ body { background: var(--c-white); color: var(--body); }
 .chatw-bubble {
   display: grid; place-items: center; width: 3.4rem; height: 3.4rem; border-radius: 50%; cursor: pointer;
   color: #fff; font-size: 1.6rem; line-height: 1; border: 1px solid rgba(217,179,130,.55);
-  background: linear-gradient(160deg, #cd8549, #a06839); background-color: #a06839;
+  background: linear-gradient(160deg, #a3682f, #87532a); background-color: #87532a;
   box-shadow: 0 14px 30px -12px rgba(119,75,49,.75);
 }
-.chatw-bubble:focus-visible { outline: 2px solid #cd8549; outline-offset: 3px; }
+.chatw-bubble:focus-visible { outline: 2px solid #a06839; outline-offset: 3px; }
 .chatw-panel {
   display: flex; flex-direction: column; width: min(22rem, calc(100vw - 2.5rem)); height: min(32rem, calc(100vh - 7rem));
   background: #fff; border: 1px solid #e7e2da; border-radius: 16px; overflow: hidden;
@@ -2703,7 +2712,7 @@ body { background: var(--c-white); color: var(--body); }
   position: absolute; top: 0.7rem; right: 0.75rem; z-index: 2; width: 2rem; height: 2rem; border-radius: 50%;
   background: #fff; border: 1px solid #e7e2da; color: #3b352e; font-size: 1.2rem; line-height: 1; cursor: pointer;
 }
-.chatw-x:focus-visible { outline: 2px solid #cd8549; outline-offset: 2px; }
+.chatw-x:focus-visible { outline: 2px solid #a06839; outline-offset: 2px; }
 
 /* ══ Contact: chat assistant ══════════════════════════════════ */
 .app .contactpage .cp-card--chat { padding: 0 !important; overflow: hidden; }
@@ -2714,7 +2723,7 @@ body { background: var(--c-white); color: var(--body); }
 }
 .chat-avatar {
   display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: 50%;
-  font-weight: 600; color: #ffffff; background: linear-gradient(160deg, #cd8549, #a06839);
+  font-weight: 600; color: #ffffff; background: linear-gradient(160deg, #a3682f, #87532a);
 }
 .chat-title { margin: 0; font-size: 0.9375rem; font-weight: 600; color: #1c1814; }
 .chat-status { display: flex; align-items: center; gap: 0.4rem; margin: 0.1rem 0 0; font-size: 0.75rem; color: #6f685f; }
@@ -2730,7 +2739,7 @@ body { background: var(--c-white); color: var(--body); }
 .chat-msg--bot p { color: #1c1814; background: #f6efe7; border-radius: 4px 14px 14px 14px; }
 .chat-msg--user { align-self: flex-end; }
 .chat-msg--user p {
-  color: #ffffff; background: linear-gradient(160deg, #cd8549, #a06839); background-color: #a06839;
+  color: #ffffff; background: linear-gradient(160deg, #a3682f, #87532a); background-color: #87532a;
   border-radius: 14px 4px 14px 14px;
 }
 .chat-summary {
@@ -2753,19 +2762,19 @@ body { background: var(--c-white); color: var(--body); }
   color: #5e3a27; background: #ffffff; border: 1px solid #d9b382; border-radius: 999px;
 }
 .chat-chip:hover { background: #f6efe7; }
-.chat-chip.is-primary { color: #ffffff; background: linear-gradient(160deg, #cd8549, #a06839); background-color: #a06839; border-color: #a06839; }
-.chat-chip:focus-visible, .chat-send:focus-visible { outline: 2px solid #cd8549; outline-offset: 2px; }
+.chat-chip.is-primary { color: #ffffff; background: linear-gradient(160deg, #a3682f, #87532a); background-color: #87532a; border-color: #87532a; }
+.chat-chip:focus-visible, .chat-send:focus-visible { outline: 2px solid #a06839; outline-offset: 2px; }
 
 .chat-input { display: flex; gap: 0.5rem; padding: 0.8rem 1.25rem 1rem; background: #ffffff; border-top: 1px solid #eeeae3; }
 .chat-input input {
   flex: 1; min-height: 2.75rem; padding: 0 1rem; font-size: 0.9375rem; color: #1c1814;
   background: #ffffff; border: 1px solid #d8d2c8; border-radius: 999px;
 }
-.chat-input input:focus { outline: none; border-color: #cd8549; box-shadow: 0 0 0 3px rgba(156, 105, 66, 0.12); }
+.chat-input input:focus { outline: none; border-color: #a06839; box-shadow: 0 0 0 3px rgba(156, 105, 66, 0.12); }
 .chat-input input:disabled { background: #f6efe7; color: #7a6553; }
 .chat-send {
   display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 50%; cursor: pointer;
-  color: #ffffff; border: 0; background: linear-gradient(160deg, #cd8549, #a06839); background-color: #a06839;
+  color: #ffffff; border: 0; background: linear-gradient(160deg, #a3682f, #87532a); background-color: #87532a;
 }
 .chat-send:disabled { background: #efe3d5; color: #82543a; cursor: default; }
 @media (prefers-reduced-motion: reduce) { .chat-typing span { animation: none; opacity: 0.7; } .chat-log { scroll-behavior: auto; } }
@@ -2785,21 +2794,23 @@ body { background: var(--c-white); color: var(--body); }
 .app .contactpage .chat-input input:disabled,
 .app .contactpage .cp-card .chat-input input:disabled { background: #f6efe7 !important; color: #7a6553 !important; }
 
-/* The text box takes the bot bubble's colour (#f6efe7), in every state and on
-   every page that uses the chat (contact, survey, widget). */
+/* The text box takes the menu's hover colour (--c-hover-warm), in every state
+   and on every page that uses the chat (contact, survey, widget), so the box
+   reads as part of the same set as the menu rather than a separate white
+   field. The bot bubble keeps its own #f6efe7. */
 .app .chat-input input,
 .app .chat-input input:disabled,
 .app .contactpage .chat-input input,
 .app .contactpage .cp-card .chat-input input,
 .app .contactpage .chat-input input:disabled,
 .app .contactpage .cp-card .chat-input input:disabled {
-  background: #f6efe7 !important;
-  background-color: #f6efe7 !important;
-  border-color: #f6efe7 !important;
+  background: var(--c-hover-warm) !important;
+  background-color: var(--c-hover-warm) !important;
+  border-color: var(--c-hover-warm) !important;
   color: #1c1814 !important;
 }
 .app .chat-input input::placeholder { color: #7a6553; opacity: 1; }
-.app .chat-input input:focus { border-color: #cd8549 !important; }
+.app .chat-input input:focus { border-color: #a06839 !important; }
 
 /* ══ Usability survey (#/survey) ══════════════════════════════
    Reuses the .chat styles from the Contact assistant; only the page frame,
@@ -2814,8 +2825,41 @@ body { background: var(--c-white); color: var(--body); }
 .survey-progress::before { content: ""; position: absolute; left: 1.25rem; right: 4.5rem; top: 50%; height: 4px; margin-top: -2px; border-radius: 999px; background: #ebe6df; }
 .survey-progress span { position: absolute; left: 1.25rem; top: 50%; height: 4px; margin-top: -2px; border-radius: 999px; background: #cd8549; transition: width .25s var(--ease); }
 .survey-progress em { margin-left: auto; font-style: normal; font-size: 0.72rem; font-weight: 600; color: #5e3a27; }
-.survey-likert .chat-chip { flex: 1 1 8.5rem; text-align: center; }
-.survey-back { color: #6f685f !important; border-color: #e7e2da !important; }
+/* Rating row: five equal columns so 1-5 always sit on one line at the same
+   size, with the two-line labels centred and the same height as one another.
+   Back drops to its own full-width row instead of squeezing in beside them. */
+.survey-likert { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.4rem; }
+.survey-likert .chat-chip {
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  min-height: 3rem; line-height: 1.25; padding: 0.4rem 0.5rem;
+}
+.survey-likert .survey-back { grid-column: 1 / -1; min-height: 2.4rem; }
+@media (max-width: 40rem) {
+  .survey-likert { grid-template-columns: 1fr; }
+  .survey-likert .chat-chip { min-height: 2.6rem; }
+}
+/* Survey buttons: white text on a solid fill. The answer chips are a mid
+   brown, the Continue / Submit chip (is-primary) stays the darker gradient so
+   the one action that moves you on still stands out, ticked tasks stay green,
+   and Back is a muted grey so it reads as secondary. */
+.survey-chat .chat-chip:not(.is-primary):not(.is-on):not(.survey-back) {
+  color: #ffffff; background: #a3682f; border-color: #a3682f; font-weight: 600;
+}
+.survey-chat .chat-chip:not(.is-primary):not(.is-on):not(.survey-back):hover { background: #87532a; border-color: #87532a; }
+.survey-back { color: #ffffff !important; background: #8b857c !important; border-color: #8b857c !important; }
+.survey-back:hover { background: #6f685f !important; border-color: #6f685f !important; }
+
+/* Task checklist chips: unlike the one-shot answer chips beside them these
+   toggle, so the ticked state has to be visible at a glance and announced to
+   a screen reader (the button carries aria-pressed). One per line, because a
+   task reads as a sentence rather than a label. */
+.survey-tasks .chat-chip { flex: 1 1 100%; text-align: left; }
+.survey-tasks .chat-chip.is-primary { flex-basis: auto; text-align: center; margin-top: 0.15rem; }
+.chat-chip.is-on {
+  color: #ffffff; background: #6f8f6a; border-color: #6f8f6a; font-weight: 600;
+}
+.chat-chip.is-on:hover { background: #628059; }
+.chat-chip.is-on::before { content: "\2713\00a0"; }
 @media (prefers-reduced-motion: reduce) { .survey-progress span { transition: none; } }
 
 /* The usability survey has exactly one entry point: the "Rate your
@@ -2836,7 +2880,7 @@ body { background: var(--c-white); color: var(--body); }
   transition: background .15s var(--ease), border-color .15s var(--ease);
 }
 .contactpage .cp-survey-btn:hover { background: #efe3d5; border-color: #d9b382; }
-.contactpage .cp-survey-btn:focus-visible { outline: 2px solid #cd8549; outline-offset: 2px; }
+.contactpage .cp-survey-btn:focus-visible { outline: 2px solid #a06839; outline-offset: 2px; }
 
 /* ══ Profile: ring charts in "Staff mentioned in feedbacks" ═══════════════ */
 .salon-detail .staff-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: 0.9rem 1.25rem; padding: 0; list-style: none; }
@@ -2976,3 +3020,1641 @@ body { background: var(--c-white); color: var(--body); }
 .salon-detail .overall-weight { margin-left: 0.5rem; font-size: 0.6875rem; font-style: normal; color: #9b948a; }
 .salon-detail .overall-cat--none span, .salon-detail .overall-cat--none strong { color: #9b948a; }
 .salon-detail .overall-mix > .overall-count { margin-top: 0.6rem; }
+
+/* ══ Phase 1 · readability floor ════════════════════════════════
+   Nothing below 12px; standalone buttons at 14px. Each selector here
+   was measured under 12px in the running app (9.6–11.5px), mostly from
+   index.css's em sizes compounding inside each other. Targeted rather
+   than blanket, so no element that is already larger gets shrunk. */
+
+/* Buttons → 14px */
+.app .page-body--explore .sidebar-foot .btn-primary,   /* Rank Salons     11.5 */
+.app .empty-state .btn-primary,                        /* Find a salon    11.5 */
+.app .about-cta .btn-hero,                             /* Find Your Salon 11.5 */
+.app .nav-drawer .nav-drawer-cta,                      /* Sign In (phone) 11.5 */
+.app .salon-detail .back-link,                         /* ← Back          11.5 */
+.app .priority-panel-head .btn-text,                   /* Reset           10.9 */
+.app .qf-clear { font-size: 0.875rem !important; }     /* Clear all        9.9 */
+
+/* Labels, eyebrows, badges and notes → 12px */
+.app .eyebrow, .app .lp-eyebrow, .app .editorial-eyebrow,
+.app .about-kicker, .app .cp-intro-kicker, .app .nav-drawer-label,
+.app .qf-field-label, .app .svcbar-label, .app .meter-word,
+.app .sc2-bar-label, .app .lp-offer-flag, .app .footer-legal,
+.app .auth-terms, .app .auth-terms button, .app .survey-progress em,
+.app .contactpage .cp-row-body strong,
+.app .results-legend, .app .results-legend *,
+.app .svc-path, .app .svc-path *,
+.app .salon-detail .summary-sent-label, .app .salon-detail .info-label,
+.app .salon-detail .chip, .app .salon-detail .sum-card-sub,
+.app .salon-detail .sum-finding-stat, .app .salon-detail .sum-check-blurb,
+.app .salon-detail .sum-check-right, .app .salon-detail .sum-check-right *,
+.app .salon-detail .sum-check-none, .app .salon-detail .sum-check-icon,
+.app .salon-detail .sum-verdict, .app .salon-detail .csl-band,
+.app .auth-field-control input:focus ~ .auth-float,
+.app .auth-field-control input:not(:placeholder-shown) ~ .auth-float
+  { font-size: 0.75rem !important; }
+
+/* ══ Explore · decluttered ══════════════════════════════════════
+   One column. The priorities rail became a toolbar button that opens the
+   sliders on request; each result is a single row instead of a boxed card.
+   Every fact the card carried is still on the row or one click under it. */
+.app .page-body--explore .discover--single { display: block !important; grid-template-columns: none !important; }
+
+.app .xp-toolbar { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin: 0.25rem 0 1rem; }
+.app .xp-prio-btn {
+  height: 2.5rem; padding: 0 1rem; display: inline-flex; align-items: center; gap: 0.6rem; cursor: pointer;
+  border: 1px solid var(--c-line-strong); border-radius: 999px; background: var(--c-white);
+  font: 500 0.875rem/1 var(--font-text); color: var(--c-ink);
+}
+.app .xp-prio-btn:hover { background: var(--c-hover-warm); }
+.app .xp-prio-count { font-size: 0.75rem; font-weight: 600; color: var(--c-ink-2); background: var(--c-hover-warm); border-radius: 999px; padding: 0.15rem 0.55rem; }
+.app .page-body--explore .xp-rank { width: auto !important; font-size: 0.875rem !important; padding: 0.7rem 1.5rem !important; }
+.app .xp-toolbar .rank-note { margin: 0; font-size: 0.8125rem; color: var(--c-muted); }
+.app .xp-prio-panel {
+  position: relative; margin: 0 0 1.25rem; padding: 1.25rem 1.5rem;
+  border: 1px solid var(--c-line); border-radius: 12px; background: var(--c-white);
+}
+.app .xp-prio-reset { position: absolute; top: 1rem; right: 1.25rem; }
+.app .xp-prio-panel .meter-list { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.1rem 2.25rem; margin: 0.75rem 0 0; padding: 0; }
+
+.app .page-body--explore .results-head { display: flex !important; flex-wrap: wrap; align-items: baseline; column-gap: 1.25rem; row-gap: 0.25rem; margin: 0 0 0.75rem; }
+.app .results-head .svc-path, .app .results-head .summary { margin: 0; }
+.app .results-head .results-legend { margin: 0 0 0 auto; font-size: 0.75rem; color: var(--c-muted); }
+
+/* The list */
+.app .salon-grid { display: flex !important; flex-direction: column; gap: 0 !important; border-top: 1px solid var(--c-line); }
+.app .srow {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr) minmax(14rem, 17rem) 7.5rem auto;
+  grid-template-areas: "rank id cats score actions" ". why why why why" ". notes notes notes notes";
+  column-gap: 1.5rem; align-items: center;
+  padding: 1.1rem 0.75rem; border-bottom: 1px solid var(--c-line);
+  background: var(--c-white); cursor: pointer;
+}
+.app .srow:hover { background: var(--c-hover-warm); }
+.app .srow-rank { grid-area: rank; text-align: center; font-size: 1rem; color: var(--c-muted); font-variant-numeric: tabular-nums; }
+.app .srow-id { grid-area: id; min-width: 0; display: flex; flex-direction: column; gap: 0.2rem; }
+.app .srow-namerow { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.app .srow-name {
+  padding: 0; border: 0; background: none; cursor: pointer; text-align: left;
+  font: 600 1.0625rem/1.3 var(--font-text); color: var(--c-ink);
+}
+.app .srow-name:hover { text-decoration: underline; text-underline-offset: 3px; }
+.app .srow-prov { font-size: 0.75rem; font-weight: 500; color: var(--c-muted); border: 1px solid var(--c-line-strong); border-radius: 4px; padding: 0.05rem 0.45rem; cursor: help; }
+.app .srow-meta { margin: 0; font-size: 0.8125rem; color: var(--c-muted); white-space: pre-wrap; }
+.app .srow-sub { margin: 0; display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; font-size: 0.75rem; color: var(--c-muted); }
+.app .srow-why-link { padding: 0; border: 0; background: none; cursor: pointer; font: 600 0.75rem var(--font-text); color: var(--c-ink-2); }
+.app .srow-why-link:hover { text-decoration: underline; }
+
+.app .srow-cats { grid-area: cats; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.3rem 1.1rem; }
+.app .srow-cats li { position: relative; display: flex; justify-content: space-between; align-items: baseline; gap: 0.4rem; border-radius: 4px; cursor: help; }
+.app .srow-cat-label { font-size: 0.75rem; color: var(--c-muted); }
+.app .srow-cat-num { font-size: 0.875rem; font-weight: 600; color: var(--tone-ink); font-variant-numeric: tabular-nums; }
+.app .srow-cats li[data-tip]::after {
+  content: attr(data-tip); position: absolute; left: 0; bottom: calc(100% + 8px); z-index: 40; width: max-content; max-width: min(280px, 80vw);
+  padding: 0.55rem 0.7rem; border-radius: 8px; background: var(--c-ink); color: var(--c-white); font-size: 0.75rem; line-height: 1.45; font-weight: 400;
+  opacity: 0; pointer-events: none; transition: opacity 0.14s ease;
+}
+.app .srow-cats li[data-tip]:hover::after, .app .srow-cats li[data-tip]:focus-visible::after { opacity: 1; }
+
+.app .srow-score { grid-area: score; display: grid; grid-template-columns: auto 1fr; column-gap: 0.55rem; align-items: baseline; }
+.app .srow-score-num { grid-row: span 2; font-size: 1.75rem; line-height: 1; font-weight: 600; color: var(--tone-ink); font-variant-numeric: tabular-nums; }
+.app .srow-score-band { font-size: 0.8125rem; font-weight: 600; color: var(--tone-ink); }
+.app .srow-score-range { font-size: 0.75rem; color: var(--c-muted); font-variant-numeric: tabular-nums; }
+
+.app .srow-actions { grid-area: actions; display: flex; align-items: center; gap: 0.25rem; }
+.app .srow-view { padding: 0.65rem 0.6rem; border: 0; background: none; cursor: pointer; font: 600 0.875rem var(--font-text); color: var(--c-ink); }
+.app .srow-view:hover { text-decoration: underline; text-underline-offset: 3px; }
+.app .srow-fav { width: 2.75rem; height: 2.75rem; display: grid; place-items: center; border: 0; border-radius: 999px; background: none; cursor: pointer; color: var(--c-ink-2); }
+.app .srow-fav:hover { background: var(--c-white); }
+
+.app .srow-why { grid-area: why; margin: 0.6rem 0 0; max-width: 72ch; font-size: 0.8125rem; line-height: 1.55; color: var(--c-ink-2); cursor: auto; }
+.app .srow-notes { grid-area: notes; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.25rem; }
+.app .srow-note { margin: 0; display: flex; align-items: center; gap: 0.4rem; font-size: 0.8125rem; color: #92400e; }
+.app .srow-note.is-grave { color: var(--c-danger); }
+
+.app .srow-name:focus-visible, .app .srow-view:focus-visible, .app .srow-fav:focus-visible,
+.app .srow-why-link:focus-visible, .app .srow-cats li:focus-visible, .app .xp-prio-btn:focus-visible { outline: 2px solid var(--c-ink); outline-offset: 2px; }
+
+@media (max-width: 980px) {
+  .app .srow { grid-template-columns: 2rem minmax(0, 1fr) auto; grid-template-areas: "rank id score" ". cats cats" ". actions actions" ". why why" ". notes notes"; row-gap: 0.7rem; }
+  .app .srow-actions { justify-content: flex-start; margin-left: -0.6rem; }
+  .app .xp-prio-panel .meter-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .app .xp-prio-panel .meter-list { grid-template-columns: minmax(0, 1fr); }
+  .app .srow { padding: 1rem 0.25rem; column-gap: 0.75rem; }
+  .app .results-head .results-legend { margin-left: 0; }
+}
+
+/* Explore · fixes after the first look */
+.app .salon-grid { border-top: 0; }                                   /* one hairline under the header, not two */
+.app .page-body--explore .xp-rank { text-transform: none !important; letter-spacing: 0.01em !important; }
+.app .xp-prio-reset { font-size: 0.875rem !important; }
+@media (max-width: 560px) {
+  /* Four full-width filter pills pushed the first salon below the fold.
+     Two per row, label stacked over value, so nothing is lost. */
+  .app .page-body--explore .qf-row { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem !important; }
+  .app .page-body--explore .qf-field,
+  .app .page-body--explore .qf-field:hover,
+  .app .page-body--explore .qf-field:focus-within,
+  .app .page-body--explore .qf-field:not(:focus-within) {
+    min-width: 0 !important; width: 100% !important; height: auto !important; min-height: 3.25rem;
+    padding: 0.5rem 0.85rem !important; border-radius: 12px !important;
+    display: grid !important; grid-template-columns: minmax(0, 1fr) auto; align-items: center; justify-content: stretch !important; text-align: left;
+  }
+  .app .page-body--explore .qf-field .qf-field-label { grid-column: 1; display: block; }
+  .app .page-body--explore .qf-field > :not(.qf-field-label):not(svg) { grid-column: 1; }
+}
+
+@media (max-width: 980px) {
+  /* Closed "why" and empty notices must not leave gaps: spacing lives on the
+     parts that are there, not between grid rows that may be empty. */
+  .app .srow { row-gap: 0 !important; }
+  .app .srow-cats { margin-top: 0.75rem; }
+  .app .srow-actions { margin-top: 0.4rem; }
+}
+@media (max-width: 560px) {
+  .app .page-body--explore .qf-field .qf-field-icon { display: none !important; }   /* decorative; the label names the filter */
+}
+
+/* Explore: nudge everything above the list 3px right; the rows stay put. */
+.app .page-body--explore .page-head--bar,
+.app .page-body--explore .discover--single > section > .svcbar,
+.app .page-body--explore .xp-toolbar,
+.app .page-body--explore .results-head { padding-left: 3px !important; }
+.app .page-body--explore .xp-prio-panel,
+.app .page-body--explore .info-banner,
+.app .page-body--explore .fallback-notice { margin-left: 3px !important; }
+
+/* Explore · Your priorities, highlighted. The research's core idea (a ranking
+   weighted by what the visitor cares about) gets its own tinted section with a
+   heading and a live summary, instead of a small button. */
+.app .page-body--explore .xp-prio {
+  margin: 0.25rem 0 1.25rem 3px; padding: 1rem 1.25rem;
+  background: var(--c-accent-wash); border: 1px solid var(--c-accent-edge); border-radius: 12px;
+}
+.app .xp-prio-bar { display: flex; align-items: center; gap: 0.75rem 1rem; flex-wrap: wrap; }
+.app .xp-prio-icon { flex: none; width: 2.5rem; height: 2.5rem; border-radius: 999px; display: grid; place-items: center; background: var(--c-white); color: var(--c-ink); }
+.app .xp-prio-text { flex: 1 1 18rem; min-width: 0; }
+.app .page-body--explore .xp-prio-title { margin: 0; font: 600 1.0625rem/1.3 var(--font-text) !important; letter-spacing: 0 !important; color: var(--c-ink) !important; }
+.app .xp-prio-summary { margin: 0.2rem 0 0; font-size: 0.8125rem; line-height: 1.45; color: var(--c-ink-2); white-space: pre-wrap; }
+.app .xp-prio .rank-note { margin: 0.6rem 0 0 3.5rem; font-size: 0.8125rem; color: var(--c-ink-2); }
+.app .page-body--explore .xp-prio .xp-prio-panel {
+  margin: 1rem 0 0 !important; padding: 1rem 0 0; background: transparent;
+  border: 0; border-top: 1px solid var(--c-accent-edge); border-radius: 0;
+}
+.app .xp-prio .xp-prio-reset { top: 0.85rem; right: 0; }
+@media (max-width: 560px) {
+  .app .page-body--explore .xp-prio { padding: 0.9rem 1rem; }
+  .app .xp-prio-icon { display: none; }
+  .app .xp-prio-btn, .app .page-body--explore .xp-rank { flex: 1 1 0; justify-content: center; }
+  .app .xp-prio .rank-note { margin-left: 0; }
+}
+
+/* index.css paints Explore text buttons pale cream (a dark-theme leftover);
+   the old sidebar rule hid that for Reset, the new panel needs its own. */
+.app .page-body--explore .xp-prio-reset {
+  color: var(--c-ink-2) !important; background: none !important; border: 0 !important;
+  text-transform: none !important; letter-spacing: 0 !important; font-weight: 600 !important;
+  text-decoration: underline; text-underline-offset: 3px; padding: 0.35rem 0 !important;
+}
+.app .page-body--explore .xp-prio-reset:hover { color: var(--c-ink) !important; }
+
+/* ══ Salon profile · decluttered (Profile tab) ═══════════════════
+   Same facts, fewer boxes: the rating moves into the header, the three count
+   boxes become one line, the side cards lose their paragraphs, and the seven
+   category cards become summary rows that open on click. */
+.app .salon-detail .back-link { text-transform: none !important; letter-spacing: 0 !important; font-weight: 500 !important; }
+.app .salon-detail .detail-rating-line { margin: 0.35rem 0 0; font-size: 0.875rem; color: var(--c-ink-3); }
+.app .salon-detail .detail-rating-line b { color: var(--c-ink); font-weight: 600; }
+.app .salon-detail .detail-rating-line span { color: var(--c-muted); }
+
+/* the feedback totals: one line and a bar */
+.app .salon-detail .ssl { margin: 0 0 1.75rem; display: flex; flex-direction: column; gap: 0.5rem; max-width: 40rem; }
+.app .salon-detail .ssl-text { margin: 0; font-size: 0.9375rem; color: var(--c-ink-2); }
+.app .salon-detail .ssl-text b { font-size: 1.125rem; color: var(--c-ink); font-variant-numeric: tabular-nums; }
+.app .salon-detail .ssl-item { font-variant-numeric: tabular-nums; }
+.app .salon-detail .ssl-bar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: var(--c-track); }
+.app .salon-detail .ssl-seg { display: block; height: 100%; }
+.app .salon-detail .ssl-seg--positive { background: var(--c-success); }
+.app .salon-detail .ssl-seg--mixed, .app .salon-detail .ssl-seg--neutral, .app .salon-detail .ssl-seg--mention { background: var(--c-line-strong); }
+.app .salon-detail .ssl-seg--negative { background: var(--c-danger); }
+
+/* side cards: the staff list shows three people and a button, never a clipped scroll box */
+.app .salon-detail .summary-side-cards > .staff-mentions .staff-list { max-height: none !important; overflow: visible !important; padding-right: 0 !important; }
+.app .salon-detail .staff-more { margin-top: 0.75rem; padding: 0.4rem 0; font-size: 0.875rem !important; font-weight: 600; text-transform: none !important; letter-spacing: 0 !important; text-decoration: underline; text-underline-offset: 3px; }
+.app .salon-detail .summary-side-cards .staff-note,
+.app .salon-detail .summary-side-cards .language-note { margin-bottom: 0.9rem !important; }
+
+/* category summaries */
+.app .salon-detail .summary-cats-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin: 2.25rem 0 0.75rem; }
+.app .salon-detail .summary-cats-title { margin: 0; font: 600 1.125rem/1.3 var(--font-text) !important; letter-spacing: 0 !important; color: var(--c-ink) !important; }
+.app .salon-detail .summary-cats-all { font-size: 0.875rem !important; font-weight: 600; text-transform: none !important; letter-spacing: 0 !important; text-decoration: underline; text-underline-offset: 3px; padding: 0.4rem 0; }
+.app .salon-detail .summary-cats { display: flex; flex-direction: column; gap: 0.6rem; }
+.app .salon-detail .sum-card { padding: 0 !important; gap: 0 !important; overflow: hidden; }
+.app .salon-detail .sum-card-toggle {
+  width: 100%; display: grid; grid-template-columns: 2.25rem minmax(0, 1fr) minmax(12rem, 18rem) 6.5rem 1.25rem;
+  align-items: center; column-gap: 1.25rem; padding: 1rem 1.25rem;
+  border: 0; background: none; cursor: pointer; text-align: left; font: inherit; color: inherit;
+}
+.app .salon-detail .sum-card-toggle:hover { background: var(--c-hover-warm); }
+.app .salon-detail .sum-card-toggle:focus-visible { outline: 2px solid var(--c-ink); outline-offset: -2px; }
+.app .salon-detail .sum-card-toggle .sum-card-no { font-size: 1.125rem; min-width: 0; }
+.app .salon-detail .sum-card-toggle .sum-card-title { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.app .salon-detail .sum-card-toggle .sum-card-title strong { font-size: 1rem; }
+.app .salon-detail .sum-card-toggle .sum-finding { display: flex; flex-direction: column; align-items: stretch; gap: 0.35rem; }
+.app .salon-detail .sum-card-toggle .sum-finding-bar { display: block; flex: none; width: 100%; height: 5px; }
+.app .salon-detail .sum-card-toggle .sum-finding-fill { display: block; height: 100%; }
+.app .salon-detail .sum-finding--none { font-size: 0.8125rem; color: var(--c-muted); }
+.app .salon-detail .sum-card-toggle .sum-verdict { justify-self: start; align-self: center; }
+.app .salon-detail .sum-card-chev { font-size: 1.25rem; line-height: 1; color: var(--c-ink-2); text-align: center; }
+.app .salon-detail .sum-card-body { padding: 0.25rem 1.25rem 1.1rem 4.75rem; border-top: 1px solid var(--c-line-faint); display: flex; flex-direction: column; gap: 0.85rem; }
+
+@media (max-width: 860px) {
+  .app .salon-detail .sum-card-toggle {
+    grid-template-columns: 2rem minmax(0, 1fr) auto 1.25rem;
+    grid-template-areas: "no title verdict chev" ". finding finding finding";
+    row-gap: 0.6rem; column-gap: 0.75rem; padding: 0.9rem 1rem;
+  }
+  .app .salon-detail .sum-card-toggle .sum-card-no { grid-area: no; }
+  .app .salon-detail .sum-card-toggle .sum-card-title { grid-area: title; }
+  .app .salon-detail .sum-card-toggle .sum-finding { grid-area: finding; }
+  .app .salon-detail .sum-card-toggle .sum-verdict { grid-area: verdict; }
+  .app .salon-detail .sum-card-chev { grid-area: chev; }
+  .app .salon-detail .sum-card-body { padding: 0.25rem 1rem 1rem; }
+}
+
+/* ══ Salon profile · Customer Feedbacks and Scores by Service ════
+   Filters are one row of dropdowns; reviews and services are lists separated
+   by hairlines rather than a stack of bordered boxes; the owner's reply folds. */
+.app .salon-detail .fb-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0 0 0.75rem; }
+.app .salon-detail .fb-filters .qf-field {
+  position: relative; display: inline-flex; align-items: center; gap: 0.5rem; height: 2.75rem; padding: 0 0.9rem;
+  background: var(--c-white); border: 1px solid var(--c-line-strong); border-radius: 999px; box-shadow: none; backdrop-filter: none;
+}
+.app .salon-detail .fb-filters .qf-field:hover { border-color: var(--c-muted); }
+.app .salon-detail .fb-filters .qf-field:focus-within { border-color: var(--c-ink); }
+.app .salon-detail .fb-filters .qf-field::before, .app .salon-detail .fb-filters .qf-field::after { display: none; }
+.app .salon-detail .fb-filters .qf-field-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-muted); }
+.app .salon-detail .fb-filters .qf-select-btn { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0; border: 0; background: none; cursor: pointer; font: 600 0.875rem var(--font-text); color: var(--c-ink); }
+.app .salon-detail .fb-filters .qf-select-caret { color: var(--c-muted); display: inline-flex; }
+.app .salon-detail .fb-filters .qf-menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 30; min-width: 14rem; max-height: 20rem; overflow-y: auto; margin: 0; padding: 0.35rem; list-style: none; border-radius: 12px !important; }
+.app .salon-detail .fb-filters .qf-opt { padding: 0.55rem 0.7rem; border-radius: 8px; font-size: 0.875rem; cursor: pointer; }
+.app .salon-detail .fb-toggle {
+  height: 2.75rem; padding: 0 1rem; border: 1px solid var(--c-line-strong); border-radius: 999px; background: var(--c-white); cursor: pointer;
+  font: 500 0.875rem var(--font-text); color: var(--c-ink);
+}
+.app .salon-detail .fb-toggle.is-on { background: var(--c-ink); border-color: var(--c-ink); color: var(--c-white); }
+.app .salon-detail .fb-toggle:focus-visible, .app .salon-detail .evidence-reply-toggle:focus-visible { outline: 2px solid var(--c-ink); outline-offset: 2px; }
+
+/* reviews: a list, not boxes */
+.app .salon-detail .evidence-list { gap: 0 !important; border-top: 1px solid var(--c-line); }
+.app .salon-detail .evidence-item {
+  border: 0 !important; border-bottom: 1px solid var(--c-line) !important; border-radius: 0 !important;
+  padding: 1.25rem 0.25rem !important; margin: 0 !important; background: transparent !important; box-shadow: none !important;
+}
+.app .salon-detail .evidence-reply { margin-top: 0.5rem; padding: 0 !important; border: 0 !important; background: none !important; }
+.app .salon-detail .evidence-reply.is-open { padding: 0.5rem 0 0 1rem !important; border-left: 2px solid var(--c-line-strong) !important; }
+.app .salon-detail .evidence-reply-toggle {
+  padding: 0.35rem 0; border: 0; background: none; cursor: pointer;
+  font: 600 0.8125rem var(--font-text); color: var(--c-ink-2);
+}
+.app .salon-detail .evidence-reply-toggle:hover { color: var(--c-ink); text-decoration: underline; text-underline-offset: 3px; }
+
+/* scores by service: hairline rows */
+.app .salon-detail .detail-service {
+  border: 0 !important; border-bottom: 1px solid var(--c-line) !important; border-radius: 0 !important;
+  margin: 0 !important; padding: 0 0.25rem !important; background: transparent !important;
+}
+.app .salon-detail .detail-service:first-of-type { border-top: 1px solid var(--c-line) !important; }
+.app .salon-detail .detail-service > summary:hover { background: var(--c-hover-warm); }
+
+/* Feedbacks list: the badge and the decorative quote mark sat on top of the
+   text once the boxes went; both go back into the flow. */
+.app .salon-detail .evidence-item::before { display: none !important; }
+.app .salon-detail .evidence-item .evidence-polarity { position: static !important; display: inline-block; margin: 0 0 0.5rem; }
+/* the 12px floor, for the review list and the service list */
+.app .salon-detail .evidence-polarity, .app .salon-detail .evidence-points, .app .salon-detail .evidence-date,
+.app .salon-detail .evidence-date *, .app .salon-detail .evidence-who, .app .salon-detail .evidence-staff-line,
+.app .salon-detail .evidence-staff-line *, .app .salon-detail .service-group-count,
+.app .salon-detail .csl-no, .app .salon-detail .csl-blurb { font-size: 0.75rem !important; }
+.app .salon-detail .evidence-more, .app .salon-detail .evidence-panel-more,
+.app .salon-detail .detail-panel > .btn-text, .app .salon-detail .evidence-list + .btn-text { font-size: 0.875rem !important; }
+
+.app .salon-detail .donut-legend--page, .app .salon-detail .donut-legend--page li { font-size: 0.75rem !important; }
+
+/* ══ Site-wide declutter ═════════════════════════════════════════
+   The same rules as Explore and the salon profile, applied to every page:
+   no label repeating the heading under it, no box around a section that
+   whitespace already separates, no decoration that carries no information. */
+
+/* 1. Section eyebrows ("OUR SERVICES" over "Explore by service"). The home
+      hero keeps its line: it is a statement, not a label. */
+.app .lp-eyebrow,
+.app .editorial-eyebrow,
+.app .about-kicker,
+.app .cp-intro-kicker,
+.app .page-head .eyebrow,
+.app .survey-page > .eyebrow { display: none !important; }
+.app .lp-hero-grid .lp-eyebrow { display: block !important; }
+
+/* 2. Numbered badges on the home service cards: the services are not a sequence. */
+.app .lp-svc-no { display: none !important; }
+
+/* 3. About: sections separated by a hairline and space, not each in a frame;
+      the seven categories as a plain grid, not seven boxes. */
+.app .about-section,
+.app .about-split,
+.app .about-cta {
+  border: 0 !important; border-top: 1px solid var(--c-line) !important; border-radius: 0 !important;
+  background: transparent !important; box-shadow: none !important;
+  padding-left: 0 !important; padding-right: 0 !important;
+}
+.app .about-cats li,
+.app .about-cats li:hover {
+  border: 0 !important; border-top: 1px solid var(--c-line) !important; border-radius: 0 !important;
+  background: transparent !important; box-shadow: none !important; padding-left: 0 !important;
+}
+
+/* 4. How it works: the steps as a list, not six boxes; and space above the
+      Management Response note so it no longer reads as part of the bullets. */
+.app .step {
+  border: 0 !important; border-bottom: 1px solid var(--c-line) !important; border-radius: 0 !important;
+  background: transparent !important; box-shadow: none !important;
+}
+.app .editorial .principle-list + p { margin-top: 1rem !important; }
+
+/* 5. The cream radial glow behind inner pages (Favorites and others). */
+.app .page-body { background-image: none !important; }
+
+/* 6. Survey: sentence-case back link, as on the salon profile. */
+.app .survey-page .back-link { text-transform: none !important; letter-spacing: 0 !important; }
+
+/* How it works: the step rule above loses to `.app .step-list .step` (two
+   classes); restate it at that strength so the six steps read as a list. */
+.app .step-list .step,
+.app .step-list .step:nth-child(n) {
+  border: 0 !important; border-bottom: 1px solid var(--c-line) !important; border-radius: 0 !important;
+  background: transparent !important; box-shadow: none !important; margin-bottom: 0 !important;
+  padding: 1.1rem 0 !important;
+}
+.app .step-list { gap: 0 !important; }
+
+/* ══ Services mega menu ══════════════════════════════════════════
+   One panel holding all four categories, their 16 groups and 51 services,
+   replacing four separate per-category panels. */
+.app .page-body--explore .svcbar { position: relative; z-index: 20; }
+.app .page-body--explore .svcbar-all-btn {
+  flex: none; margin-left: auto; display: inline-flex; align-items: center; gap: 0.45rem;
+  height: 2.25rem; padding: 0 0.9rem; cursor: pointer;
+  border: 1px solid var(--c-line-strong); border-radius: 999px; background: var(--c-white);
+  font: 500 0.875rem/1 var(--font-text); color: var(--c-ink);
+}
+.app .page-body--explore .svcbar-all-btn:hover,
+.app .page-body--explore .svcbar-all-btn.is-open { background: var(--c-hover-warm); border-color: var(--c-muted); }
+.app .page-body--explore .svcbar-all-btn span { font-size: 1rem; line-height: 1; color: var(--c-ink-2); }
+.app .page-body--explore .svcbar-all-btn:focus-visible { outline: 2px solid var(--c-ink); outline-offset: 2px; }
+
+.app .page-body--explore .svcbar-mega {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 40;
+  max-height: min(70vh, 640px); overflow-y: auto; overscroll-behavior: contain;
+  padding: 1.5rem; background: var(--c-white);
+  border: 1px solid var(--c-line); border-radius: 12px;
+  box-shadow: 0 18px 44px -20px rgb(var(--c-ink-rgb) / 0.26);
+}
+.app .page-body--explore .svcbar-mega-grid {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0 2rem; align-items: start;
+}
+.app .page-body--explore .svcbar-mega-col { min-width: 0; display: flex; flex-direction: column; }
+.app .page-body--explore .svcbar-mega-domain {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; width: 100%;
+  padding: 0 0 0.6rem; margin-bottom: 0.85rem; cursor: pointer;
+  border: 0; border-bottom: 1px solid var(--c-line-strong); background: none; text-align: left;
+  font: 600 0.9375rem/1.3 var(--font-text); color: var(--c-ink);
+}
+.app .page-body--explore .svcbar-mega-domain:hover { color: var(--c-accent-strong); }
+.app .page-body--explore .svcbar-mega-domain.is-active { border-bottom-color: var(--c-ink); }
+.app .page-body--explore .svcbar-mega-n { font-size: 0.75rem; font-weight: 500; color: var(--c-muted); font-variant-numeric: tabular-nums; }
+
+.app .page-body--explore .svcbar-mega-group { margin-bottom: 1rem; }
+.app .page-body--explore .svcbar-mega-group:last-child { margin-bottom: 0; }
+.app .page-body--explore .svcbar-mega-grouphead {
+  display: block; width: 100%; padding: 0 0 0.3rem; cursor: pointer;
+  border: 0; background: none; text-align: left;
+  font: 600 0.75rem/1.3 var(--font-text); letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-muted);
+}
+.app .page-body--explore .svcbar-mega-grouphead:hover { color: var(--c-ink); }
+.app .page-body--explore .svcbar-mega-grouphead.is-on { color: var(--c-ink); text-decoration: underline; text-underline-offset: 3px; }
+.app .page-body--explore .svcbar-mega-group ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.app .page-body--explore .svcbar-mega-group li button {
+  display: block; width: 100%; padding: 0.3rem 0.4rem; margin-left: -0.4rem; cursor: pointer;
+  border: 0; border-radius: 6px; background: none; text-align: left;
+  font: 400 0.8125rem/1.4 var(--font-text); color: var(--c-ink-2);
+}
+.app .page-body--explore .svcbar-mega-group li button:hover { background: var(--c-hover-warm); color: var(--c-ink); }
+.app .page-body--explore .svcbar-mega-group li button.is-on { color: var(--c-ink); font-weight: 600; background: var(--c-hover-warm); }
+.app .page-body--explore .svcbar-mega-domain:focus-visible,
+.app .page-body--explore .svcbar-mega-grouphead:focus-visible,
+.app .page-body--explore .svcbar-mega-group li button:focus-visible { outline: 2px solid var(--c-ink); outline-offset: 1px; }
+
+@media (max-width: 1100px) {
+  .app .page-body--explore .svcbar-mega-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1.5rem; }
+  .app .page-body--explore .svcbar-mega-col { margin-bottom: 1.5rem; }
+}
+@media (max-width: 640px) {
+  .app .page-body--explore .svcbar-mega { padding: 1.1rem; max-height: 60vh; }
+  .app .page-body--explore .svcbar-mega-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .app .page-body--explore .svcbar-all-btn { margin-left: 0; }
+}
+
+/* The point of the mega menu is that every service is visible, so at desktop
+   the panel sizes to its content and the page scrolls if the window is short.
+   A nested scrollbar inside a menu is the thing this replaced. */
+@media (min-width: 1101px) {
+  .app .page-body--explore .svcbar-mega { max-height: none; overflow: visible; }
+}
+/* Tighter rhythm: the tallest column (Hair, 19 services) was 774px. */
+.app .page-body--explore .svcbar-mega-group { margin-bottom: 0.8rem; }
+.app .page-body--explore .svcbar-mega-grouphead { padding-bottom: 0.2rem; }
+.app .page-body--explore .svcbar-mega-group li button { padding: 0.22rem 0.4rem; line-height: 1.35; }
+.app .page-body--explore .svcbar-mega-domain { padding-bottom: 0.5rem; margin-bottom: 0.7rem; }
+
+/* The label and the four category tabs are gone; the bar is now just the
+   button that opens the mega menu, so it sits at the start of the row. */
+.app .page-body--explore .svcbar-all-btn { margin-left: 0; }
+.app .page-body--explore .svcbar-inner { padding-top: 0; padding-bottom: 0; min-height: 0; }
+
+/* ══ Services mega menu, in the nav ══════════════════════════════
+   Hangs off Explore. A child of <nav> so the pointer moving from the link
+   into the panel never leaves the element the close handler watches. */
+.app .nav { position: relative; }
+.app .svcmega {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 60;
+  margin-top: 0.5rem; padding: 1.5rem;
+  background: var(--c-white); color: var(--c-ink);
+  border: 1px solid var(--c-line); border-radius: 16px;
+  box-shadow: 0 24px 56px -22px rgb(var(--c-ink-rgb) / 0.3);
+  max-height: min(76vh, 760px); overflow-y: auto; overscroll-behavior: contain;
+}
+.app .svcmega-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 2rem; align-items: start; }
+.app .svcmega-col { min-width: 0; display: flex; flex-direction: column; }
+.app .svcmega-domain {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; width: 100%;
+  padding: 0 0 0.5rem; margin-bottom: 0.7rem; cursor: pointer;
+  border: 0; border-bottom: 1px solid var(--c-line-strong); background: none; text-align: left;
+  font: 600 0.9375rem/1.3 var(--font-text); color: var(--c-ink);
+}
+.app .svcmega-domain:hover { color: var(--c-accent-strong); }
+.app .svcmega-domain.is-active { border-bottom-color: var(--c-ink); }
+.app .svcmega-n { font-size: 0.75rem; font-weight: 500; color: var(--c-muted); font-variant-numeric: tabular-nums; }
+.app .svcmega-group { margin-bottom: 0.8rem; }
+.app .svcmega-group:last-child { margin-bottom: 0; }
+.app .svcmega-grouphead {
+  display: block; width: 100%; padding: 0 0 0.2rem; cursor: pointer;
+  border: 0; background: none; text-align: left;
+  font: 600 0.75rem/1.3 var(--font-text); letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-muted);
+}
+.app .svcmega-grouphead:hover { color: var(--c-ink); }
+.app .svcmega-grouphead.is-on { color: var(--c-ink); text-decoration: underline; text-underline-offset: 3px; }
+.app .svcmega-group ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.app .svcmega-group li button {
+  display: block; width: 100%; padding: 0.22rem 0.4rem; margin-left: -0.4rem; cursor: pointer;
+  border: 0; border-radius: 6px; background: none; text-align: left;
+  font: 400 0.8125rem/1.35 var(--font-text); color: var(--c-ink-2);
+}
+.app .svcmega-group li button:hover { background: var(--c-hover-warm); color: var(--c-ink); }
+.app .svcmega-group li button.is-on { color: var(--c-ink); font-weight: 600; background: var(--c-hover-warm); }
+.app .svcmega-domain:focus-visible,
+.app .svcmega-grouphead:focus-visible,
+.app .svcmega-group li button:focus-visible { outline: 2px solid var(--c-ink); outline-offset: 1px; }
+
+@media (max-width: 1100px) {
+  .app .svcmega-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1.5rem; }
+  .app .svcmega-col { margin-bottom: 1.5rem; }
+}
+@media (max-width: 640px) {
+  .app .svcmega { padding: 1.1rem; max-height: 65vh; }
+  .app .svcmega-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
+}
+
+/* ══ Services mega menu: tab row + the open category ═════════════
+   Replaces the four-columns-at-once grid above. */
+.app .svcmega-grid, .app .svcmega-col, .app .svcmega-domain, .app .svcmega-n { all: unset; }
+.app .svcmega-bar {
+  display: flex; align-items: center; gap: 1.75rem; flex-wrap: wrap;
+  padding-bottom: 1rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--c-line);
+}
+.app .svcmega-label {
+  position: relative; padding-left: 2.75rem; flex: none;
+  font: 600 0.75rem/1 var(--font-text); letter-spacing: 0.14em; text-transform: uppercase; color: var(--c-muted);
+}
+.app .svcmega-label::before {
+  content: ""; position: absolute; left: 0; top: 50%; width: 2rem; height: 1px; background: var(--c-line-strong);
+}
+.app .svcmega-tabs { display: flex; align-items: center; gap: 1.75rem; flex-wrap: wrap; list-style: none; margin: 0; padding: 0; }
+.app .svcmega-tab {
+  padding: 0.3rem 0; cursor: pointer; border: 0; background: none;
+  font: 400 0.9375rem/1.3 var(--font-text); color: var(--c-ink-3);
+  border-bottom: 2px solid transparent;
+}
+.app .svcmega-tab:hover { color: var(--c-ink); }
+.app .svcmega-tab.is-shown { color: var(--c-ink); font-weight: 600; border-bottom-color: var(--c-ink); }
+.app .svcmega-tab.is-active:not(.is-shown) { color: var(--c-ink-2); font-weight: 600; }
+.app .svcmega-tab:focus-visible { outline: 2px solid var(--c-ink); outline-offset: 2px; }
+
+/* Groups balance across columns; a group is never split down the middle. */
+.app .svcmega-groups { column-count: 4; column-gap: 2.25rem; }
+.app .svcmega-group { break-inside: avoid; margin: 0 0 1.1rem; }
+.app .svcmega-grouphead {
+  display: block; width: 100%; padding: 0 0 0.3rem; cursor: pointer;
+  border: 0; background: none; text-align: left;
+  font: 600 0.75rem/1.3 var(--font-text); letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-muted);
+}
+.app .svcmega-grouphead:hover { color: var(--c-ink); }
+.app .svcmega-grouphead.is-on { color: var(--c-ink); text-decoration: underline; text-underline-offset: 3px; }
+.app .svcmega-group ul { list-style: none; margin: 0; padding: 0; }
+.app .svcmega-group li button {
+  display: block; width: 100%; padding: 0.24rem 0.4rem; margin-left: -0.4rem; cursor: pointer;
+  border: 0; border-radius: 6px; background: none; text-align: left;
+  font: 400 0.8125rem/1.35 var(--font-text); color: var(--c-ink-2);
+}
+.app .svcmega-group li button:hover { background: var(--c-hover-warm); color: var(--c-ink); }
+.app .svcmega-group li button.is-on { color: var(--c-ink); font-weight: 600; background: var(--c-hover-warm); }
+.app .svcmega-grouphead:focus-visible,
+.app .svcmega-group li button:focus-visible { outline: 2px solid var(--c-ink); outline-offset: 1px; }
+
+@media (max-width: 1100px) { .app .svcmega-groups { column-count: 2; column-gap: 1.75rem; } }
+@media (max-width: 640px)  {
+  .app .svcmega-groups { column-count: 1; }
+  .app .svcmega-bar { gap: 0.9rem; }
+  .app .svcmega-tabs { gap: 1.1rem; }
+  .app .svcmega-label { padding-left: 0; }
+  .app .svcmega-label::before { display: none; }
+}
+
+/* ══ Verdicts: the word, not a chip ══════════════════════════════
+   Seven bordered, tinted, uppercase chips down the profile competed with the
+   category headings they were grading. The word alone in its band colour says
+   the same thing, and matches how the ranked list already shows one. */
+.app .salon-detail .sum-verdict,
+.app .salon-detail .sum-verdict[style],
+.app .sum-verdict,
+.app .sum-verdict[style] {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  background-color: transparent !important;
+  color: var(--verdict-ink, var(--c-ink)) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  white-space: nowrap;
+}
+/* The rings put the verdict under the number, where it can breathe. */
+.app .salon-detail .resp-detail .sum-verdict { font-size: 0.875rem !important; }
+
+/* ══ Explore · priorities rail ═══════════════════════════════════
+   The priorities drive the order, so they sit beside the list rather than
+   above it, with the sliders open: move one and the ranking re-sorts in
+   view. Replaces the full-width band and its Adjust button. */
+.app .page-body--explore .discover { align-items: start; }
+.app .page-body--explore .xp-rail {
+  align-self: start;
+  padding: 1.25rem 1.25rem 1.4rem;
+  background: var(--c-accent-wash);
+  border: 1px solid var(--c-accent-edge);
+  border-radius: 12px;
+}
+.app .xp-rail-head { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; }
+.app .xp-rail .xp-prio-icon {
+  flex: none; width: 2rem; height: 2rem; border-radius: 999px;
+  display: grid; place-items: center; background: var(--c-white); color: var(--c-ink);
+}
+.app .page-body--explore .xp-rail .xp-prio-title {
+  flex: 1 1 auto; margin: 0;
+  font: 600 1rem/1.3 var(--font-text) !important; letter-spacing: 0 !important; color: var(--c-ink) !important;
+}
+.app .page-body--explore .xp-rail .xp-prio-reset { position: static; flex: none; padding: 0.2rem 0 !important; }
+.app .xp-rail .xp-prio-summary { margin: 0 0 1.1rem; font-size: 0.8125rem; line-height: 1.5; color: var(--c-ink-2); }
+
+/* One slider per row in a rail; the old three-column grid was for the band. */
+.app .page-body--explore .xp-rail .meter-list {
+  display: flex !important; flex-direction: column; gap: 1.05rem; margin: 0; padding: 0;
+}
+.app .page-body--explore .xp-rail .meter-heading { display: none; }   /* the rail is already titled */
+
+/* The results column keeps its own top edge clear of the rail's card. */
+.app .page-body--explore .discover > section > .rank-note { margin: 0 0 1rem; font-size: 0.875rem; color: var(--c-ink-2); }
+
+@media (max-width: 980px) {
+  /* Stacked: the rail becomes a band again, and the sliders spread out. */
+  .app .page-body--explore .xp-rail .meter-list { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 1.75rem; }
+}
+@media (max-width: 560px) {
+  .app .page-body--explore .xp-rail { padding: 1rem; }
+  .app .page-body--explore .xp-rail .meter-list { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ══ Row: category scores behind an arrow ════════════════════════
+   Six labelled numbers on every row made a page of salons read as a wall of
+   figures. The row now carries the name, the score and its verdict; the
+   breakdown opens under it. */
+.app .srow {
+  grid-template-columns: 2.25rem minmax(0, 1fr) 7.5rem auto;
+  grid-template-areas:
+    "rank id score actions"
+    ".    cats cats  cats"
+    ".    why  why   why"
+    ".    notes notes notes";
+}
+.app .srow-cats-toggle {
+  width: 2.25rem; height: 2.75rem; display: grid; place-items: center; cursor: pointer;
+  border: 0; border-radius: 999px; background: none; color: var(--c-ink-2);
+  transition: transform 0.16s ease;
+}
+.app .srow-cats-toggle:hover { color: var(--c-ink); background: var(--c-white); }
+.app .srow-cats-toggle[aria-expanded="true"] { transform: rotate(180deg); }
+.app .srow-cats-toggle:focus-visible { outline: 2px solid var(--c-ink); outline-offset: 2px; }
+
+/* Open, the breakdown has the row's full width: six across, not three. */
+.app .srow-cats {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.3rem 1.25rem;
+  margin-top: 0.8rem; padding-top: 0.8rem;
+  border-top: 1px solid var(--c-line);
+}
+
+@media (max-width: 980px) {
+  .app .srow {
+    grid-template-columns: 2rem minmax(0, 1fr) auto;
+    grid-template-areas:
+      "rank id    score"
+      ".    cats  cats"
+      ".    actions actions"
+      ".    why   why"
+      ".    notes notes";
+  }
+  .app .srow-cats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .app .srow-cats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.3rem 1rem; }
+}
+
+/* One disclosure per row: the why sentence and the six category scores open
+   together, so the row carries a single arrow instead of two controls. */
+.app .srow {
+  grid-template-areas:
+    "rank id score actions"
+    ".    detail detail detail"
+    ".    notes  notes  notes";
+}
+.app .srow-detail {
+  grid-area: detail; cursor: auto;
+  margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--c-line);
+  display: flex; flex-direction: column; gap: 0.75rem;
+}
+.app .srow-detail .srow-why { grid-area: auto; margin: 0; border: 0; padding: 0; }
+.app .srow-detail .srow-why b { color: var(--c-ink); font-weight: 600; }
+.app .srow-detail .srow-cats { grid-area: auto; margin: 0; padding: 0; border: 0; }
+@media (max-width: 980px) {
+  .app .srow {
+    grid-template-areas:
+      "rank id    score"
+      ".    actions actions"
+      ".    detail detail"
+      ".    notes  notes";
+  }
+}
+
+/* ══ Row: how sure the score is ══════════════════════════════════
+   The middle of each row was ~280px of nothing while the one fact that
+   separates a tied 83 from another — how much evidence is behind it — sat in
+   6px type beside the score. The bar puts it in the gap, on a shared 0-100
+   scale so widths compare down the column. */
+.app .srow {
+  grid-template-columns: 2.25rem minmax(0, 1fr) minmax(7rem, 13rem) 7.5rem auto;
+  grid-template-areas:
+    "rank id conf score actions"
+    ".    detail detail detail detail"
+    ".    notes  notes  notes  notes";
+}
+.app .srow-conf { grid-area: conf; display: flex; align-items: center; cursor: help; }
+.app .srow-conf-track {
+  position: relative; display: block; width: 100%; height: 5px;
+  border-radius: 3px; background: var(--c-track);
+}
+.app .srow-conf-neutral {            /* 50 is neutral; it anchors the scale */
+  position: absolute; top: -2px; bottom: -2px; left: 50%; width: 1px;
+  background: var(--c-line-strong);
+}
+.app .srow-conf-span {
+  position: absolute; top: 0; bottom: 0;
+  border-radius: 3px; background: var(--tone); opacity: 0.4;
+}
+.app .srow-conf-mark {
+  position: absolute; top: -3px; width: 2px; height: 11px;
+  border-radius: 1px; background: var(--tone-ink);
+}
+@media (max-width: 980px) {
+  /* Stacked rows have no middle to fill; the range beside the score is enough. */
+  .app .srow {
+    grid-template-columns: 2rem minmax(0, 1fr) auto;
+    grid-template-areas:
+      "rank id    score"
+      ".    actions actions"
+      ".    detail detail"
+      ".    notes  notes";
+  }
+  .app .srow-conf { display: none; }
+}
+
+/* The breakdown opens from "Why #1?" in the row's own sub-line; the separate
+   chevron in the actions is gone, so one control does the job. */
+.app .srow-why-link {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.15rem 0; border: 0; background: none; cursor: pointer;
+  font: 600 0.75rem/1.4 var(--font-text); color: var(--c-ink-2);
+}
+.app .srow-why-link:hover { color: var(--c-ink); text-decoration: underline; text-underline-offset: 3px; }
+.app .srow-why-link svg { transition: transform 0.16s ease; }
+.app .srow-why-link[aria-expanded="true"] svg { transform: rotate(180deg); }
+.app .srow-why-link:focus-visible { outline: 2px solid var(--c-ink); outline-offset: 2px; }
+.app .srow-cats-toggle { display: none; }
+
+/* ══ Priorities rail: white, and foldable ════════════════════════
+   The tint made the rail read as a notice rather than a working panel, and
+   the summary line under the title spelled out in words what the six sliders
+   beneath it already showed. */
+.app .page-body--explore .xp-rail {
+  padding: 0.5rem 1.25rem 1.25rem;
+  background: var(--c-white);
+  border: 1px solid var(--c-line);
+}
+.app .page-body--explore .xp-rail .xp-prio-title { margin: 0 -0.5rem; }
+.app .xp-rail-toggle {
+  width: 100%; display: flex; align-items: center; gap: 0.55rem;
+  padding: 0.75rem 0.5rem; cursor: pointer;
+  border: 0; border-radius: 8px; background: none; text-align: left;
+  font: 600 1rem/1.3 var(--font-text); color: var(--c-ink);
+}
+.app .xp-rail-toggle:hover { background: var(--c-hover-warm); }
+.app .xp-rail-toggle:focus-visible { outline: 2px solid var(--c-ink); outline-offset: -2px; }
+.app .xp-rail-name { flex: 1 1 auto; min-width: 0; }
+.app .xp-rail-state { font-size: 0.8125rem; font-weight: 500; color: var(--c-ink-2); }
+.app .xp-rail-toggle svg { flex: none; color: var(--c-ink-2); transition: transform 0.16s ease; }
+.app .xp-rail-toggle[aria-expanded="false"] svg { transform: rotate(-90deg); }
+.app .page-body--explore .xp-rail .xp-prio-icon {
+  width: 1.75rem; height: 1.75rem; background: var(--c-hover-warm);
+}
+.app .xp-rail-body { position: relative; padding-top: 0.5rem; border-top: 1px solid var(--c-line); }
+.app .page-body--explore .xp-rail .xp-prio-reset {
+  position: absolute; top: 0.6rem; right: 0; z-index: 1;
+  padding: 0.2rem 0 !important; font-size: 0.8125rem !important;
+}
+.app .page-body--explore .xp-rail .meter-list { padding-top: 1.75rem; }
+.app .page-body--explore .xp-rail.is-closed { padding-bottom: 0.5rem; }
+
+/* ══ Row: the score as a ring ════════════════════════════════════
+   The confidence bar is gone and the score column is a ring again, with the
+   band and the 80% range beside it. The three feedback counts moved into the
+   breakdown, where they explain the score instead of crowding the row. */
+.app .srow {
+  grid-template-columns: 2.25rem minmax(0, 1fr) auto 7.5rem auto;
+  grid-template-areas:
+    "rank id    .  score actions"
+    ".    detail detail detail detail"
+    ".    notes  notes  notes  notes";
+}
+.app .srow-conf { display: none; }
+.app .srow-score {
+  display: flex; align-items: center; gap: 0.7rem;
+  grid-template-columns: none; column-gap: 0.7rem;   /* the grid rule above sets column-gap; restate it */
+}
+.app .srow-score .ring-chart { flex: none; }
+.app .srow-score .ring-chart-center { fill: var(--tone-ink); font-size: 17px; }
+.app .srow-score-words { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+.app .srow-score-num { display: none; }
+.app .srow-counts { margin: 0; font-size: 0.8125rem; line-height: 1.5; color: var(--c-ink-2); }
+.app .srow-counts b { color: var(--c-ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+@media (max-width: 980px) {
+  .app .srow {
+    grid-template-columns: 2rem minmax(0, 1fr) auto;
+    grid-template-areas:
+      "rank id    score"
+      ".    actions actions"
+      ".    detail detail"
+      ".    notes  notes";
+  }
+}
+
+/* ══ Explore header: tighter ═════════════════════════════════════
+   The title and the filters held 173px before the first control. "Clear all"
+   sat on a line of its own above the pills, and the header carried 51px of
+   padding and margin under it. */
+.app .page-body--explore { padding-top: 1.5rem !important; }
+.app .page-body--explore .page-head--bar {
+  gap: 1.25rem !important;
+  padding-bottom: 0.85rem !important;
+  margin-bottom: 1.1rem !important;
+}
+.app .page-body--explore .page-head-title { font-size: 1.75rem !important; line-height: 1.2 !important; }
+
+/* "Clear all" moves onto the pill row instead of above it. */
+.app .page-body--explore .quick-filters {
+  display: flex !important; align-items: center; flex-wrap: wrap;
+  gap: 0.5rem 0.75rem !important; margin: 0 !important;
+}
+.app .page-body--explore .quick-filters .qf-row { flex: 1 1 auto; margin: 0 !important; }
+.app .page-body--explore .quick-filters .qf-clear { order: 1; margin: 0 !important; }
+
+/* Shorter pills: 46px of chrome for two lines of 12px text. */
+.app .page-body--explore .qf-field,
+.app .page-body--explore .qf-field:hover,
+.app .page-body--explore .qf-field:focus-within,
+.app .page-body--explore .qf-field:not(:focus-within) {
+  min-height: 0 !important; height: auto !important;
+  padding: 0.4rem 0.85rem !important;
+}
+
+/* Keep "Clear all" on the pill row: the pill box takes only the width it
+   needs and wraps inside itself, rather than claiming the line and pushing
+   Clear onto one of its own. */
+@media (min-width: 981px) {
+  .app .page-body--explore .quick-filters { flex-wrap: nowrap !important; }
+  .app .page-body--explore .quick-filters .qf-row { flex: 0 1 auto; flex-wrap: wrap; }
+  .app .page-body--explore .quick-filters .qf-clear { flex: none; }
+}
+
+/* The row is no longer one big click target — a tap on the open panel, or on
+   the empty middle, used to open the profile. The name and View salon do it. */
+.app .srow { cursor: auto; }
+.app .srow-view {
+  padding: 0.55rem 1rem; cursor: pointer;
+  border: 1px solid var(--c-line-strong); border-radius: 999px; background: var(--c-white);
+  font: 600 0.875rem/1 var(--font-text); color: var(--c-ink);
+}
+.app .srow-view:hover { background: var(--c-hover-warm); border-color: var(--c-muted); text-decoration: none; }
+.app .srow-view:focus-visible { outline: 2px solid var(--c-ink); outline-offset: 2px; }
+.app .srow-score-range { display: none; }
+
+/* "Clear all" cost a whole line: the pill row fills the header's width, so it
+   could never sit beside it. Pinned to the header's corner it costs nothing. */
+@media (min-width: 981px) {
+  .app .page-body--explore .page-head--bar { position: relative; }
+  .app .page-body--explore .quick-filters { flex-wrap: nowrap !important; }
+  .app .page-body--explore .quick-filters .qf-row { flex: 1 1 auto; }
+  .app .page-body--explore .quick-filters .qf-clear {
+    position: absolute; top: -0.1rem; right: 0; margin: 0 !important;
+  }
+}
+
+/* The View salon button is gone: the row itself opens the salon, so it reads
+   as one target again. The breakdown and the controls inside stay excluded. */
+.app .srow { cursor: pointer; }
+.app .srow-detail, .app .srow-detail * { cursor: auto; }
+.app .srow-name { cursor: pointer; }
+.app .srow-actions { gap: 0; }
+
+/* ══ Results: a measured column ══════════════════════════════════
+   The name sat at one end of a 996px row and the score at the other, ~700px
+   apart, so nothing read as a pair. Capping the column brings them together
+   and leaves the slack as margin, which is the quieter place for it. */
+.app .page-body--explore .discover > section { max-width: 880px; }
+
+/* Rows: a steadier rhythm, and a hover that reads as one object. */
+.app .srow { padding: 0.9rem 0.85rem; border-radius: 10px; border-bottom-color: transparent; position: relative; }
+.app .srow::after {
+  content: ""; position: absolute; left: 0.85rem; right: 0.85rem; bottom: 0; height: 1px;
+  background: var(--c-line);
+}
+.app .srow:last-child::after { display: none; }
+.app .srow:hover { background: var(--c-hover-warm); }
+.app .srow:hover::after { background: transparent; }
+
+/* The score and its word belong together; the heart steps back until wanted. */
+.app .srow-score-band { font-size: 0.875rem; font-weight: 600; color: var(--tone-ink); }
+.app .srow-fav { color: var(--c-faint); transition: color 0.14s ease; }
+.app .srow:hover .srow-fav, .app .srow-fav.is-on, .app .srow-fav:focus-visible { color: var(--c-ink-2); }
+.app .srow-fav.is-on { color: var(--c-accent-strong); }
+
+/* ══ Explore header: room to breathe ═════════════════════════════
+   It had been squeezed to claw back vertical space, and ended up cramped.
+   The pills get their padding back, the row gets a real gap, and Reset sits
+   beside the title it resets rather than floating in the corner. */
+.app .page-body--explore { padding-top: 2rem !important; }
+.app .page-body--explore .page-head--bar {
+  gap: 1.5rem 2rem !important;
+  padding-bottom: 1.4rem !important;
+  margin-bottom: 1.6rem !important;
+  align-items: center;
+}
+.app .page-body--explore .page-head-title { font-size: 2rem !important; }
+.app .xp-titlewrap { display: flex; align-items: baseline; gap: 0.9rem; flex-wrap: wrap; min-width: 0; }
+.app .xp-reset {
+  flex: none; padding: 0.2rem 0; border: 0; background: none; cursor: pointer;
+  font: 500 0.75rem/1.4 var(--font-text); color: var(--c-muted);
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.app .xp-reset:hover { color: var(--c-ink); }
+.app .xp-reset:focus-visible { outline: 2px solid var(--c-ink); outline-offset: 2px; }
+
+/* QuickFilters keeps its own clear button for other screens; here the header
+   carries it, so the duplicate would be a second control for one job. */
+.app .page-body--explore .quick-filters .qf-clear { display: none !important; }
+.app .page-body--explore .quick-filters { gap: 0.65rem !important; }
+.app .page-body--explore .quick-filters .qf-row { gap: 0.65rem !important; }
+.app .page-body--explore .qf-field,
+.app .page-body--explore .qf-field:hover,
+.app .page-body--explore .qf-field:focus-within,
+.app .page-body--explore .qf-field:not(:focus-within) {
+  padding: 0.65rem 1.15rem !important;
+  gap: 0.6rem !important;
+}
+
+/* ══ Fallback notice: one line, no box ═══════════════════════════
+   It was a bordered card holding two lines, which gave a passing remark the
+   weight of a warning. */
+.app .fallback-notice,
+.app .page-body--explore .fallback-notice,
+.app .fallback-notice--empty {
+  display: flex !important; align-items: baseline; gap: 0.5rem; flex-wrap: wrap;
+  margin: 0 0 1.1rem !important; padding: 0 !important;
+  border: 0 !important; border-radius: 0 !important;
+  background: none !important; box-shadow: none !important;
+  font-size: 0.8125rem; line-height: 1.55; color: var(--c-ink-2);
+}
+.app .fallback-notice-icon {
+  flex: none; width: auto !important; height: auto !important;
+  background: none !important; border: 0 !important; border-radius: 0 !important;
+  color: var(--c-muted); align-self: center;
+}
+.app .fallback-notice-msg {
+  margin: 0 !important; flex: 1 1 24rem; min-width: 0;
+  font-size: 0.8125rem !important; color: var(--c-ink-2) !important;
+}
+.app .fallback-notice .btn-text {
+  flex: none; padding: 0 !important; font-size: 0.8125rem !important; font-weight: 600 !important;
+  text-transform: none !important; letter-spacing: 0 !important;
+  text-decoration: underline; text-underline-offset: 3px; color: var(--c-ink) !important;
+}
+
+/* ══ Poppins, site-wide ═══════════════════════════════════════
+   One family across the product, 300 to 700, so a bold is a real bold. */
+.app, .app body, body { font-family: var(--font-text); }
+.app h1, .app h2, .app h3, .app h4,
+.app .page-head-title, .app .lp-h1, .app .lp-h2, .app .detail-name { font-family: var(--font-display); }
+
+/* Poppins runs wide and round; a touch of negative tracking keeps the display
+   sizes from sprawling. */
+.app .page-head-title, .app .lp-h1, .app .lp-h2, .app .detail-name { letter-spacing: -0.02em; }
+.app .page-body--explore .page-head-title { font-size: 1.875rem !important; }
+
+/* Smaller filter chips: they are a secondary control, so they no longer carry
+   the weight of a primary one. */
+.app .page-body--explore .qf-field,
+.app .page-body--explore .qf-field:hover,
+.app .page-body--explore .qf-field:focus-within,
+.app .page-body--explore .qf-field:not(:focus-within) {
+  padding: 0.4rem 0.85rem !important;
+  gap: 0.4rem !important;
+  border-radius: 999px !important;
+}
+.app .page-body--explore .qf-field-label { font-size: 0.6875rem !important; letter-spacing: 0.04em; }
+.app .page-body--explore .qf-select-btn { font-size: 0.8125rem !important; gap: 0.3rem !important; }
+.app .page-body--explore .qf-field-icon svg { width: 13px; height: 13px; }
+.app .page-body--explore .qf-select-caret svg { width: 12px; height: 12px; }
+.app .page-body--explore .quick-filters,
+.app .page-body--explore .quick-filters .qf-row { gap: 0.45rem !important; }
+
+/* The chip labels had dropped to 11px when the chips shrank; 12px is the floor. */
+.app .page-body--explore .qf-field-label { font-size: 0.75rem !important; }
+
+/* Poppins 600 reads much heavier than the sans it replaced. The name carries
+   its weight through size, not boldness. */
+.app .page-body--explore .page-head-title { font-weight: 500 !important; }
+
+
+/* ══ Salon list rows ══════════════════════════════
+   Rank, name and the facts behind it on the left; the score, its band and the
+   80% range on the right. The six category scores open on the arrow, so a
+   page of salons reads as names and verdicts until detail is asked for. */
+.app .salon-grid {
+  display: block !important; grid-template-columns: none !important;
+  gap: 0 !important; align-items: stretch;
+}
+.app .slr {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr) 6rem 2.25rem 2.25rem;
+  grid-template-areas:
+    "rank id     score toggle fav"
+    ".    detail detail detail detail"
+    ".    notes  notes  notes  notes";
+  align-items: center; column-gap: 1rem; row-gap: 0;
+  padding: 0.95rem 0.6rem;
+  border-bottom: 1px solid var(--c-line);
+}
+.app .slr:last-child { border-bottom: 0; }
+.app .slr:hover { background: var(--c-hover-warm); }
+
+.app .slr-rank { grid-area: rank; font-size: 0.8125rem; color: var(--c-muted); text-align: right; font-variant-numeric: tabular-nums; }
+.app .slr-id { grid-area: id; min-width: 0; display: flex; flex-direction: column; gap: 0.15rem; }
+.app .slr-name {
+  padding: 0; border: 0; background: none; cursor: pointer; text-align: left;
+  font: 500 0.9375rem/1.35 var(--font-text); letter-spacing: -0.005em; color: var(--c-ink);
+}
+.app .slr-name:hover { text-decoration: underline; text-underline-offset: 3px; }
+.app .slr-meta { margin: 0; font-size: 0.75rem; color: var(--c-muted); }
+
+.app .slr-score { grid-area: score; display: flex; align-items: baseline; gap: 0.45rem; justify-content: flex-end; cursor: help; }
+.app .slr-score-num {
+  font-family: var(--font-display); font-size: 1.5rem; line-height: 1; font-weight: 600;
+  letter-spacing: -0.03em; color: var(--tone-ink); font-variant-numeric: tabular-nums;
+}
+.app .slr-score-band { font-size: 0.8125rem; font-weight: 500; color: var(--tone-ink); }
+
+
+.app .slr-toggle {
+  grid-area: toggle; width: 2.25rem; height: 2.25rem; display: grid; place-items: center;
+  cursor: pointer; border: 0; border-radius: 999px; background: none; color: var(--c-ink-2);
+}
+.app .slr-toggle:hover { background: var(--c-white); color: var(--c-ink); }
+.app .slr-toggle svg { transition: transform 0.16s ease; }
+.app .slr-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+.app .slr-toggle--none { background: none; cursor: default; }
+
+.app .slr-fav {
+  grid-area: fav; width: 2.25rem; height: 2.25rem; display: grid; place-items: center;
+  cursor: pointer; border: 0; border-radius: 999px; background: none; color: var(--c-faint);
+}
+.app .slr:hover .slr-fav { color: var(--c-ink-2); }
+.app .slr-fav.is-on { color: var(--c-accent-strong); }
+
+.app .slr-detail {
+  grid-area: detail; display: flex; flex-direction: column; gap: 0.6rem;
+  margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px solid var(--c-line);
+}
+.app .slr-why { margin: 0; font-size: 0.8125rem; line-height: 1.55; color: var(--c-ink-2); }
+.app .slr-cats {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.3rem 1.25rem;
+}
+.app .slr-cats li { position: relative; display: flex; align-items: baseline; justify-content: space-between; gap: 0.4rem; cursor: help; }
+.app .slr-cat-label { font-size: 0.75rem; color: var(--c-muted); }
+.app .slr-cat-num { font-size: 0.875rem; font-weight: 600; color: var(--tone-ink); font-variant-numeric: tabular-nums; }
+.app .slr-cats li[data-tip]::after {
+  content: attr(data-tip); position: absolute; left: 0; bottom: calc(100% + 8px); z-index: 40;
+  width: max-content; max-width: min(250px, 66vw); padding: 0.55rem 0.7rem; border-radius: 8px;
+  background: var(--c-ink); color: var(--c-white); font-size: 0.75rem; line-height: 1.45; font-weight: 400;
+  opacity: 0; pointer-events: none; transition: opacity 0.14s ease;
+}
+.app .slr-cats li[data-tip]:hover::after, .app .slr-cats li[data-tip]:focus-visible::after { opacity: 1; }
+.app .slr-counts { margin: 0; font-size: 0.75rem; color: var(--c-muted); }
+.app .slr-counts b { color: var(--c-ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.app .slr-notes { grid-area: notes; display: flex; flex-direction: column; gap: 0.2rem; margin-top: 0.5rem; }
+.app .slr-note { margin: 0; display: flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; color: #92400e; }
+.app .slr-note.is-grave { color: var(--c-danger); }
+
+.app .slr-name:focus-visible, .app .slr-toggle:focus-visible,
+.app .slr-fav:focus-visible, .app .slr-cats li:focus-visible { outline: 2px solid var(--c-ink); outline-offset: 2px; }
+
+@media (max-width: 1150px) {
+  .app .slr { grid-template-columns: 2rem minmax(0, 1fr) 6rem 2.25rem 2.25rem;
+    grid-template-areas: "rank id score toggle fav" ". detail detail detail detail" ". notes notes notes notes"; }
+  .app .slr-cats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .app .slr { column-gap: 0.6rem; padding: 0.85rem 0.3rem; }
+  .app .slr-score { flex-direction: column; align-items: flex-end; gap: 0.1rem; }
+  .app .slr-cats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* ══ Explore header ═══════════════════════════════════
+   The service being ranked, one line saying what the list rests on, then the
+   filters as small chips with Sort at the end. The priorities moved out of a
+   left rail into a chip here, so the list runs the full width. */
+.app .page-body--explore .discover--wide,
+.app .page-body--explore .discover--wide > section { display: block !important; grid-template-columns: none !important; max-width: none; }
+
+.app .page-body--explore .xp-head {
+  display: flex; flex-direction: column; gap: 1.1rem; align-items: stretch;
+  padding: 0 0 1.1rem !important; margin: 0 0 1.25rem !important;
+  border-bottom: 1px solid var(--c-line);
+}
+.app .xp-headline { display: flex; flex-direction: column; gap: 0.3rem; }
+.app .page-body--explore .xp-title {
+  margin: 0; font-size: 1.75rem !important; line-height: 1.15 !important;
+  font-weight: 600 !important; letter-spacing: -0.025em !important; color: var(--c-ink) !important;
+}
+.app .xp-sub { margin: 0; font-size: 0.8125rem; line-height: 1.5; color: var(--c-muted); }
+
+.app .xp-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+
+/* The filter chips: the value carries the meaning, so the label above it is
+   gone and each chip is the size of its own text. */
+.app .page-body--explore .xp-controls .quick-filters {
+  display: contents !important; margin: 0 !important; gap: 0 !important;
+}
+.app .page-body--explore .xp-controls .qf-row {
+  display: flex !important; flex-wrap: wrap; gap: 0.5rem !important; margin: 0 !important; flex: 0 1 auto;
+}
+.app .page-body--explore .xp-controls .qf-clear { order: 9; }
+.app .page-body--explore .xp-controls .qf-field,
+.app .page-body--explore .xp-controls .qf-field:hover,
+.app .page-body--explore .xp-controls .qf-field:focus-within,
+.app .page-body--explore .xp-controls .qf-field:not(:focus-within) {
+  flex-direction: row !important; align-items: center !important;
+  min-height: 0 !important; height: auto !important;
+  padding: 0.4rem 0.75rem !important; gap: 0.35rem !important;
+  border-radius: 8px !important; border: 1px solid var(--c-line-strong) !important;
+  background: var(--c-white) !important; box-shadow: none !important;
+}
+.app .page-body--explore .xp-controls .qf-field:hover { background: var(--c-hover-warm) !important; }
+.app .page-body--explore .xp-controls .qf-field-label { display: none !important; }
+.app .page-body--explore .xp-controls .qf-field-icon { display: none !important; }
+.app .page-body--explore .xp-controls .qf-select-btn {
+  padding: 0 !important; gap: 0.35rem !important;
+  font-size: 0.8125rem !important; font-weight: 400 !important; color: var(--c-ink) !important;
+}
+.app .page-body--explore .xp-controls .qf-select-caret svg { width: 12px; height: 12px; }
+
+/* The priorities chip and the panel it drops. */
+.app .xp-prio-wrap { position: relative; }
+.app .xp-chip {
+  display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer;
+  padding: 0.4rem 0.75rem; border: 1px solid var(--c-line-strong); border-radius: 8px;
+  background: var(--c-white); font: 400 0.8125rem/1.3 var(--font-text); color: var(--c-ink);
+}
+.app .xp-chip:hover, .app .xp-chip.is-open { background: var(--c-hover-warm); }
+.app .xp-chip.is-set { border-color: var(--c-accent-strong); }
+.app .xp-chip svg { color: var(--c-ink-2); }
+.app .xp-chip-count {
+  display: grid; place-items: center; min-width: 1.1rem; height: 1.1rem; padding: 0 0.3rem;
+  border-radius: 999px; background: var(--c-accent); color: var(--c-ink);
+  font-size: 0.6875rem; font-weight: 600; font-variant-numeric: tabular-nums;
+}
+.app .xp-chip:focus-visible { outline: 2px solid var(--c-ink); outline-offset: 2px; }
+
+.app .xp-prio-panel {
+  position: absolute; top: calc(100% + 0.5rem); left: 0; z-index: 50;
+  width: min(30rem, calc(100vw - 2rem)); padding: 1.1rem 1.25rem 1.25rem;
+  background: var(--c-white); border: 1px solid var(--c-line); border-radius: 14px;
+  box-shadow: 0 18px 44px -20px rgb(var(--c-ink-rgb) / 0.26);
+}
+.app .xp-prio-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.app .page-body--explore .xp-prio-panel .xp-prio-title {
+  margin: 0; font: 600 0.9375rem/1.3 var(--font-text) !important;
+  letter-spacing: 0 !important; color: var(--c-ink) !important;
+}
+.app .page-body--explore .xp-prio-panel .xp-prio-reset { position: static; padding: 0 !important; font-size: 0.75rem !important; }
+.app .xp-prio-note { margin: 0.3rem 0 0.9rem; font-size: 0.75rem; line-height: 1.5; color: var(--c-muted); }
+.app .page-body--explore .xp-prio-panel .meter-list {
+  display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.9rem 1.5rem; margin: 0; padding: 0;
+}
+.app .page-body--explore .xp-prio-panel .meter-heading { display: none; }
+
+/* Sort sits at the end of the row, pushed right. */
+.app .xp-sort { margin-left: auto; display: flex; align-items: center; gap: 0.4rem; }
+.app .xp-sort label { font-size: 0.8125rem; color: var(--c-muted); }
+.app .xp-sort select {
+  padding: 0.4rem 0.6rem; cursor: pointer;
+  border: 1px solid var(--c-line-strong); border-radius: 8px; background: var(--c-white);
+  font: 400 0.8125rem/1.3 var(--font-text); color: var(--c-ink);
+}
+.app .xp-sort select:hover { background: var(--c-hover-warm); }
+.app .xp-sort select:focus-visible { outline: 2px solid var(--c-ink); outline-offset: 2px; }
+
+@media (max-width: 760px) {
+  .app .xp-sort { margin-left: 0; width: 100%; }
+  .app .xp-sort select { flex: 1 1 auto; }
+  .app .page-body--explore .xp-prio-panel .meter-list { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* The two columns were too narrow for a long label beside its level chip, so
+   they overlapped. The panel is wider, and each row keeps the label and the
+   chip apart with the label free to wrap. */
+.app .xp-prio-panel { width: min(38rem, calc(100vw - 2rem)); }
+.app .page-body--explore .xp-prio-panel .meter-head {
+  display: flex !important; align-items: baseline; justify-content: space-between;
+  gap: 0.5rem; width: 100%;
+}
+.app .page-body--explore .xp-prio-panel .meter-label { min-width: 0; flex: 1 1 auto; }
+.app .page-body--explore .xp-prio-panel .meter-word { flex: 0 0 auto; white-space: nowrap; }
+.app .page-body--explore .xp-prio-panel .meter-row { padding: 0.6rem 0.65rem !important; }
+
+/* On a phone the panel is anchored to the chip, which sits part-way across the
+   row, so a fixed left edge pushed it off screen. It spans the gutters there. */
+@media (max-width: 760px) {
+  .app .xp-prio-wrap { position: static; }
+  .app .xp-prio-panel { left: 1rem; right: 1rem; width: auto; }
+}
+
+/* Between a phone and a wide desktop the chip sits far enough along the row
+   that a left-anchored panel still overhangs. There it hangs off its right
+   edge instead, which keeps it on screen at every width. */
+@media (min-width: 761px) and (max-width: 1200px) {
+  .app .xp-prio-panel { left: auto; right: 0; }
+}
+
+/* The filter menus were right-aligned inside their chip, which was fine when
+   the chip was a wide pill. The chips are small now, so a 295px menu hung off
+   the left edge: they open from the chip's left instead. */
+.app .page-body--explore .xp-controls .qf-field .qf-menu { left: 0 !important; right: auto !important; }
+/* Near the right edge that would overhang the other way, so the last chip's
+   menu keeps its right alignment. */
+.app .page-body--explore .xp-controls .qf-row > *:last-child .qf-menu { left: auto !important; right: 0 !important; }
+
+/* Between a phone and a wide desktop there is not room to the left of the chip
+   for the two-column panel, so it is one column and narrower there. */
+@media (min-width: 761px) and (max-width: 1200px) {
+  .app .xp-prio-panel { left: auto; right: 0; width: min(26rem, calc(100vw - 2rem)); }
+  .app .page-body--explore .xp-prio-panel .meter-list { grid-template-columns: minmax(0, 1fr) !important; }
+}
+
+/* ══ Priorities: four steps ══════════════════════════════════════
+   A row of four tappable steps instead of a slider. Every step up to the
+   chosen one fills, so the row reads as a meter. The real control is a radio
+   group underneath, which keeps arrow keys and screen readers working. */
+.app .prio-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.3rem; }
+.app .prio-step { display: block; cursor: pointer; }
+.app .prio-step input {
+  position: absolute; width: 1px; height: 1px; margin: -1px;
+  padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+.app .prio-step::before {
+  content: ""; display: block; height: 0.9rem; border-radius: 5px;
+  background: var(--c-track); transition: background 0.14s ease;
+}
+.app .prio-step.is-on::before { background: var(--c-accent-strong); }
+/* Hover on a step you have not chosen: a light warm tint, not black. It is the
+   theme's light tan (--c-wash-3), a shade darker than the empty track so the
+   hovered step still stands out from its neighbours; the menu's own hover grey
+   (--c-hover-warm) is lighter than the track and would make the step seem to
+   vanish. */
+.app .prio-step:hover::before { background: var(--c-wash-3); }
+.app .prio-step.is-on:hover::before { background: var(--c-accent-deep); }
+.app .prio-step input:focus-visible + ::before,
+.app .prio-step:focus-within::before { outline: 2px solid var(--c-ink); outline-offset: 2px; }
+
+/* The row no longer carries a slider, so it needs no tinted panel of its own. */
+.app .page-body--explore .xp-prio-panel .meter-row {
+  padding: 0 !important; background: none !important; border: 0 !important;
+}
+.app .page-body--explore .xp-prio-panel .meter-head { margin-bottom: 0.45rem; }
+.app .page-body--explore .xp-prio-panel .meter-label {
+  font-size: 0.8125rem !important; font-weight: 600 !important; color: var(--c-ink) !important;
+}
+.app .page-body--explore .xp-prio-panel .meter-word {
+  padding: 0 !important; background: none !important; border: 0 !important;
+  font-size: 0.75rem !important; font-weight: 400 !important; color: var(--c-muted) !important;
+}
+.app .page-body--explore .xp-prio-panel .meter-list { gap: 1.1rem 1.75rem; }
+
+/* Thin steps. The bar is 5px, but each step keeps padding above and below so
+   the thing you tap stays ~22px tall — a 5px tap target would be unusable. */
+.app .prio-steps { gap: 0.25rem; margin-top: -0.4rem; }
+.app .prio-step { padding: 0.5rem 0; }
+.app .prio-step::before { height: 5px; border-radius: 3px; }
+
+/* Sort used a native <select>, now SelectMenu, so it renders as the same
+   .qf-field pill as the other chips. Match it in the header row: no label
+   row above it (the chosen value says enough), sized like its neighbours. */
+.app .xp-sort { margin-left: auto; }
+.app .xp-sort .qf-field { margin: 0; }
+.app .page-body--explore .xp-sort .qf-field-label { display: inline !important; font-size: 0.75rem !important; }
+
+/* ══ Explore on a phone ══════════════════════════════════════════
+   Six full-width chips pushed the first salon below the fold and squeezed
+   the name into four lines. The chips and the priorities fold behind one
+   Filters button, and the score stacks at the right of each row. */
+.app .xp-filters-btn { display: none; }
+
+@media (min-width: 761px) {
+  /* The button is a phone control; on desktop the chips sit in the row. */
+  .app .xp-filterset { display: contents; }
+}
+
+@media (max-width: 760px) {
+  .app .xp-controls { gap: 0.5rem; align-items: center; }
+  .app .xp-filters-btn {
+    display: inline-flex; align-items: center; gap: 0.45rem; cursor: pointer;
+    flex: 1 1 auto; justify-content: center;
+    padding: 0.6rem 1rem; border: 0; border-radius: 10px;
+    background: var(--c-ink); color: var(--c-white);
+    font: 500 0.875rem/1 var(--font-text);
+  }
+  .app .xp-filters-btn:focus-visible { outline: 2px solid var(--c-ink); outline-offset: 2px; }
+  .app .xp-filters-count {
+    display: grid; place-items: center; min-width: 1.15rem; height: 1.15rem; padding: 0 0.3rem;
+    border-radius: 999px; background: var(--c-accent); color: var(--c-ink);
+    font-size: 0.75rem; font-weight: 600; font-variant-numeric: tabular-nums;
+  }
+  .app .xp-sort { margin-left: 0; flex: 1 1 auto; }
+  .app .xp-sort .qf-field { width: 100%; justify-content: center; }
+
+  /* The set itself: hidden until the button opens it, then a stacked sheet. */
+  .app .xp-filterset { display: none; width: 100%; }
+  .app .xp-filterset[data-open="true"] {
+    display: flex; flex-direction: column; gap: 0.5rem;
+    margin-top: 0.25rem; padding: 0.85rem;
+    background: var(--c-white); border: 1px solid var(--c-line); border-radius: 12px;
+  }
+  .app .page-body--explore .xp-filterset .qf-row { flex-direction: column; align-items: stretch; width: 100%; }
+  .app .page-body--explore .xp-filterset .qf-field { width: 100%; }
+  .app .xp-filterset .xp-prio-wrap { width: 100%; }
+  .app .xp-filterset .xp-chip { width: 100%; justify-content: flex-start; }
+}
+
+@media (max-width: 560px) {
+  /* rank and name on the left, the score stacked on the right, the two
+     controls in their own narrow column so the name keeps its width. */
+  .app .slr {
+    grid-template-columns: 1.25rem minmax(0, 1fr) auto 1.75rem;
+    grid-template-areas:
+      "rank id     score  toggle"
+      "rank id     score  fav"
+      ".    detail detail detail"
+      ".    notes  notes  notes";
+    align-items: start; column-gap: 0.6rem; padding: 0.85rem 0.3rem;
+  }
+  .app .slr-rank { padding-top: 0.15rem; }
+  .app .slr-score { flex-direction: column; align-items: flex-end; gap: 0.05rem; }
+  .app .slr-score-num { font-size: 1.375rem; }
+  .app .slr-toggle, .app .slr-fav { width: 1.75rem; height: 1.75rem; }
+}
+
+
+/* ══ Evidence summary ═════════════════════════════════
+   What the profile rests on, before any finding: the overall score beside the
+   feedbacks behind it, then who is named and what happens after a complaint.
+   Four separate cards became two rows, because the language of a feedback and
+   the sentiment of a feedback are facts about the same set. */
+.app .salon-detail .evsum { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.75rem; }
+.app .salon-detail .evsum-top {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 2.5rem;
+  padding-bottom: 1.5rem; border-bottom: 1px solid var(--c-line);
+}
+
+.app .salon-detail .evsum-label {
+  margin: 0 0 0.5rem; font-size: 0.75rem; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--c-muted);
+}
+.app .salon-detail .evsum-figure { margin: 0; display: flex; align-items: baseline; gap: 0.6rem; }
+.app .salon-detail .evsum-num {
+  font-family: var(--font-display); font-size: 2.75rem; line-height: 1; font-weight: 600;
+  letter-spacing: -0.035em; color: var(--c-ink); font-variant-numeric: tabular-nums;
+}
+.app .salon-detail .evsum-word { font-size: 1.0625rem; font-weight: 600; }
+.app .salon-detail .evsum-count-label { font-size: 0.875rem; color: var(--c-ink-2); }
+
+/* The 0-100 scale under the score, with the neutral midpoint marked. */
+.app .salon-detail .evsum-scale { margin-top: 0.9rem; display: flex; flex-direction: column; gap: 0.3rem; }
+.app .salon-detail .evsum-scale-track {
+  position: relative; display: block; height: 6px; border-radius: 3px; background: var(--c-track);
+}
+.app .salon-detail .evsum-scale-fill { position: absolute; inset: 0 auto 0 0; border-radius: 3px; opacity: 0.55; }
+.app .salon-detail .evsum-scale-mid { position: absolute; top: -2px; bottom: -2px; left: 50%; width: 1px; background: var(--c-line-strong); }
+.app .salon-detail .evsum-scale-mark { position: absolute; top: -3px; width: 3px; height: 12px; border-radius: 2px; transform: translateX(-50%); }
+.app .salon-detail .evsum-scale-ends {
+  display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--c-muted);
+  font-variant-numeric: tabular-nums;
+}
+.app .salon-detail .evsum-scale-neutral { color: var(--c-muted); }
+
+.app .salon-detail .evsum-note { margin: 0.9rem 0 0; font-size: 0.8125rem; line-height: 1.55; color: var(--c-muted); }
+
+/* The feedback split: one bar, then the counts under it. */
+.app .salon-detail .evsum-stack {
+  display: flex; width: 100%; height: 10px; margin-top: 0.9rem;
+  border-radius: 3px; overflow: hidden; background: var(--c-track);
+}
+.app .salon-detail .evsum-seg { display: block; height: 100%; }
+.app .salon-detail .evsum-seg--positive { background: #15803d; }
+.app .salon-detail .evsum-seg--neutral  { background: #c9c6c0; }
+.app .salon-detail .evsum-seg--negative { background: #c0392b; }
+.app .salon-detail .evsum-legend {
+  list-style: none; margin: 1rem 0 0; padding: 0;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem 1.5rem;
+}
+.app .salon-detail .evsum-legend li { display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem; }
+.app .salon-detail .evsum-dot { width: 9px; height: 9px; border-radius: 2px; flex: none; }
+.app .salon-detail .evsum-dot--positive { background: #15803d; }
+.app .salon-detail .evsum-dot--neutral  { background: #c9c6c0; }
+.app .salon-detail .evsum-dot--negative { background: #c0392b; }
+.app .salon-detail .evsum-legend-label { font-size: 0.8125rem; color: var(--c-ink-2); }
+.app .salon-detail .evsum-legend-n {
+  flex: 1 0 100%; font-size: 0.8125rem; color: var(--c-muted); font-variant-numeric: tabular-nums;
+}
+.app .salon-detail .evsum-legend-n b { color: var(--c-ink); font-weight: 600; font-size: 0.9375rem; }
+
+/* The two cards beneath. */
+.app .salon-detail .evsum-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; align-items: start; }
+.app .salon-detail .evcard {
+  display: flex; flex-direction: column;
+  padding: 1.25rem 1.4rem 1.4rem;
+  background: var(--c-white); border: 1px solid var(--c-line); border-radius: 14px;
+}
+.app .salon-detail .evcard-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.app .salon-detail .evcard-head {
+  margin: 0; font-size: 0.9375rem; font-weight: 600; letter-spacing: -0.01em; color: var(--c-ink);
+}
+.app .salon-detail .evcard-tag {
+  flex: none; padding: 0.25rem 0.55rem; border: 1px solid var(--c-line-strong); border-radius: 6px;
+  font-size: 0.75rem; color: var(--c-muted); white-space: nowrap;
+}
+.app .salon-detail .evcard-note { margin: 0.4rem 0 1.1rem; font-size: 0.8125rem; line-height: 1.5; color: var(--c-muted); }
+.app .salon-detail .evcard-foot { margin: 1.1rem 0 0; font-size: 0.75rem; line-height: 1.5; color: var(--c-muted); }
+.app .salon-detail .evcard-more { align-self: flex-start; margin-top: 1.1rem; padding: 0 !important; font-size: 0.8125rem !important; }
+.app .salon-detail .evcard-alert {
+  display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0 0 1.1rem; padding: 0.7rem 0.85rem;
+  border: 1px solid var(--c-danger-line); border-radius: 10px; background: var(--c-danger-wash);
+  font-size: 0.8125rem; line-height: 1.5; color: var(--c-ink-2);
+}
+.app .salon-detail .evcard-alert b { color: var(--c-danger); font-weight: 600; }
+
+/* Staff rows: name and counts, then the share of mentions that are positive. */
+.app .salon-detail .evstaff { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1rem; }
+.app .salon-detail .evstaff-row { display: grid; grid-template-columns: minmax(0, 1fr) 4.5rem 2.5rem; align-items: center; gap: 0.75rem; }
+.app .salon-detail .evstaff-id { min-width: 0; }
+.app .salon-detail .evstaff-name {
+  padding: 0; border: 0; background: none; cursor: pointer; text-align: left;
+  font: 600 0.875rem/1.3 var(--font-text); color: var(--c-ink);
+}
+.app .salon-detail .evstaff-name:hover { text-decoration: underline; text-underline-offset: 3px; }
+.app .salon-detail .evstaff-counts { margin: 0.15rem 0 0; font-size: 0.75rem; color: var(--c-muted); }
+.app .salon-detail .evstaff-bar { display: block; height: 5px; border-radius: 3px; background: var(--c-track); overflow: hidden; }
+.app .salon-detail .evstaff-bar > span { display: block; height: 100%; border-radius: 3px; }
+.app .salon-detail .evstaff-pct { font-size: 0.8125rem; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Complaint-handling rows. */
+.app .salon-detail .evbars { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1rem; }
+.app .salon-detail .evbars-row { display: grid; grid-template-columns: minmax(0, 1fr) 4.5rem 2.75rem; align-items: center; gap: 0.75rem; }
+.app .salon-detail .evbars-label { font-size: 0.8125rem; color: var(--c-ink-2); }
+.app .salon-detail .evbars-bar { display: block; height: 5px; border-radius: 3px; background: var(--c-track); overflow: hidden; }
+.app .salon-detail .evbars-bar > span { display: block; height: 100%; border-radius: 3px; background: var(--c-ink-2); }
+.app .salon-detail .evbars-n {
+  font-size: 0.75rem; line-height: 1.3; color: var(--c-muted); text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.app .salon-detail .evstaff-name:focus-visible,
+.app .salon-detail .evcard-more:focus-visible { outline: 2px solid var(--c-ink); outline-offset: 2px; }
+
+@media (max-width: 900px) {
+  .app .salon-detail .evsum-top { grid-template-columns: minmax(0, 1fr); gap: 1.75rem; }
+  .app .salon-detail .evsum-cards { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .app .salon-detail .evsum-legend { grid-template-columns: minmax(0, 1fr); gap: 0.5rem; }
+  .app .salon-detail .evsum-legend li { flex-wrap: nowrap; justify-content: space-between; }
+  .app .salon-detail .evsum-legend-n { flex: 0 0 auto; }
+  .app .salon-detail .evsum-num { font-size: 2.25rem; }
+}
+
+
+/* No-data categories (29_no_data_dimensions.sql): nobody wrote about them, so
+   they are left out of the score. Drawn quiet and grey -- present, so the
+   reader can see the gap, but plainly not a score. */
+.app .slr-cats li.slr-cat--nodata .slr-cat-num { color: #a8a29a; font-weight: 500; }
+.app .slr-cats li.slr-cat--nodata .slr-cat-label { color: #a8a29a; }
+.app .salon-detail .csl-band--nodata {
+  color: #8b857c !important; background: transparent !important;
+  border: 1px dashed #cfc9c0 !important; font-weight: 500;
+}
+.app .salon-detail .csl-row--nodata .csl-score { color: #a8a29a !important; }
+.app .salon-detail .csl-row--nodata .csl-blurb { color: #8b857c; font-style: italic; }
+
+
+
+/* "Rank all of Hair": the whole-category pick in the services menu. Plain
+   text in the same quiet style as the service headings beside it; only the
+   one in use is underlined, as they are. */
+.app .svcmega-all {
+  display: inline-block; margin: 0 0 1rem; padding: 0; cursor: pointer;
+  border: 0; background: none; text-align: left;
+  font: 600 0.75rem/1.3 var(--font-text); letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-muted);
+}
+.app .svcmega-all:hover { color: var(--c-ink); }
+.app .svcmega-all.is-on { color: var(--c-ink); text-decoration: underline; text-underline-offset: 3px; }
+.app .svcmega-all:focus-visible { outline: 2px solid var(--c-ink); outline-offset: 2px; }
+
+
+/* Cards in the nearby and no-service sections are the same rows as the main
+   list, so they carry the same hairlines: a rule above the first and under
+   every one, including the last, so the block reads as a closed list instead
+   of a card floating under a heading. */
+.app .nearby-section .salon-grid { border-top: 1px solid var(--c-line); }
+.app .nearby-section .slr:last-child { border-bottom: 1px solid var(--c-line); }
+
+
+/* About · the numbered checks (01-04). The ring round each circle was a dark
+   4px halo (#160e14) made to blend with the old dark page, so on this light
+   page it showed as a black outline; and the rail between them was a
+   champagne gradient that read as black at the top. Both now use the theme:
+   a white halo that simply cuts the rail clean around each circle (the circle
+   keeps its own tinted fill and coloured border from the rules above), and a
+   rail in the accent colour fading out. */
+.app .about-check-no { box-shadow: 0 0 0 4px var(--c-white) !important; }
+.app .about-checks::before {
+  background: linear-gradient(180deg, var(--c-accent), rgb(211 148 95 / 0.12)) !important;
+}
+
+
+/* About · "a salon you'll love." The accent span holds an <em>, and the rule
+   that greys every heading <em> on this page (.app .about h1 em) is more
+   specific than the accent's own colour, so "love." went ash grey. Inside the
+   accent span the <em> now takes the accent. The accent itself uses the theme
+   button colour rather than a hard-coded hex, so the two cannot drift apart. */
+.app .about-accent, .app .about-accent * { color: var(--c-accent-btn) !important; }
+.app .about h1 .about-accent em,
+.app .about h2 .about-accent em { color: var(--c-accent-btn) !important; }
+
+
+/* About · "Your salon is already waiting." The italic word in a heading takes
+   the theme accent, not the muted grey the page applies to a heading <em>:
+   a closing line that fades to ash on its last word reads as unfinished. The
+   same colour as the accent in the hero ("a salon you'll love."). */
+.app .about-cta h2 em,
+.app .about h2 em { color: var(--c-accent-btn) !important; }
+
+
+/* ══ Choose a service ═════════════════════════════════════════
+   The page before a service is picked: favourites as chips, each category as
+   a tile, then the three steps. Theme colours only, so it sits with the
+   rest of the explore page. */
+.app .choose { display: grid; gap: 2rem; padding: 1.75rem 0 2.5rem; }
+.app .choose-head { max-width: 40rem; }
+.app .choose-title { margin: 0 0 0.4rem; font: 500 1.625rem/1.2 var(--font-text); letter-spacing: -0.02em; color: var(--c-ink); }
+.app .choose-lede { margin: 0; font-size: 0.9375rem; line-height: 1.6; color: var(--c-ink-3); }
+.app .choose-label {
+  margin: 0 0 0.7rem; font: 600 0.75rem/1.3 var(--font-text);
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-muted);
+}
+.app .choose-chips, .app .choose-tiles, .app .choose-steps { list-style: none; margin: 0; padding: 0; }
+
+.app .choose-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.app .choose-chip {
+  display: inline-flex; align-items: baseline; gap: 0.5rem; cursor: pointer;
+  padding: 0.55rem 1rem; border-radius: 999px;
+  color: var(--c-ink); background: var(--c-white); border: 1px solid var(--c-line-strong);
+  font: 500 0.9rem/1.2 var(--font-text);
+  transition: border-color .15s, background .15s, transform .15s;
+}
+.app .choose-chip:hover { background: var(--c-hover-warm); border-color: var(--c-hover-warm); transform: translateY(-1px); }
+
+.app .choose-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.9rem; }
+.app .choose-tile {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 0.45rem; width: 100%; height: 100%;
+  padding: 1.15rem 1.1rem 1rem; text-align: left; cursor: pointer;
+  background: var(--c-white); border: 1px solid var(--c-line); border-radius: 14px;
+  transition: border-color .15s, box-shadow .15s, transform .15s;
+}
+.app .choose-tile:hover { background: var(--c-hover-warm); border-color: var(--c-hover-warm); transform: translateY(-2px); }
+.app .choose-tile-name { font: 600 1.0625rem/1.25 var(--font-text); color: var(--c-ink); }
+.app .choose-tile-cover { flex: 1; font-size: 0.8125rem; line-height: 1.5; color: var(--c-muted); }
+.app .choose-tile-go { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8125rem; font-weight: 600; color: var(--c-accent-btn); }
+.app .choose-tile:hover .choose-tile-go svg { transform: translateX(3px); }
+.app .choose-tile-go svg { transition: transform .15s; }
+
+.app .choose-steps {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem;
+  padding-top: 1.5rem; border-top: 1px solid var(--c-line);
+}
+.app .choose-steps li { display: flex; align-items: flex-start; gap: 0.75rem; }
+.app .choose-step-no {
+  flex: none; display: grid; place-items: center; width: 1.9rem; height: 1.9rem;
+  border-radius: 50%; border: 1px solid var(--c-accent-btn); background: var(--c-white);
+  font: 600 0.8125rem/1 var(--font-text); color: var(--c-accent-btn);
+}
+.app .choose-step-body { display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.8125rem; line-height: 1.5; color: var(--c-muted); }
+.app .choose-step-body strong { font-size: 0.9rem; font-weight: 600; color: var(--c-ink); }
+.app .choose :focus-visible { outline: 2px solid var(--c-ink); outline-offset: 2px; }
+
+@media (max-width: 62rem) { .app .choose-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 40rem) {
+  .app .choose-tiles { grid-template-columns: 1fr; }
+  .app .choose-steps { grid-template-columns: 1fr; }
+  .app .choose-title { font-size: 1.375rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app .choose-chip, .app .choose-tile, .app .choose-tile-go svg { transition: none; transform: none !important; }
+}
+
+
+/* "Show these N salons" / "Show all N" in the nearby and no-service sections.
+   The base .btn-text colour is a pale champagne made for the old dark page,
+   which is close to invisible on white. Here it takes the theme's bronze
+   (4.59:1 on white), darkening on hover, with an underline so it reads as a
+   link and not as a heading. */
+.app .nearby-section .btn-text {
+  color: var(--c-accent-btn) !important;
+  font-size: 0.8125rem; font-weight: 600;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.app .nearby-section .btn-text:hover { color: var(--c-accent-btn-deep) !important; }
+.app .nearby-section .btn-text:focus-visible { outline: 2px solid var(--c-ink); outline-offset: 2px; }

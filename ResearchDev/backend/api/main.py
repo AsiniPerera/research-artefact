@@ -269,8 +269,15 @@ _RANK_CACHE_TTL = 300.0
 _RANK_CACHE_MAX = 400
 
 
-def _sub_service_or_404(cur, code: str) -> dict:
-    """The ref.dim_service row for `code`, or 404.
+def _target_or_404(cur, code: str) -> dict:
+    """What `code` names -- a sub-service (HR.CUT.01), a service (HR.CUT) or a
+    whole category (HR) -- with the names of every level above it, or 404.
+
+    A reader can rank any of the three. `level` says which one was asked for,
+    and the fallback ladder starts there: a sub-service can widen to its
+    service and then its category, a service only to its category, a category
+    nowhere. `tier` is the sub-service's irreversibility tier and is None for a
+    service or category, which mixes tiers.
 
     Every ranking route starts here, so an unknown code fails once with a clear
     message instead of returning an empty ranking that reads as "no salons
@@ -282,9 +289,36 @@ def _sub_service_or_404(cur, code: str) -> dict:
         (code,),
     )
     row = cur.fetchone()
-    if not row:
-        raise HTTPException(404, f"Unknown sub-service code: {code}")
-    return row
+    if row:
+        return {**row, "level": "sub_service"}
+    cur.execute(
+        "select service_code, service, category_code, category from ref.dim_service"
+        " where service_code = %s limit 1",
+        (code,),
+    )
+    row = cur.fetchone()
+    if row:
+        return {"code": code, "name": row["service"], "tier": None,
+                "service_code": code, "service": row["service"],
+                "category_code": row["category_code"], "category": row["category"],
+                "level": "service"}
+    cur.execute(
+        "select category_code, category from ref.dim_service where category_code = %s limit 1",
+        (code,),
+    )
+    row = cur.fetchone()
+    if row:
+        return {"code": code, "name": row["category"], "tier": None,
+                "service_code": None, "service": None,
+                "category_code": code, "category": row["category"],
+                "level": "category"}
+    raise HTTPException(404, f"Unknown service code: {code}")
+
+
+def _ladder(target: dict):
+    """The fallback levels from the one the reader picked upward."""
+    start = [lvl for lvl, _, _ in _FALLBACK_LEVELS].index(target["level"])
+    return _FALLBACK_LEVELS[start:]
 
 
 # The framework holds nine categories; the client sends SEVEN numbers, one per
@@ -558,13 +592,27 @@ def _attach_category_scores(cur, rows, level_used, shown, window="all"):
     06_run_scoring.py section 3b); the frontend does not render a tile for
     it, the same treatment Categories 3 and 8 already get.
     """
+    # "none" means no level could rank anyone. The rows are then the widest
+    # level the search reached -- the category -- so their breakdown is read at
+    # that level too. Without it a salon listed for lack of anything better had
+    # no category scores, no arrow and nothing to open.
+    if level_used == "none":
+        level_used = "category"
     if not (rows and level_used in _LEVEL_COL and shown):
         return
     place_ids = [r["place_id"] for r in rows]
     cur.execute(
         f"""
+        -- Pooled the way the ranking pools it (29_no_data_dimensions.sql):
+        -- weighted by evidence, over the sub-services that HAVE data for the
+        -- category. No data anywhere comes back as score null, evidence_count
+        -- 0, never as the 0.5 placeholder the table stores; the caller then
+        -- turns that into the 0 a weighted category scores.
         select c.place_id, c.category_no,
-               round(avg(c.score), 4) as score,
+               round(case when sum(c.evidence_weight) filter (where c.evidence_count > 0) > 0
+                          then sum(c.score * c.evidence_weight) filter (where c.evidence_count > 0)
+                               / sum(c.evidence_weight) filter (where c.evidence_count > 0)
+                          else avg(c.score) filter (where c.evidence_count > 0) end, 4) as score,
                sum(c.evidence_count)  as evidence_count
         from score.category_score c
         join ref.dim_service d using (sub_service_code)
@@ -580,7 +628,10 @@ def _attach_category_scores(cur, rows, level_used, shown, window="all"):
     for cs in cur.fetchall():
         by_place.setdefault(cs["place_id"], []).append({
             "category_no": cs["category_no"],
-            "score": float(cs["score"]),
+            # No data (evidence_count 0) comes back as null, never the stored
+            # 0.5 placeholder: the ranking leaves such a category out of the
+            # score (29_no_data_dimensions.sql), and the screen shows a dash.
+            "score": None if cs["score"] is None else float(cs["score"]),
             "evidence_count": cs["evidence_count"],
         })
     for r in rows:
@@ -719,7 +770,7 @@ def rankings_nearby(
         raise HTTPException(400, "A city is required to find nearby salons.")
 
     with cursor() as cur:
-        sub = _sub_service_or_404(cur, sub_service_code)
+        sub = _target_or_404(cur, sub_service_code)
 
         cur.execute(
             """
@@ -738,7 +789,7 @@ def rankings_nearby(
 
         # District-wide (no city filter), then kept to nearby other cities.
         level_used, shown, rows = "none", None, []
-        for level, code_key, name_key in _FALLBACK_LEVELS:
+        for level, code_key, name_key in _ladder(sub):
             code, name = sub[code_key], sub[name_key]
             found = _rank_rows(cur, level, code, w, "", status, window=cw)
             shown, rows = {"code": code, "name": name}, found
@@ -836,10 +887,10 @@ def rankings(
     if hit and time.monotonic() - hit[0] < _RANK_CACHE_TTL:
         return hit[1]
     with cursor() as cur:
-        sub = _sub_service_or_404(cur, sub_service_code)
+        sub = _target_or_404(cur, sub_service_code)
 
         level_used, shown, rows = "none", None, []
-        for level, code_key, name_key in _FALLBACK_LEVELS:
+        for level, code_key, name_key in _ladder(sub):
             code, name = sub[code_key], sub[name_key]
             found = _rank_rows(cur, level, code, w, city, status, window=cw)
             shown, rows = {"code": code, "name": name}, found
@@ -882,6 +933,7 @@ def rankings(
         # tier. `requested` repeats the code and name for the fallback notice.
         "sub_service": sub,
         "requested": {"code": sub["code"], "name": sub["name"]},
+        "requested_level": sub["level"],
         "level_used": level_used,
         "shown": shown,
         "weights": w or [1] * WEIGHTED_CATEGORIES,
@@ -999,6 +1051,11 @@ def provider(place_id: str, consistency_window: str = Query("anytime", descripti
         )
         by_service: dict[str, list] = {}
         for r in cur.fetchall():
+            # evidence_count 0 = no data: the stored 0.5 is a placeholder
+            # (29_no_data_dimensions.sql), so it is sent as null, not a score.
+            # The ranking leaves such a category out, and the screen shows a dash.
+            if not r["evidence_count"]:
+                r["score"] = None
             by_service.setdefault(r.pop("sub_service_code"), []).append(r)
 
         # The services this provider's EVIDENCE is actually filed under.
@@ -1124,6 +1181,106 @@ def provider_overall(
     out = overall_figure(rows, ref, weights=w, window=cw, today=datetime.date.today())
     out["window"] = cw
     return out
+
+
+@app.get("/general-feedback")
+def general_feedback(
+    weights: str | None = Query(None, description="Seven comma-separated priorities, "
+                                                  "category 1 to 7, as /rankings takes them."),
+    city: str | None = Query(None, description="Optional city filter (case-insensitive)"),
+    status: str = Query("any", pattern="^(open|closed|any)$"),
+    consistency_window: str = Query("anytime", description="6m, 1y, 3y or anytime"),
+):
+    """Salons that have feedback about the quality categories but name no
+    service, scored by the reader's own priorities.
+
+    Rankings are built per service, so a salon whose statements carry no
+    service or category tag has nowhere to attach and gets no row in
+    score.trust_score: it is in no ranking at all. Its feedback is still real
+    -- about the work, the staff, the price, the cleanliness -- so it is
+    listed here instead, under a section of its own.
+
+    The score is the profile's overall salon score (overall.py), not a ranking
+    score: the same per-statement arithmetic over ALL of the salon's feedback,
+    weighted by the reader's priorities, with a category nobody wrote about
+    left out rather than counted as 0.5 (29_no_data_dimensions.sql). The
+    Overall Verdict is left out, as in the ranking, so these scores are read on
+    the same footing as the list above them. Display only: nothing here is
+    stored or ranked, and it names no service, so it is never offered as a
+    ranking for one.
+    """
+    w = _parse_weights(weights)
+    cw = _window(consistency_window)
+    city = (city or "").strip()
+    with cursor() as cur:
+        cur.execute("select max(published_at)::date as d from raw.review")
+        ref = cur.fetchone()["d"]
+        if ref is None:
+            return {"count": 0, "salons": [], "window": cw}
+        cur.execute(
+            f"""
+            select e.place_id, p.name as provider_name, p.city,
+                   p.permanently_closed, p.temporarily_closed,
+                   sp.category_no, e.confidence, e.polarity, e.severity,
+                   r.published_at::date as published
+            from extract.evidence_item e
+            join ref.sub_point sp on sp.code = e.sub_point_code
+            join raw.review r on r.review_id = e.review_id
+            join raw.provider p on p.place_id = e.place_id
+            where sp.category_no in (1, 2, 4, 5, 6, 7)
+              and e.polarity in ('positive', 'negative', 'mixed')
+              and not coalesce(e.reviewer_fault, false)
+              and not coalesce(e.needs_manual_check, false)
+              and not exists (
+                    select 1 from score.trust_score t
+                    where t.place_id = e.place_id
+                      and t.scoring_run_id = {_LATEST_RUN}
+                      and t.window_code = %s)
+              and (%s = '' or lower(trim(p.city)) = lower(%s))
+              and (%s = 'any'
+                   or (%s = 'open'   and not (p.permanently_closed or p.temporarily_closed))
+                   or (%s = 'closed' and (p.permanently_closed or p.temporarily_closed)))
+            """,
+            (cw, city, city, status, status, status),
+        )
+        by_place: dict[str, dict] = {}
+        for r in cur.fetchall():
+            by_place.setdefault(r["place_id"], {"meta": r, "rows": []})["rows"].append(r)
+
+        today = datetime.date.today()
+        scored = []
+        for pid, g in by_place.items():
+            out = overall_figure(g["rows"], ref, weights=w, window=cw, today=today)
+            if out["score"] is None:
+                continue
+            scored.append((pid, g["meta"], out))
+        counts = _review_counts(cur, [pid for pid, _, _ in scored])
+
+    salons = []
+    for pid, m, out in sorted(scored, key=lambda t: -t[2]["score"]):
+        c = counts.get(pid, {})
+        salons.append({
+            "place_id": pid,
+            "provider_name": m["provider_name"],
+            "city": m["city"],
+            "personal_score": out["score"],
+            "rank_no": None,
+            "rank_status": "available but not ranked",
+            "evidence_reviews": 0,
+            "badges": None,
+            "permanently_closed": m["permanently_closed"],
+            "temporarily_closed": m["temporarily_closed"],
+            "reviews_total": c.get("reviews", 0),
+            "total_feedbacks": c.get("written", 0),
+            "audience": _AUDIENCE.get(pid),
+            "statements": out["statements"],
+            "category_scores": [
+                {"category_no": cat["category_no"], "score": cat["score"],
+                 "evidence_count": cat["statements"]}
+                for cat in out["categories"] if cat["category_no"] != 8
+            ],
+        })
+    return {"count": len(salons), "salons": salons, "window": cw}
 
 
 @app.get("/providers/{place_id}/sentiment")

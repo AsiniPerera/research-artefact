@@ -105,3 +105,15 @@ def test_f25_route_bad_window_returns_422():
 def test_f26_route_bad_status_returns_422():
     # status is validated by FastAPI's own regex pattern on the query param
     assert client.get(RANK, params={"status": "maybe"}).status_code == 422
+
+
+# ── Ranking at any of the three levels ───────────────────────────────────────
+# A reader can rank a sub-service, a service or a whole category, and the
+# fallback only ever widens UPWARD from the level they picked.
+
+def test_ladder_starts_at_the_level_the_reader_picked():
+    from main import _ladder
+    levels = lambda lvl: [step[0] for step in _ladder({"level": lvl})]
+    assert levels("sub_service") == ["sub_service", "service", "category"]
+    assert levels("service") == ["service", "category"]
+    assert levels("category") == ["category"]

@@ -80,6 +80,21 @@ export const getNearbyRankings = (code, weights, city, status, consistencyWindow
   }, opts);
 
 /**
+ * Salons with feedback about the quality categories that names no service,
+ * scored by the reader's own priorities (the same arithmetic as the profile's
+ * overall score). They are in no ranking, so they get a section of their own.
+ * Returns { count, salons[], window }; each salon is shaped like a ranking row
+ * so the same card draws it.
+ */
+export const getGeneralFeedback = (weights, city, status, consistencyWindow, opts) =>
+  get("/general-feedback", {
+    weights: weights?.join(","),
+    city,
+    status,
+    consistency_window: consistencyWindow,
+  }, opts);
+
+/**
  * What level a ranking was actually answered at.
  *
  * A request for a sub-service may be answered at the service or the category
@@ -95,14 +110,29 @@ export const getNearbyRankings = (code, weights, city, status, consistencyWindow
  */
 export function rankingFallback(data) {
   const level = data?.level_used;
-  if (!level || level === "sub_service") return null;
+  /* The reader can rank a sub-service, a service or a whole category. A
+     notice is only needed when the answer came from a broader level than the
+     one picked; older responses carry no requested_level and were always a
+     sub-service request. */
+  const requestedLevel = data?.requested_level ?? "sub_service";
+  if (!level || level === requestedLevel) return null;
   if (level !== "service" && level !== "category" && level !== "none") return null;
-  /* `sub_service` is the request echo every response has carried; keep it as
-     the fallback for `requested` so the notice can still name the service. */
+  /* The levels from the reader's pick upward, named from the response echo
+     (which carries the service and category names), so the notice can name
+     every level it tried and not only the one it landed on. */
+  const sub = data.sub_service ?? {};
+  const order = ["sub_service", "service", "category"];
+  const names = { sub_service: sub.name ?? data.requested?.name, service: sub.service, category: sub.category };
+  if (requestedLevel === "service") names.service = sub.name ?? names.service;
+  const path = order.slice(order.indexOf(requestedLevel))
+    .map((lvl) => ({ level: lvl, name: names[lvl] }))
+    .filter((step) => step.name);
   return {
     level,
+    requestedLevel,
     requested: data.requested ?? data.sub_service ?? null,
     shown: data.shown ?? null,
+    path,
   };
 }
 

@@ -1,86 +1,47 @@
-/* The top-level service picker, mounted in App.jsx above the main content. */
-import { useEffect, useRef, useState } from "react";
+/* The services mega menu, opened from Explore in the top nav. */
+import { useState } from "react";
 import { DOMAINS, groupsFor } from "../constants/taxonomy";
-import { CLOSE_GRACE_MS } from "./flyoutPlacement";
 
 /**
- * The services bar: five domains across, each opening a panel of its groups
- * and every service under them.
+ * The four categories as a row, and the services of whichever one is being
+ * read beneath it.
  *
- * It reports a pick rather than performing one, so the same component can
- * set a filter in place on the Explore page or route somewhere else — the
- * caller decides which. onPick(family, leafValue, groupId).
+ * A category tab only switches what the panel shows; hovering it must not
+ * pick. Any of the three levels can be ranked, each by its own click: "Rank
+ * all of Hair" for the whole category, a group heading (Haircuts) for a
+ * service, or a leaf (Haircut & Trim) for one sub-service.
  *
- * The panel is positioned inside the bar rather than portalled to <body>,
- * unlike the sidebar's rails. Those had to escape a `position: sticky`
- * ancestor that trapped them in its stacking context; this bar has no such
- * parent, so a plain absolute panel is enough and keeps the markup where the
- * markup belongs.
+ * It reports a pick rather than performing one — onPick(family, leafValue,
+ * groupId) — so the caller decides whether that routes or sets a filter.
+ * Opening, closing and placement belong to the caller too: this is the panel
+ * and nothing else.
  */
-export function ServicesNav({ activeFamily, onPick }) {
-  const [open, setOpen] = useState(null);
-  const closeTimer = useRef(null);
-  const barRef = useRef(null);
-
-  const hold = () => clearTimeout(closeTimer.current);
-
-  /* A grace period on the way out, so crossing the gap between a tab and its
-     panel doesn't close what you were reaching for. */
-  const scheduleClose = () => {
-    clearTimeout(closeTimer.current);
-    closeTimer.current = setTimeout(() => setOpen(null), CLOSE_GRACE_MS);
-  };
-
-  const closeNow = () => {
-    clearTimeout(closeTimer.current);
-    setOpen(null);
-  };
-
-  /* A pending timer must not outlive the component, or it fires setState
-     against an unmounted tree. */
-  useEffect(() => () => clearTimeout(closeTimer.current), []);
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e) => e.key === "Escape" && closeNow();
-    /* Not on scroll: the panel is anchored to the bar and travels with it,
-       so scrolling never strands it the way a portalled panel would. */
-    const onDown = (e) => {
-      if (barRef.current && !barRef.current.contains(e.target)) closeNow();
-    };
-    window.addEventListener("keydown", onKey);
-    document.addEventListener("pointerdown", onDown);
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.removeEventListener("pointerdown", onDown);
-    };
-  }, [open]);
-
-  function pick(family, sub, groupId = null) {
-    closeNow();
-    onPick(family, sub, groupId);
-  }
+export function ServicesMegaPanel({ activeFamily, activeSub, activeGroup, onPick, ...rest }) {
+  /* Opens on the category being ranked, so the panel starts where the reader
+     already is. The panel unmounts when it closes, so this re-reads on every
+     open rather than going stale. */
+  const [shown, setShown] = useState(
+    () => (DOMAINS.some((d) => d.value === activeFamily) ? activeFamily : DOMAINS[0].value),
+  );
+  const groups = groupsFor(shown);
+  const shownDomain = DOMAINS.find((d) => d.value === shown);
 
   return (
-    <div className="svcbar" ref={barRef} onMouseLeave={scheduleClose} onMouseEnter={hold}>
-      <div className="svcbar-inner">
-        <span className="svcbar-label">Services</span>
-
-        <ul className="svcbar-tabs">
+    <div className="svcmega" {...rest}>
+      <div className="svcmega-bar">
+        <span className="svcmega-label">Services</span>
+        <ul className="svcmega-tabs">
           {DOMAINS.map(({ id, value, label }) => (
             <li key={id}>
               <button
                 type="button"
-                className={`svcbar-tab ${activeFamily === value ? "is-active" : ""} ${
-                  open === value ? "is-open" : ""
+                className={`svcmega-tab ${shown === value ? "is-shown" : ""} ${
+                  activeFamily === value ? "is-active" : ""
                 }`}
-                aria-expanded={open === value}
-                aria-haspopup="true"
-                onMouseEnter={() => { hold(); setOpen(value); }}
-                onFocus={() => { hold(); setOpen(value); }}
-                /* Click goes straight to the domain — the panel is a way to
-                   go deeper, never the only way through. */
-                onClick={() => pick(value, null)}
+                aria-pressed={shown === value}
+                onMouseEnter={() => setShown(value)}
+                onFocus={() => setShown(value)}
+                onClick={() => setShown(value)}
               >
                 {label}
               </button>
@@ -89,41 +50,50 @@ export function ServicesNav({ activeFamily, onPick }) {
         </ul>
       </div>
 
-      {open && (
-        <div className="svcbar-panel" onMouseEnter={hold} onMouseLeave={scheduleClose}>
-          <div className="svcbar-panel-inner">
-            {groupsFor(open).map((group) => (
-              <div className="svcbar-col" key={group.id}>
-                {/* The heading is pickable too: choosing a group means "any
-                    service under this one", which is a real thing to want and
-                    was otherwise only reachable from the old sidebar rail. */}
-                <button
-                  type="button"
-                  className="svcbar-col-head"
-                  onClick={() => pick(open, null, group.id)}
-                >
-                  <span className="svcbar-col-name">{group.label}</span>
-                  <span className="svcbar-col-count">{group.leaves.length}</span>
-                </button>
-                <ul>
-                  {group.leaves.map((leaf) => (
-                    <li key={leaf.value}>
-                      <button type="button" onClick={() => pick(open, leaf.value)}>
-                        {leaf.label}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-          {/* The panel is a way to go deeper, never the only way through. */}
-          <button type="button" className="svcbar-all" onClick={() => pick(open, null)}>
-            Show everything in {DOMAINS.find((d) => d.value === open)?.label}
-            <span aria-hidden="true">&rarr;</span>
-          </button>
-        </div>
+      {/* Rank the whole category at once. Passed as the category code in the
+          group slot (e.g. "HR"); Rankings reads a dot-free code there as a
+          whole-category pick. */}
+      {shownDomain && (
+        <button
+          type="button"
+          className={`svcmega-all ${activeGroup === shownDomain.id ? "is-on" : ""}`}
+          aria-current={activeGroup === shownDomain.id ? "true" : undefined}
+          onClick={() => onPick(shown, null, shownDomain.id)}
+        >
+          All {shownDomain.label}
+        </button>
       )}
+
+      <div className="svcmega-groups">
+        {groups.map((group) => (
+          <div className="svcmega-group" key={group.id}>
+            {/* The heading is pickable: choosing a group means "any service
+                under this one", which is a real thing to want and is
+                otherwise unreachable. */}
+            <button
+              type="button"
+              className={`svcmega-grouphead ${activeGroup === group.id ? "is-on" : ""}`}
+              onClick={() => onPick(shown, null, group.id)}
+            >
+              {group.label}
+            </button>
+            <ul>
+              {group.leaves.map((leaf) => (
+                <li key={leaf.value}>
+                  <button
+                    type="button"
+                    className={activeSub === leaf.value ? "is-on" : ""}
+                    aria-current={activeSub === leaf.value ? "true" : undefined}
+                    onClick={() => onPick(shown, leaf.value)}
+                  >
+                    {leaf.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

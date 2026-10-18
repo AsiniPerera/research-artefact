@@ -16,12 +16,12 @@ import { CATEGORY_INFO, isShownCategory } from "../constants/categories";
 import { StaffReputation } from "../components/StaffReputation";
 import { ResponsivenessRing } from "../components/ResponsivenessRing";
 import { OverallSalonScore } from "../components/OverallSalonScore";
+import { FeedbackTotals } from "../components/FeedbackTotals";
 import { responsivenessFigure, verdictFor } from "../lib/responsiveness";
-import { getScoreStyle, badgeStyle } from "../lib/scoreScale";
+import { getScoreStyle, verdictInk } from "../lib/scoreScale";
 import { subServiceView } from "../lib/subServiceRows";
 import { PopularServicesBadge } from "../components/PopularServicesBadge";
 import { SpecialismBadge } from "../components/SpecialismBadge";
-import { LanguageMix } from "../components/LanguageMix";
 
 const EVIDENCE_PAGE = 20;
 
@@ -136,15 +136,7 @@ function EvidenceRows({ rows, salonName }) {
             )}
 
             {/* The owner's answer, shown once per review. */}
-            {g.reply_text && (
-              <div className="evidence-reply">
-                <p className="evidence-reply-who">
-                  Salon replied
-                  {g.reply_date ? ` · ${String(g.reply_date).slice(0, 10)}` : ""}
-                </p>
-                <EvidenceQuote text={g.reply_text} />
-              </div>
-            )}
+            {g.reply_text && <EvidenceReply text={g.reply_text} date={g.reply_date} />}
 
             {/* Named staff, one line, bottom-right. */}
             {staff.length > 0 && (
@@ -159,6 +151,25 @@ function EvidenceRows({ rows, salonName }) {
     </ul>
   );
 }
+
+/* The owner's answer, folded: one line saying there is a reply and when, the
+   reply itself on click. A page of reviews read as a page of replies before. */
+function EvidenceReply({ text, date }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`evidence-reply ${open ? "is-open" : ""}`}>
+      <button type="button" className="evidence-reply-toggle" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+        Salon replied{date ? ` · ${String(date).slice(0, 10)}` : ""} <span aria-hidden="true">{open ? "−" : "+"}</span>
+      </button>
+      {open && <EvidenceQuote text={text} />}
+    </div>
+  );
+}
+
+/* The categories the profile summarises from customer feedback. Category 3
+   (Management Responsiveness) is scored from the owner's replies instead, and
+   has its own panel, so it is not one of these. */
+const SUMMARY_CATEGORIES = [1, 2, 4, 5, 6, 7];
 
 const POLARITIES = [
   { value: "", label: "Any" },
@@ -355,48 +366,28 @@ function Donut({ counts, score, label }) {
    be a separate "Salon Info" tab. The Google figure is a reference fact about
    the business; it is not used in any score. Renders nothing when there is
    nothing to show, rather than an empty box. */
-function SalonInformation({ p, gates }) {
-  const address = p.address
-    ? `${p.address}${p.city && !String(p.address).includes(p.city) ? `, ${p.city}` : ""}`
-    : null;
-  if (p.google_rating == null && !address && gates.length === 0) return null;
+function SalonInformation({ gates }) {
+  /* The rating and the address used to sit here too, repeating the header.
+     They live in the header now; this block shows only the notices. */
+  if (gates.length === 0) return null;
 
   return (
     <section className="profile-info">
-      <h3 className="profile-info-head">Salon information</h3>
-      <div className="profile-info-grid">
-        {p.google_rating != null && (
-          <div className="info-block">
-            <p className="info-label">Google rating</p>
-            <p className="info-value">★ {p.google_rating} <span className="info-sub">({p.google_review_count} customer feedbacks — reference only)</span></p>
-          </div>
-        )}
-        {address && (
-          <div className="info-block">
-            <p className="info-label">Address</p>
-            <p className="info-value">{address}</p>
-          </div>
-        )}
-      </div>
-      {gates.length > 0 && (
-        <div className="info-block">
-          <p className="info-label">Notices</p>
-          <ul className="gate-list">
-            {gates.map((g) => (
-              <li key={`${g.sub_point_code}-${g.kind}`} className={`gate gate--${g.kind}`}>
-                <strong>{g.kind} {g.sub_point_code}</strong>
-                <span>{g.customer_question}</span>
-                <small>
-                  {g.status}
-                  {g.report_count !== undefined ? ` · ${g.report_count} reports` : ""}
-                  {g.disputed_reports ? ` (${g.disputed_reports} disputed by the owner)` : ""}
-                  {g.expires_on ? ` · expires ${String(g.expires_on).slice(0, 10)}` : ""}
-                </small>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <h3 className="profile-info-head">Notices</h3>
+      <ul className="gate-list">
+        {gates.map((g) => (
+          <li key={`${g.sub_point_code}-${g.kind}`} className={`gate gate--${g.kind}`}>
+            <strong>{g.kind} {g.sub_point_code}</strong>
+            <span>{g.customer_question}</span>
+            <small>
+              {g.status}
+              {g.report_count !== undefined ? ` · ${g.report_count} reports` : ""}
+              {g.disputed_reports ? ` (${g.disputed_reports} disputed by the owner)` : ""}
+              {g.expires_on ? ` · expires ${String(g.expires_on).slice(0, 10)}` : ""}
+            </small>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
@@ -725,41 +716,6 @@ function CategoryEvidence({ placeId, serviceCode, categoryCode, categoryNo, labe
 
 const BLANK_FILTERS = { category: "", service_code: "", status: "", category_no: "", polarity: "", named: false, language: "", sort: "" };
 
-/* A row of chips instead of a select.
- 
-   Six dropdowns asked the reader to open each one to learn what was in it,
-   and to hold the whole set in their head. Chips show every choice at once
-   and show which is on, so the page can be read rather than explored. */
-function ChipRow({ caption, hint, value, options, onChange }) {
-  return (
-    <div className="chip-row" role="group" aria-label={caption}>
-      <span className="chip-row-cap">
-        {caption}
-        {hint && <span className="chip-row-hint"> {hint}</span>}
-      </span>
-      <div className="chip-row-items">
-        {options.map((o) => {
-          const on = value === o.value;
-          return (
-            <button
-              key={o.value || "all"}
-              type="button"
-              className={`chip ${on ? "is-on" : ""} ${o.disabled ? "is-empty" : ""}`}
-              aria-pressed={on}
-              /* disabled, not hidden: it keeps its place in the row and
-                 still reads its count of zero to a screen reader. */
-              disabled={o.disabled}
-              title={o.disabled ? `No ${o.label.toLowerCase()} customer feedbacks for this salon` : o.title}
-              onClick={() => onChange(on && o.value ? "" : o.value)}
-            >
-              {o.label}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 /* The three questions the page answers, in the order a reader asks them:
    which part of the salon, what about it, and said how. Everything else that
@@ -827,43 +783,26 @@ function DetailFilters({ services, categories, sentimentTotals, languages, filte
     ...(languages ?? []).map((l) => ({ value: l.code, label: l.label, n: l.n })),
   ];
 
+  /* One row of dropdowns instead of four rows of chips. Each option keeps its
+     count in its label, so nothing the chips said is lost. */
+  const withCount = (opts) => opts.map((o) => ({ value: o.value, label: o.n != null ? `${o.label} (${o.n})` : o.label }));
   return (
-    <div className="chip-filters">
-      <ChipRow caption="Service area" value={filters.category}
-               options={categoryChips} onChange={set("category")} />
-      <ChipRow caption="What the feedback is about" hint="pick a topic"
-               value={filters.category_no} options={topicChips} onChange={set("category_no")} />
-
-      <div className="chip-row" role="group" aria-label="Said how">
-        <span className="chip-row-cap">Said how</span>
-        <div className="chip-row-items">
-          {polarityChips.map((o) => {
-            const on = filters.polarity === o.value;
-            return (
-              <button key={o.value || "all"} type="button"
-                className={`chip ${on ? "is-on" : ""} ${o.disabled ? "is-empty" : ""}`}
-                aria-pressed={on} disabled={o.disabled}
-                onClick={() => set("polarity")(on && o.value ? "" : o.value)}>
-                {o.label}
-              </button>
-            );
-          })}
-          {/* Independent toggle, offset by a divider. */}
-          <span className="chip-row-sep" aria-hidden="true" />
-          <button type="button"
-            className={`chip chip--toggle ${filters.named ? "is-on" : ""}`}
-            aria-pressed={filters.named}
-            title="Only customer feedbacks that name a staff member"
-            onClick={() => set("named")(!filters.named)}>
-            Mention
-          </button>
-        </div>
-      </div>
-
+    <div className="fb-filters">
+      <SelectMenu label="Service area" value={filters.category} options={withCount(categoryChips)} onChange={set("category")} />
+      <SelectMenu label="Topic" value={filters.category_no} options={withCount(topicChips)} onChange={set("category_no")} />
+      <SelectMenu label="Said how" value={filters.polarity} options={withCount(polarityChips)} onChange={set("polarity")} />
       {languageChips.length > 1 && (
-        <ChipRow caption="Language" value={filters.language}
-                 options={languageChips} onChange={set("language")} />
+        <SelectMenu label="Language" value={filters.language} options={withCount(languageChips)} onChange={set("language")} />
       )}
+      <button
+        type="button"
+        className={`fb-toggle ${filters.named ? "is-on" : ""}`}
+        aria-pressed={filters.named}
+        title="Only customer feedbacks that name a staff member"
+        onClick={() => set("named")(!filters.named)}
+      >
+        Names a staff member
+      </button>
     </div>
   );
 }
@@ -886,7 +825,7 @@ function SelectionSummary({ filters, categories, services }) {
 
   const narrowed = filters.polarity || filters.category_no || filters.service_code || filters.category;
   if (!narrowed) {
-    return <p className="detail-note">Every feedback behind this salon's scores. Use the chips above to narrow them.</p>;
+    return <p className="detail-note">Every feedback behind this salon's scores. Use the filters above to narrow them.</p>;
   }
   return <p className="detail-note selection-summary">Showing {bits.join(" ")}.</p>;
 }
@@ -977,8 +916,11 @@ function ServiceScoreList({ services, categoryName, categoryTrait, sentimentBy, 
     clicks. `members` carries the sibling services collapsed into this row by
     groupServices, so the summary can name all of them. */
 function ServiceScores({ service, categoryName, categoryTrait, sentimentBy, subPointBy, displayName, members, placeId, filters, salonName }) {
+  /* Category 3 (Management Responsiveness) is scored from the owner's replies,
+     not from customer feedback about this service, and has its own panel, so
+     it is not a row here. */
   const rows = categoryScoreRows(service.category_scores)
-    .filter((r) => isShownCategory(r.category_no))
+    .filter((r) => isShownCategory(r.category_no) && Number(r.category_no) !== 3)
     .slice()
     .sort((a, b) => a.category_no - b.category_no);
   const badges = splitBadges(service.badges);
@@ -1013,21 +955,33 @@ function ServiceScores({ service, categoryName, categoryTrait, sentimentBy, subP
         </div>
       )}
       <ul className="cat-score-list">
-        {rows.map((r) => {
-          const s = Math.round((r.score ?? 0) * 100);
-          const st = getScoreStyle(s);
+        {rows.map((r, i) => {
+          /* No data: nobody wrote about this category for this service. It is
+             left out of this service's ranking, so it shows a dash and a
+             "No data" label rather than a number. */
+          const noData = r.score == null || Number(r.evidence_count) === 0;
+          const s = noData ? null : Math.round(r.score * 100);
+          const st = noData ? null : getScoreStyle(s);
           return (
-            <li key={r.category_no} className="csl-row">
+            <li key={r.category_no} className={`csl-row ${noData ? "csl-row--nodata" : ""}`}>
               <div className="csl-top">
-                <span className="csl-no">{String(r.category_no).padStart(2,"0")}</span>
+                <span className="csl-no">{String(i + 1).padStart(2,"0")}</span>
                 <span className="csl-name">{CATEGORY_DISPLAY[r.category_no] ?? r.name}</span>
-                <span className={`csl-band csl-band--${st.cls}`} style={badgeStyle(st)}>{st.label}</span>
-                <span className="csl-score">{s}</span>
+                {noData ? (
+                  <span className="csl-band csl-band--nodata">No data</span>
+                ) : (
+                  <span className={`csl-band csl-band--${st.cls}`} style={verdictInk(st)}>{st.label}</span>
+                )}
+                <span className="csl-score">{noData ? "–" : s}</span>
               </div>
               <div className="csl-bar">
-                <span className="csl-bar-fill" style={{ width: `${s}%` }} />
+                <span className="csl-bar-fill" style={{ width: noData ? 0 : `${s}%` }} />
               </div>
-              <span className="csl-blurb">{CATEGORY_BLURB[r.category_no]}</span>
+              <span className="csl-blurb">
+                {noData
+                  ? "No feedbacks about this yet, so it is left out of this service's score."
+                  : CATEGORY_BLURB[r.category_no]}
+              </span>
               <EvidencePanel
                 placeId={placeId}
                 salonName={salonName}
@@ -1139,6 +1093,14 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "anytime", we
   const [replyQuality, setReplyQuality] = useState(null);
   const [filters, setFilters] = useState(BLANK_FILTERS);
   const [tab, setTab] = useState("summary");
+  /* Which category summaries are open on the Profile tab: none at first, so
+     the seven verdicts read as one short list. */
+  const [openCats, setOpenCats] = useState(() => new Set());
+  const toggleCat = (no) => setOpenCats((prev) => {
+    const next = new Set(prev);
+    if (next.has(no)) next.delete(no); else next.add(no);
+    return next;
+  });
   const [error, setError] = useState(null);
   useEffect(() => {
     const ctrl = new AbortController();
@@ -1213,12 +1175,17 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "anytime", we
 
       <header className="detail-hero">
         <div className="detail-hero-main">
-          <p className="eyebrow">Salon Profile</p>
           <h1 className="detail-name">{name}</h1>
           <p className="detail-meta">
             {p.address}
             {p.city && !String(p.address ?? "").includes(p.city) ? ` · ${p.city}` : ""}
           </p>
+          {p.google_rating != null && (
+            <p className="detail-rating-line">
+              <b>★ {p.google_rating}</b> on Google
+              {p.google_review_count ? <span> · {p.google_review_count} reviews, shown for reference only</span> : null}
+            </p>
+          )}
           <div className="detail-chips">
             <PopularServicesBadge data={provider.popular_services} />
             <SpecialismBadge data={provider.specialism} />
@@ -1295,37 +1262,39 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "anytime", we
       {/* ── Summary tab ─────────────────────────────────────────── */}
       {tab === "summary" && (
         <section className="detail-panel">
-          <SalonInformation p={p} gates={gates} />
+          <SalonInformation gates={gates} />
 
-          {/* Overall review sentiment totals */}
-          {provider.sentiment_totals && Object.keys(provider.sentiment_totals).length > 0 && (
-            <div className="summary-sentiments">
-              {Object.entries(provider.sentiment_totals).map(([pol, n]) => (
-                <div key={pol} className={`summary-sent-chip summary-sent-chip--${pol}`}>
-                  <span className="summary-sent-count">{n}</span>
-                  <span className="summary-sent-label">{pol} feedbacks</span>
-                </div>
-              ))}
+          {/* The evidence this profile rests on, before any finding: the
+              overall score beside how many feedbacks were read and how they
+              split, then who is named and what happens after a complaint. */}
+          <div className="evsum">
+            <div className="evsum-top">
+              <OverallSalonScore placeId={salonId} window={consistencyWindow} weights={weights} />
+              <FeedbackTotals totals={provider.sentiment_totals} languages={provider.languages} />
             </div>
-          )}
-
-          {/* Who the reviews name, and what language they are in: two facts
-              about the feedback set itself rather than about the salon's work,
-              so they sit together as a pair above the category findings. */}
-          <div className="summary-side-cards">
-            <StaffReputation data={provider.staff_reputation} placeId={salonId} />
-            <OverallSalonScore placeId={salonId} window={consistencyWindow} weights={weights} />
-            <LanguageMix data={provider.languages} />
-            <ResponsivenessRing
-              replyQuality={replyQuality}
-              subPointBy={subPointBy}
-              checks={subPointsOf(3)}
-            />
+            <div className="evsum-cards">
+              <StaffReputation data={provider.staff_reputation} placeId={salonId} />
+              <ResponsivenessRing
+                replyQuality={replyQuality}
+                subPointBy={subPointBy}
+                checks={subPointsOf(3)}
+              />
+            </div>
           </div>
 
-          {/* Smart category cards: what we check, findings, verdict */}
+          {/* Category findings: one summary row each; open one for its checks. */}
+          {/* Category 3 is left out: it is scored from the owner's replies
+              rather than from what customers wrote, so it does not belong
+              under this heading. The Responsiveness panel above still
+              reports it in full. */}
+          <div className="summary-cats-head">
+            <h2 className="summary-cats-title">What customers say, by category</h2>
+            <button type="button" className="btn-text summary-cats-all" onClick={() => setOpenCats(openCats.size === SUMMARY_CATEGORIES.length ? new Set() : new Set(SUMMARY_CATEGORIES))}>
+              {openCats.size === SUMMARY_CATEGORIES.length ? "Close all" : "Open all"}
+            </button>
+          </div>
           <div className="summary-cats">
-            {[1,2,3,4,5,6,7].map((no) => {
+            {SUMMARY_CATEGORIES.map((no, i) => {
               const label = CATEGORY_DISPLAY[no] ?? categoryName[no] ?? `Category ${no}`;
               const checks = subPointsOf(no);
               // aggregate across all sub-points; a mixed comment counts half positive, half negative
@@ -1348,45 +1317,44 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "anytime", we
               const verdict = verdictFor(share);
 
               return (
-                <div key={no} className="sum-card">
-                  {/* header */}
-                  <div className="sum-card-head">
-                    <span className="sum-card-no">{String(no).padStart(2,"0")}</span>
-                    <div className="sum-card-title">
+                <div key={no} className={`sum-card ${openCats.has(no) ? "is-open" : ""}`}>
+                  {/* The whole summary is one button: verdict, share and count
+                      stay visible; the checks and the feedbacks open under it. */}
+                  <button
+                    type="button"
+                    className="sum-card-toggle"
+                    aria-expanded={openCats.has(no)}
+                    aria-controls={`cat-body-${no}`}
+                    onClick={() => toggleCat(no)}
+                  >
+                    <span className="sum-card-no">{String(i + 1).padStart(2,"0")}</span>
+                    <span className="sum-card-title">
                       <strong>{label}</strong>
                       <span className="sum-card-sub">{CATEGORY_BLURB[no]}</span>
-                    </div>
-                    {verdict && (
-                      <span className={`sum-verdict sum-verdict--${verdict.cls}`} style={badgeStyle(verdict)}>{verdict.word}</span>
-                    )}
-                  </div>
-
-                  {/* overall finding bar — category 3 uses reply rate, others use pos% */}
-                  {no === 3 && replyQuality?.complaints > 0 ? (() => {
-                    const rq = replyQuality;
-                    const replyRate = rq.complaints > 0 ? Math.round((rq.complaints_replied / rq.complaints) * 100) : null;
-                    if (replyRate == null) return null;
-                    return (
-                      <div className="sum-finding">
-                        <div className="sum-finding-bar">
-                          <span className="sum-finding-fill" style={{ width: `${replyRate}%` }} />
-                        </div>
-                        <span className="sum-finding-stat">
-                          Owner replied to <b>{replyRate}%</b> of complaints — {rq.complaints_replied} of {rq.complaints}
+                    </span>
+                    {no === 3 && replyQuality?.complaints > 0 ? (() => {
+                      const rq = replyQuality;
+                      const replyRate = Math.round((rq.complaints_replied / rq.complaints) * 100);
+                      return (
+                        <span className="sum-finding">
+                          <span className="sum-finding-bar"><span className="sum-finding-fill" style={{ width: `${replyRate}%` }} /></span>
+                          <span className="sum-finding-stat">Owner replied to <b>{replyRate}%</b> of complaints — {rq.complaints_replied} of {rq.complaints}</span>
                         </span>
-                      </div>
-                    );
-                  })() : total > 0 && (
-                    <div className="sum-finding">
-                      <div className="sum-finding-bar">
-                        <span className="sum-finding-fill" style={{ width: `${posShare}%` }} />
-                      </div>
-                      <span className="sum-finding-stat">
-                        <b>{posShare}%</b> positive across {total} feedback{total !== 1 ? "s" : ""}
+                      );
+                    })() : total > 0 ? (
+                      <span className="sum-finding">
+                        <span className="sum-finding-bar"><span className="sum-finding-fill" style={{ width: `${posShare}%` }} /></span>
+                        <span className="sum-finding-stat"><b>{posShare}%</b> positive across {total} feedback{total !== 1 ? "s" : ""}</span>
                       </span>
-                    </div>
-                  )}
+                    ) : <span className="sum-finding sum-finding--none">No feedbacks yet</span>}
+                    {verdict
+                      ? <span className={`sum-verdict sum-verdict--${verdict.cls}`} style={verdictInk(verdict)}>{verdict.word}</span>
+                      : <span />}
+                    <span className="sum-card-chev" aria-hidden="true">{openCats.has(no) ? "−" : "+"}</span>
+                  </button>
 
+                  {openCats.has(no) && (
+                  <div id={`cat-body-${no}`} className="sum-card-body">
                   {/* sub-point breakdown */}
                   <ul className="sum-checks">
                     {checks.map((c) => {
@@ -1563,6 +1531,8 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "anytime", we
                     label="Show feedbacks across the salon"
                     emptyText="No feedbacks carry this for the salon yet."
                   />
+                  </div>
+                  )}
                 </div>
               );
             })}

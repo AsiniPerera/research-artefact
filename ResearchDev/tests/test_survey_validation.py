@@ -61,3 +61,61 @@ def test_u06_missing_a_required_likert_item_is_rejected():
     del data["q10"]
     with pytest.raises(ValidationError):
         SurveyBody(**data)
+
+
+# ── Task completion (28_usability_task_completion.sql) ──────────────────────
+# The five scenario checkboxes are what Table 5.6's "completed all five tasks
+# unaided" figure is read from, so what matters is that they survive the model
+# unchanged and that null keeps its meaning: "not asked", never "failed".
+
+def test_u07_task_flags_are_optional_and_default_to_unanswered():
+    body = SurveyBody(**_valid())
+    assert body.task1_completed is None
+    assert body.task5_completed is None
+
+
+def test_u08_task_flags_round_trip_as_booleans():
+    body = SurveyBody(**_valid(
+        task1_completed=True, task2_completed=True, task3_completed=False,
+        task4_completed=True, task5_completed=False))
+    assert [body.task1_completed, body.task2_completed, body.task3_completed,
+            body.task4_completed, body.task5_completed] == [True, True, False, True, False]
+
+
+def test_u09_every_task_column_reaches_the_insert():
+    from survey import _COLS
+    for i in range(1, 6):
+        assert f"task{i}_completed" in _COLS
+    # the INSERT pairs _COLS with one placeholder each, so a drift here would
+    # silently shift every value by one column
+    assert len(_COLS) == len(set(_COLS))
+
+
+def test_u10_a_non_boolean_task_value_is_rejected():
+    with pytest.raises(ValidationError):
+        SurveyBody(**_valid(task3_completed="maybe"))
+
+
+def test_u11_a_missing_task_column_names_the_migration_rather_than_500ing():
+    """Until 28_ is applied the column does not exist. The participant should
+    be told which file to run, not shown a server error."""
+    import contextlib
+    import psycopg2
+    import survey as mod
+    from fastapi import HTTPException
+
+    @contextlib.contextmanager
+    def _boom():
+        raise psycopg2.errors.UndefinedColumn('column "task1_completed" does not exist')
+        yield  # pragma: no cover
+
+    original = mod._db
+    mod._db = _boom
+    try:
+        with pytest.raises(HTTPException) as err:
+            mod.submit_response(SurveyBody(**_valid()))
+    finally:
+        mod._db = original
+
+    assert err.value.status_code == 503
+    assert "28_usability_task_completion.sql" in err.value.detail

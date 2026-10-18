@@ -16,11 +16,9 @@ export function getScoreStyle(score) {
   return SCORE_SCALE.find((b) => v >= b.min);
 }
 
-/** Inline style for a verdict badge: tinted fill, coloured rim, readable text.
- *  Passed as custom properties because the badge rules in theme.css are
- *  !important; a rule there reads these (search "--badge-ink"). */
-export const badgeStyle = (s) => s && ({
-  "--badge-ink": s.ink,
-  "--badge-rim": s.color,
-  "--badge-fill": `color-mix(in srgb, ${s.color} 10%, white)`,
-});
+/** Inline style for a verdict word: the band's readable ink, nothing else.
+ *  A verdict used to be a bordered chip with a tinted fill; it is now the word
+ *  alone in its band colour, the same way the ranked list shows one.
+ *  Passed as a custom property because the rules in theme.css are !important;
+ *  a rule there reads it (search "--verdict-ink"). */
+export const verdictInk = (s) => s && ({ "--verdict-ink": s.ink });

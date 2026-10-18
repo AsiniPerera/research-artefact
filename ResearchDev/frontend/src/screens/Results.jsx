@@ -6,12 +6,25 @@
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { SalonCard } from "../components/SalonCard";
 import { FallbackNotice } from "../components/FallbackNotice";
+import { GeneralFeedbackSection } from "../components/GeneralFeedbackSection";
+import { ChooseService } from "../components/ChooseService";
 import { rankingFallback } from "../api/client";
 import { servicePath } from "../utils/servicePath";
 import { IconInfo } from "../components/Icons";
 import { AUDIENCE } from "../constants/audience";
 
 const PER_PAGE = 6;
+
+/* The orders the Sort control offers, beyond the ranking itself. */
+const SORTS = {
+  score: (a, b) => (b.personal_score ?? 0) - (a.personal_score ?? 0),
+  reviewed: (a, b) => (b.evidence_reviews ?? 0) - (a.evidence_reviews ?? 0),
+  name: (a, b) => String(a.provider_name ?? "").localeCompare(String(b.provider_name ?? "")),
+};
+
+/* Nearby is a supporting list, not a second ranking: it shows six and says
+   how many more there are rather than paginating on its own. */
+const NEARBY_SHOWN = 6;
 
 /**
  * The ranked salons come first, in the API's order (score.rank_providers);
@@ -20,7 +33,6 @@ const PER_PAGE = 6;
 export function Results({
   filters,
   serviceChosen,
-  submitted,
   data,
   loading,
   error,
@@ -29,8 +41,21 @@ export function Results({
   nearby,
   audience = "",
   priorities,
+  consistencyWindow,
+  popular = [],
+  onStartWith,
+  onStartCategory,
+  sort = "best",
+  onCounts,
 }) {
   const [page, setPage] = useState(1);
+  /* Written during render, reported after it: telling the parent mid-render
+     would set state on it while this one is still rendering. */
+  const countsRef = useRef({ total: 0, confident: 0 });
+  const counts = countsRef.current;
+  useEffect(() => {
+    onCounts?.(counts);
+  }, [onCounts, counts.total, counts.confident]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* When a change of priorities re-orders the list, each card glides from its old
      place to its new one, so the reader sees what their change did. Positions are
@@ -61,20 +86,11 @@ export function Results({
 
   // A fresh ranking is a fresh list — never strand the user on a page that no longer exists.
   useEffect(() => { setPage(1); }, [data]);
+  // Re-sorting starts from the top too: page 3 of one order is not page 3 of another.
+  useEffect(() => { setPage(1); }, [sort]);
 
-  if (!submitted) {
-    return (
-      <div className="empty-state empty-state--ready">
-        <p className="empty-title">
-          {serviceChosen ? "Your ranking will appear here" : "Choose a service"}
-        </p>
-        <p>
-          {serviceChosen
-            ? "Set your priorities, then press Rank Salons."
-            : "Pick a specific service from the menu above, set your priorities, then press Rank Salons."}
-        </p>
-      </div>
-    );
+  if (!serviceChosen) {
+    return <ChooseService popular={popular} onStartWith={onStartWith} onStartCategory={onStartCategory} />;
   }
 
   // A skeleton in the shape of the real grid — the page doesn't jump when
@@ -98,27 +114,36 @@ export function Results({
   if (!data) return null;
 
   const ranked = data.ranked ?? [];
-  /* Below the confidence bar but with reviews about this service: listed after
-     the ranked salons, ordered by score, and marked Less certain on the card.
-     A salon with no feedback about this service has nothing to score and is not
-     shown. */
+  /* Below the confidence bar but with reviews about this service: still
+     listed, and marked Less certain on the card. A salon with no feedback
+     about this service has nothing to score and is not shown. */
   const provisional = (data.available_but_not_ranked ?? [])
-    .filter((r) => (r.evidence_reviews ?? 0) >= 1)
-    .sort((a, b) => (b.personal_score ?? 0) - (a.personal_score ?? 0));
-  /* Highest score first. The API puts salons with a safety notice after every
-     clear salon; the list is ordered purely by score, and a notice is shown on
-     the card instead. Array.sort is stable, so equal scores keep the API's order. */
+    .filter((r) => (r.evidence_reviews ?? 0) >= 1);
+  /* One list, highest score first, whether or not a salon is ranked with
+     confidence: the reader sees the order of the scores they are shown. The
+     "Less certain" mark on a card is what says the evidence behind it is thin.
+     The API's own order -- ranked first, then safety -- is deliberately not
+     used for display. Array.sort is stable, so equal scores keep the API's
+     order. */
   const byScore = (a, b) => (b.personal_score ?? 0) - (a.personal_score ?? 0);
-  const everyone = [...[...ranked].sort(byScore), ...provisional];
+  const everyone = [...ranked, ...provisional].sort(byScore);
   /* The audience filter only hides salons. Positions are recounted over what is
      shown, and salons with no label are hidden when a label is chosen, which
      the line under the count says. */
-  const listed = audience ? everyone.filter((r) => r.audience === audience) : everyone;
+  const shown = audience ? everyone.filter((r) => r.audience === audience) : everyone;
+  /* Sorting reorders what is already on screen; it never re-asks the server,
+     so the scores and the confidence behind them are untouched. "Best match"
+     is the ranking itself, which is what `shown` already is. */
+  const listed = sort === "best" ? shown : [...shown].sort(SORTS[sort] ?? (() => 0));
   const hiddenUnlabelled = audience ? everyone.filter((r) => !r.audience).length : 0;
   const serviceName = data.shown?.name ?? data.sub_service?.name ?? "this service";
   /* Null unless the API answered above the service asked for. The notice says
      so; nothing here re-scores or re-orders because of it. */
   const fallback = rankingFallback(data);
+
+  /* The header says how many salons there are and how many carry a confident
+     score; both are known only once the response is in. */
+  countsRef.current = { total: listed.length, confident: ranked.length };
 
   const pageCount = Math.ceil(listed.length / PER_PAGE);
   const pageStart = (page - 1) * PER_PAGE;
@@ -135,33 +160,22 @@ export function Results({
 
   return (
     <div className="results-page" aria-busy={loading}>
-      {path && (
-        <nav className="svc-path" aria-label="Chosen service">
-          {path.map((crumb, i) => (
-            <span key={crumb.label}>
-              {i > 0 && <i aria-hidden="true">›</i>}
-              <span>{crumb.label}</span>
-            </span>
-          ))}
-        </nav>
-      )}
+      {/* One line: which service, how many salons, and how to read a score. */}
       <div className="results-head">
-        <p className="summary">
-          <strong>{listed.length}</strong> {listed.length === 1 ? "salon" : "salons"} found
-          {filters.city ? ` in ${filters.city}` : ""}
-          {audience ? ` for ${AUDIENCE[audience].label.toLowerCase()}` : ""}
-        </p>
+        {path && (
+          <nav className="svc-path" aria-label="Chosen service">
+            {path.map((crumb, i) => (
+              <span key={crumb.label}>
+                {i > 0 && <i aria-hidden="true">›</i>}
+                <span>{crumb.label}</span>
+              </span>
+            ))}
+          </nav>
+        )}
         {audience && hiddenUnlabelled > 0 && (
           <p className="audience-note">
             {hiddenUnlabelled} {hiddenUnlabelled === 1 ? "salon" : "salons"} we could not label as
             Ladies, Gents or Unisex {hiddenUnlabelled === 1 ? "is" : "are"} not shown. Choose Everyone to see them.
-          </p>
-        )}
-        {/* The legend reads a score ring. With no cards there is none to read. */}
-        {listed.length > 0 && (
-          <p className="results-legend">
-            <span className="legend-ring" aria-hidden="true" />
-            <span><strong>Score</strong> — 0 to 100, 50 is neutral, with its 80% range</span>
           </p>
         )}
       </div>
@@ -170,17 +184,14 @@ export function Results({
         /* Nothing is ranked with confidence, but salons with a review about the
            service are still listed. Say so, instead of "no rated salons" above
            a numbered list. */
-        <div className="fallback-notice" role="status">
-          <span className="fallback-notice-icon" aria-hidden="true"><IconInfo size={16} /></span>
-          <div className="fallback-notice-body">
-            <p className="fallback-notice-msg">
-              No salon has enough feedbacks to be ranked with confidence for{" "}
-              <strong>{fallback.requested?.name ?? serviceName}</strong> yet. These salons have
-              at least one feedback about it, listed best score first. Their scores rest mostly
-              on their other feedbacks, so treat the order as a guide, not a ranking.
-            </p>
-          </div>
-        </div>
+        <p className="fallback-notice" role="status">
+          <span className="fallback-notice-icon" aria-hidden="true"><IconInfo size={15} /></span>
+          <span className="fallback-notice-msg">
+            None has enough feedbacks about{" "}
+            <strong>{fallback.requested?.name ?? serviceName}</strong>, or about anything above
+            it, to be ranked with confidence, so treat the order as a guide rather than a ranking.
+          </span>
+        </p>
       ) : fallback && (
         <FallbackNotice
           fallback={fallback}
@@ -258,6 +269,19 @@ export function Results({
       {nearby && nearby.status && nearby.status !== "idle" && (
         <NearbySection city={filters.city} nearby={nearby} onSelectSalon={onSelectSalon} audience={audience} />
       )}
+
+      {/* Salons whose feedback names no service are in no ranking, so they
+          are offered here, scored on the same priorities. */}
+      {serviceChosen && (
+        <GeneralFeedbackSection
+          priorities={priorities}
+          city={filters.city}
+          availability={filters.availability}
+          consistencyWindow={consistencyWindow}
+          audience={audience}
+          onSelectSalon={onSelectSalon}
+        />
+      )}
     </div>
   );
 }
@@ -269,13 +293,22 @@ function NearbySection({ city, nearby, onSelectSalon, audience = "" }) {
   const { status, data, error } = nearby;
   const all = data?.nearby ?? [];
   const rows = audience ? all.filter((r) => r.audience === audience) : all;
+  /* Best first, not nearest first. The API returns these in distance order,
+     and each card shows the rank it holds in the wider list — so the five
+     nearest read as 28, 9, 17, 12, 8 and the section looked broken. Ordering
+     by that same rank makes the numbers climb and puts the best five on show
+     rather than an arbitrary five. */
+  const shown = [...rows]
+    .sort((a, b) => (a.rank_no ?? Infinity) - (b.rank_no ?? Infinity))
+    .slice(0, NEARBY_SHOWN);
+  const more = rows.length - shown.length;
 
   return (
     <section className="nearby-section nearby-section--open">
       <div className="nearby-head">
         <h4>Salons near {city}</h4>
         {status === "done" && rows.length > 0 && (
-          <p>Just outside {city}, ranked for the same service — nearest first.</p>
+          <p>Just outside {city}, ranked for the same service — best first.</p>
         )}
       </div>
 
@@ -287,10 +320,19 @@ function NearbySection({ city, nearby, onSelectSalon, audience = "" }) {
 
       {status === "done" && rows.length > 0 && (
         <div className="salon-grid">
-          {rows.map((row) => (
-            <SalonCard key={row.place_id} salon={row} onSelect={onSelectSalon} />
+          {/* Numbered 1-5 for this list, not by the rank each holds in the
+              wider one: five rows reading 1, 2, 8, 9, 10 look like a list with
+              gaps in it. */}
+          {shown.map((row, i) => (
+            <SalonCard key={row.place_id} salon={row} position={i + 1} onSelect={onSelectSalon} />
           ))}
         </div>
+      )}
+
+      {status === "done" && more > 0 && (
+        <p className="nearby-note">
+          {more} more ranked salon{more === 1 ? "" : "s"} near {city}. Choose that city to see {more === 1 ? "it" : "them"}.
+        </p>
       )}
     </section>
   );
