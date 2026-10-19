@@ -21,7 +21,7 @@ R_c  = (n_c / (n_c + k)) · (1 − σ_c)
 - **Frontend** — React 18 + Vite, plain CSS (no framework), Leaflet for maps
 - **Backend** — FastAPI (Python), served with Uvicorn
 - **Database** — PostgreSQL (Supabase)
-- **LLM extraction pipeline** — Google Gemini (free tier), offline, feeds the scoring pipeline that the platform reads from
+- **LLM extraction pipeline** — Google Gemini, offline, feeds the scoring pipeline that the platform reads from
 - **Deployment** — single Docker image on Render: Node builds the frontend, FastAPI serves both the API and the built static files
 
 ## Project structure
