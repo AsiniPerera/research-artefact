@@ -1783,6 +1783,11 @@ body { background: var(--c-white); color: var(--body); }
 .app .salon-detail .maps-link {
   display: inline-flex; align-items: center; gap: 0.35rem;
   margin: 0;
+  /* index.css gives .maps-link a 46px min-height meant for a full CTA
+     button; this chip sits beside 0.25rem-padded chips, so that floor
+     has to be lifted or the chip stays button-tall regardless of
+     padding. */
+  min-height: 0 !important;
   padding: 0.25rem 0.55rem !important;
   font-family: var(--font-text) !important;
   font-size: 0.72rem !important;
