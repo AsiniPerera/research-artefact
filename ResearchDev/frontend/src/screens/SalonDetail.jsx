@@ -1194,19 +1194,18 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "anytime", we
                 {p.permanently_closed ? "Permanently closed" : "Temporarily closed"}
               </span>
             )}
+            {/* The map link lives beside the other chips, not in a side column:
+                where the salon is, is part of who it is, and it should not
+                need a tab change -- and it should not jump above the name on
+                a phone either, which a separate side column used to do. */}
+            {p.place_url && (
+              <a href={p.place_url} target="_blank" rel="noopener noreferrer" className="maps-link">
+                <IconPin size={16} />
+                View on Google Maps
+              </a>
+            )}
           </div>
         </div>
-
-        {/* The map link lives in the heading: where the salon is, is part of
-            who it is, and it should not need a tab change. */}
-        {p.place_url && (
-          <div className="detail-hero-side">
-            <a href={p.place_url} target="_blank" rel="noopener noreferrer" className="maps-link">
-              <IconPin size={16} />
-              View on Google Maps
-            </a>
-          </div>
-        )}
       </header>
 
       <DonutDefs />

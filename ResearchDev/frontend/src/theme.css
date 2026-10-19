@@ -1541,18 +1541,19 @@ body { background: var(--c-white); color: var(--body); }
   .lp-hero-img { width: 100%; height: auto; border-radius: 16px; }
 }
 
-/* Phone menu button: white pill with ink lines and label (it was a dark pill,
-   and the lines were set to ink in the icon-menu fix, so they vanished). */
+/* Phone menu button: a plain icon, like the search button beside it -- no
+   pill, no label, no background box. Three ink bars that cross into an X
+   when the drawer opens (index.css's .nav-burger--open rules). */
 .app .nav-burger {
-  background: var(--c-white) !important;
+  background: none !important;
   background-image: none !important;
-  border: 1px solid var(--c-line) !important;
-  border-radius: 999px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
   box-shadow: none !important;
   color: var(--c-ink) !important;
 }
-.app .nav-burger::after, .app .nav-burger::before { color: var(--c-ink) !important; }
 .app .nav-burger span { background: var(--c-ink) !important; }
+.app .nav-burger:focus-visible { outline: 2px solid var(--c-ink); outline-offset: 2px; }
 
 
 
@@ -1765,24 +1766,26 @@ body { background: var(--c-white); color: var(--body); }
    red stays, because it is a warning. */
 .app .salon-detail .detail-hero { border-left: 3px solid var(--c-accent) !important; }
 
-/* Map button: it was a black pill with no visible label. */
+/* Map link: a chip among the other chips (Popular services, Specialism), not
+   a separate filled button in its own column -- same pill shape, border and
+   quiet surface, so it reads as one more fact about the salon rather than a
+   competing call to action. */
 .app .salon-detail .maps-link {
-  display: inline-flex; align-items: center; gap: 0.55rem;
-  padding: 0.75rem 1.5rem;
-  font: 500 0.875rem/1 var(--font-text);
-  color: var(--c-on-accent) !important;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  margin-top: 0.3rem;
+  padding: 0.25rem 0.65rem 0.25rem 0.55rem;
+  font: 500 0.8125rem/1.3 var(--font-text);
+  color: var(--c-ink-2) !important;
   text-decoration: none !important;
-  background: var(--bronze) !important;
-  background-color: var(--bronze-solid) !important;
-  border: 1px solid rgba(217, 179, 130, 0.55) !important;
+  background: var(--c-hover-warm) !important;
+  border: 1px solid var(--c-line) !important;
   border-radius: 999px !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 10px 22px -12px rgb(var(--c-accent-strong-rgb) / 0.7) !important;
-  transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
+  box-shadow: none !important;
+  transition: border-color 0.15s var(--ease), color 0.15s var(--ease);
 }
-.app .salon-detail .maps-link:hover { background: var(--bronze-hover) !important; transform: translateY(-1px); }
+.app .salon-detail .maps-link:hover { border-color: var(--c-accent-strong) !important; color: var(--c-ink) !important; }
 .app .salon-detail .maps-link:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 3px; }
-.app .salon-detail .maps-link svg { flex-shrink: 0; }
-@media (prefers-reduced-motion: reduce) { .app .salon-detail .maps-link:hover { transform: none; } }
+.app .salon-detail .maps-link svg { flex-shrink: 0; color: var(--c-accent-strong); }
 
 /* Tabs */
 .app .salon-detail .detail-tab--active,
@@ -2965,14 +2968,11 @@ body { background: var(--c-white); color: var(--body); }
   max-width: 24ch;
 }
 .app .salon-detail .detail-meta { margin: 0 !important; font-size: 0.9rem; }
-.app .salon-detail .detail-chips { margin-top: 1rem; }
-.app .salon-detail .detail-hero-side { align-self: start; }
-.app .salon-detail .maps-link { padding: 0.65rem 1.2rem; font-size: 0.8125rem; }
+.app .salon-detail .detail-chips { margin-top: 1rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
 .app .salon-detail .detail-chip,
 .app .salon-detail .badge { border-radius: 999px !important; }
 @media (max-width: 700px) {
   .app .salon-detail .detail-hero { grid-template-columns: minmax(0, 1fr); }
-  .app .salon-detail .detail-hero-side { order: -1; }
 }
 
 /* Verdict badges take the site-wide score scale (lib/scoreScale.js badgeStyle).
@@ -4247,11 +4247,19 @@ body { background: var(--c-white); color: var(--body); }
 .app .page-body--explore .xp-prio-panel .meter-word { flex: 0 0 auto; white-space: nowrap; }
 .app .page-body--explore .xp-prio-panel .meter-row { padding: 0.6rem 0.65rem !important; }
 
-/* On a phone the panel is anchored to the chip, which sits part-way across the
-   row, so a fixed left edge pushed it off screen. It spans the gutters there. */
+/* On a phone the panel used to stay position:absolute while its wrap went
+   static for the left/right-edge fix below -- with no positioned ancestor
+   left anywhere in between, "top: 100%" resolved against the page's initial
+   containing block instead of the chip, so the panel rendered far down the
+   page (sometimes off the end of it entirely) instead of opening under the
+   chip. It renders in normal flow instead, directly under the chip and
+   full width, the same way the rest of the stacked filter sheet already
+   works at this width. */
 @media (max-width: 760px) {
   .app .xp-prio-wrap { position: static; }
-  .app .xp-prio-panel { left: 1rem; right: 1rem; width: auto; }
+  .app .xp-prio-panel {
+    position: static; margin-top: 0.5rem; left: auto; right: auto; top: auto; width: 100%;
+  }
 }
 
 /* Between a phone and a wide desktop the chip sits far enough along the row
