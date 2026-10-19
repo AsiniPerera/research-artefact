@@ -42,4 +42,4 @@ services:
     routes:
       - type: rewrite
         source: /api/*
-        destination: https://salon-api-oxc6.onrender.com/*
+        destination: https://salon-api-gyf4.onrender.com/*
