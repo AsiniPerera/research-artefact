@@ -852,6 +852,16 @@ body { background: var(--c-white); color: var(--body); }
 
 /* ══ About ════════════════════════════════════════════════════ */
 .app .about { color: var(--c-ink-2); }
+.app .about p,
+.app .about-lede,
+.app .about-note,
+.app .about-hero .about-lede,
+.app .about-split-copy p,
+.app .about-check-body p {
+  text-align: justify !important;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
 .app .about-hero,
 .app .about-hero::before,
 .app .about-hero::after,
@@ -1784,12 +1794,12 @@ body { background: var(--c-white); color: var(--body); }
   color: var(--c-ink-2) !important;
   background: var(--c-white) !important;
   border: 1px solid var(--c-line) !important;
-  border-radius: 999px !important;
+  border-radius: var(--r-ctl) !important;
   box-shadow: none !important;
   white-space: nowrap;
   transition: border-color 0.15s var(--ease), color 0.15s var(--ease);
 }
-.app .salon-detail .maps-link:hover { border-color: var(--c-accent-strong) !important; color: var(--c-ink) !important; }
+.app .salon-detail .maps-link:hover { border-color: var(--c-faint) !important; color: var(--c-ink) !important; }
 .app .salon-detail .maps-link:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 3px; }
 .app .salon-detail .maps-link svg { flex-shrink: 0; color: currentColor; width: 12px; height: 12px; }
 
