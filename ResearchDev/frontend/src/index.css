@@ -5355,7 +5355,12 @@ details p { font-size: 0.72rem; color: var(--muted); margin-top: 0.3rem; }
   .priority-panel { padding: 1.1rem 1.1rem 1.25rem; }
   .page { padding: 1.5rem var(--gutter) 2rem; }
   .salon-grid { grid-template-columns: 1fr; }
-  .footer { padding: 2rem var(--gutter) 1.5rem; }
+  /* Extra bottom padding: the footer stacks to one column here, so its last
+     line runs the full width into the corner where the fixed chat bubble
+     sits (.chatw, 3.4rem + 1.25rem from the edge) -- without this, the
+     bubble permanently covers part of the last line with no more page left
+     to scroll to reveal it. */
+  .footer { padding: 2rem var(--gutter) 5.5rem; }
   .footer-inner { grid-template-columns: 1fr; gap: 1.75rem; }
 }
 
@@ -9581,6 +9586,22 @@ select {
   text-align-last: left;
   hyphens: auto;
   -webkit-hyphens: auto;
+}
+/* Same floor as the earlier .about p reset: under ~45 characters a line
+   cannot be justified without visible gaps, and this rule's own selectors
+   (.about-split-copy p, .about-check-body p) were missing from that reset,
+   so a phone still justified them and showed the gaps the reset was meant
+   to prevent. */
+@media (max-width: 560px) {
+  .about-hero .about-lede,
+  .about-split-copy p,
+  .about-note,
+  .about-check-body p,
+  .cp-intro-lede,
+  .contactpage .cp-card-sub,
+  .contactpage .cp-done p {
+    text-align: left;
+  }
 }
 
 /* Home page: still. No floating arches, shimmering headline, twinkling

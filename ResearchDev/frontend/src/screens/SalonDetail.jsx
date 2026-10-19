@@ -1200,7 +1200,7 @@ export function SalonDetail({ salonId, onBack, consistencyWindow = "anytime", we
                 a phone either, which a separate side column used to do. */}
             {p.place_url && (
               <a href={p.place_url} target="_blank" rel="noopener noreferrer" className="maps-link">
-                <IconPin size={16} />
+                <IconPin size={12} />
                 View on Google Maps
               </a>
             )}
