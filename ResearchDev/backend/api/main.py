@@ -36,6 +36,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
@@ -1630,4 +1631,20 @@ def evidence(
 # before `npm run build` has been run.
 _FRONTEND_DIST = pathlib.Path(__file__).resolve().parents[2] / "frontend" / "dist"
 if _FRONTEND_DIST.is_dir():
+    # index.html explicitly, with Cache-Control: no-cache, registered before
+    # the mount below so it wins for the exact "/" path. StaticFiles leaves
+    # no-store/no-cache headers off by default, and a browser's heuristic
+    # cache can then keep serving an old shell -- one that still points at a
+    # JS/CSS bundle from a previous deploy -- for a while after a fresh
+    # release, which is exactly the "I still see the old version" reports
+    # a few redeploys produced here. no-cache (not no-store) still lets the
+    # browser revalidate with an ETag, so a repeat visit is cheap when
+    # nothing changed. Hashed files under /assets/* are unaffected by this
+    # and keep their default caching, which is safe: their filename changes
+    # whenever their content does, so an old cached copy is simply never
+    # requested again once index.html points at a new one.
+    @app.get("/", include_in_schema=False)
+    def _frontend_index():
+        return FileResponse(_FRONTEND_DIST / "index.html", headers={"Cache-Control": "no-cache"})
+
     app.mount("/", StaticFiles(directory=str(_FRONTEND_DIST), html=True), name="frontend")
