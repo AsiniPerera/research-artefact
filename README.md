@@ -15,7 +15,6 @@ F(s) = Σ_c W_c,user · [ R_c^t · C_c + (1 − R_c^t) · μ_c ]
 R_c  = (n_c / (n_c + k)) · (1 − σ_c)
 ```
 
-Full research design, scope and open questions live in [docs/project.md](docs/project.md).
 
 ## Stack
 
