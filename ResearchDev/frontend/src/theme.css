@@ -4667,3 +4667,129 @@ body { background: var(--c-white); color: var(--body); }
 }
 .app .nearby-section .btn-text:hover { color: var(--c-accent-btn-deep) !important; }
 .app .nearby-section .btn-text:focus-visible { outline: 2px solid var(--c-ink); outline-offset: 2px; }
+
+/* ══ Mobile: About page full-width text ═══════════════════════
+   On phones the About page's side padding left narrow columns of text that
+   didn't fill the screen. Reduce padding so prose runs nearly edge-to-edge. */
+@media (max-width: 640px) {
+  .app .about {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  .app .about .about-split,
+  .app .about .about-section {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+  .app .about-hero-copy {
+    grid-template-columns: 1fr !important;
+  }
+  .app .about-hero-copy .about-lede {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+    padding-left: 0 !important;
+    border-left: 0 !important;
+  }
+  .app .about-split {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ══ Mobile nav drawer: polished and consistent ═══════════════ */
+.app .nav-drawer {
+  width: min(80vw, 320px) !important;
+  padding: 1.25rem 1.25rem 2rem !important;
+  border-left: 1px solid var(--c-line) !important;
+  border-right: 0 !important;
+  border-top: 0 !important;
+  border-bottom: 0 !important;
+  box-shadow: -8px 0 24px -8px rgb(var(--c-ink-rgb) / 0.12) !important;
+}
+.app .nav-drawer-search {
+  background: var(--c-white) !important;
+  border: 1px solid var(--c-line) !important;
+  border-radius: 8px !important;
+  padding: 0.55rem 0.75rem !important;
+  margin-bottom: 1.25rem !important;
+}
+.app .nav-drawer-search:focus-within {
+  border-color: var(--c-ink) !important;
+  box-shadow: 0 0 0 2px rgb(var(--c-ink-rgb) / 0.08) !important;
+}
+.app .nav-drawer-search svg { color: var(--c-muted) !important; }
+.app .nav-drawer-search input {
+  color: var(--c-ink) !important;
+  font-size: 0.9375rem !important;
+}
+.app .nav-drawer-search input::placeholder { color: var(--c-faint) !important; }
+.app .nav-drawer-links {
+  gap: 0.15rem !important;
+}
+.app .nav-drawer-link {
+  padding: 0.65rem 0.75rem !important;
+  border: 0 !important;
+  border-bottom: 0 !important;
+  border-radius: 6px !important;
+  font-size: 1rem !important;
+  font-weight: 400 !important;
+  color: var(--c-ink-2) !important;
+  transition: background 0.15s, color 0.15s !important;
+}
+.app .nav-drawer-link:hover {
+  background: var(--c-hover-warm) !important;
+  color: var(--c-ink) !important;
+  padding-left: 0.75rem !important;
+}
+.app .nav-drawer-link--active {
+  background: var(--c-hover-warm) !important;
+  color: var(--c-ink) !important;
+  font-weight: 600 !important;
+}
+.app .nav-drawer-label {
+  margin-top: 1rem !important;
+  padding-top: 0.85rem !important;
+  border-top: 1px solid var(--c-line-faint) !important;
+  font-size: 0.65rem !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  color: var(--c-faint) !important;
+}
+.app .nav-drawer-account {
+  gap: 0.1rem !important;
+  margin-top: 0.35rem !important;
+}
+.app .nav-drawer-account button {
+  padding: 0.55rem 0.75rem !important;
+  border-radius: 6px !important;
+  font-size: 0.9375rem !important;
+  color: var(--c-ink-2) !important;
+}
+.app .nav-drawer-account button:hover {
+  background: var(--c-hover-warm) !important;
+  color: var(--c-ink) !important;
+}
+.app .nav-drawer-account button svg { color: var(--c-muted) !important; }
+.app .nav-drawer-count {
+  background: var(--c-hover-warm) !important;
+  color: var(--c-ink) !important;
+  border-radius: 10px !important;
+  padding: 0.1rem 0.5rem !important;
+  font-size: 0.7rem !important;
+}
+.app .nav-drawer .btn-hero.nav-drawer-cta {
+  margin-top: 1.25rem !important;
+  padding: 0.7rem 1.25rem !important;
+  border-radius: 6px !important;
+  font-size: 0.9375rem !important;
+  font-weight: 500 !important;
+  background: var(--c-ink) !important;
+  color: var(--c-white) !important;
+  border: 1px solid var(--c-ink) !important;
+  box-shadow: none !important;
+  width: 100% !important;
+  text-align: center !important;
+  justify-content: center !important;
+}
+.app .nav-drawer .btn-hero.nav-drawer-cta:hover {
+  background: var(--c-ink-hover) !important;
+}
