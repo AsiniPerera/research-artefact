@@ -35,6 +35,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.staticfiles import StaticFiles
 
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
@@ -1610,3 +1611,23 @@ def evidence(
     for r in rows:
         r["reviewer_name"] = _REVIEWER.get(r["review_id"])
     return rows
+
+
+# ---------------------------------------------------------------------------
+# Serve the built frontend (frontend/dist) from this same service, so the
+# browser talks to one origin and no /api rewrite or cross-origin proxy is
+# needed. Mounted last and at "/" so it never shadows an API route above:
+# FastAPI tries routes in registration order first, and only falls through to
+# this mount for a path none of them claimed. The frontend has no
+# client-side router (no deep links), so a plain static mount is enough --
+# no SPA catch-all fallback to index.html is needed for unmatched paths.
+#
+# The directory is three levels above this file (backend/api/main.py ->
+# backend/api -> backend -> <project root>) plus frontend/dist, which is
+# exactly how the Docker image (see Dockerfile) and a local frontend build
+# both lay it out. Mounting is skipped (not a hard failure) when the
+# directory does not exist, e.g. during local backend-only development
+# before `npm run build` has been run.
+_FRONTEND_DIST = pathlib.Path(__file__).resolve().parents[2] / "frontend" / "dist"
+if _FRONTEND_DIST.is_dir():
+    app.mount("/", StaticFiles(directory=str(_FRONTEND_DIST), html=True), name="frontend")
