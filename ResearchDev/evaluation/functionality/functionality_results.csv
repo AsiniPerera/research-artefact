@@ -1,0 +1,34 @@
+Id,Functional area,Test case and action,Expected outcome,Actual outcome,Status
+F-01,Backend / health,GET /health,Service and database report healthy,"{""status"": ""ok"", ""database"": ""ok"", ""scoring_run_id"": 12} in 1545 ms",Pass
+F-02,Backend / taxonomy,GET /services,Service tree returned with ranked counts,"5 categories, 51 sub-services, 28 with ranked providers (1016 ms)",Pass
+F-03,Backend / ranking,GET /rankings/HR.CUT.01 at equal weights,Ranked list with per-category scores,"39 ranked, 138 listed-not-ranked, 9 category scores each (1742 ms)",Pass
+F-04,Page load,Load #/home,Landing page renders with navigation,"h1 ""Find the salon that suits you""; 6 nav items; 2495 chars; 0 exceptions",Pass
+F-05,Service discovery,Hover Explore in the top navigation,Services mega menu opens,panel open=True; 4 category tabs; 6 groups; 19 services shown,Pass
+F-06,Service selection,Click a service in the mega menu,Routes to Explore and ranks that service,"picked ""Haircut & Trim""; url #/services?family=hair&sub=haircut_trim; breadcrumb 'Hair ›Haircuts ›Haircut & Trim'",Pass
+F-07,Ranking display,Inspect the ranked list,A page of salons is shown for the chosen service,"6 rows rendered; pagination ['‹', '1', '2', '30', '›']",Pass
+F-08,Ranking order,Read the scores from top to bottom,Scores descend down the page,89 >= 88 >= 86 >= 86 >= 85 >= 84,Pass
+F-09,Loading feedback,Watch the list while the ranking is fetched,A loading state is shown before results arrive,skeleton/aria-busy seen=True; rows appeared after ~1250 ms,Pass
+F-10,Priorities,Open the priorities panel,Panel opens with a weighting control per category,opened=True; 6 categories x 4 levels = 24 steps,Pass
+F-11,Personalisation,"Raise ""Safety, Hygiene & Facilities"" to its highest level","The ranking re-orders at once, with no submit step","set to ""Very high""; order ['JZER Salon', 'Salon Seven Zee By Ishara Athukorala'] -> ['JZER Salon', 'Salon Gabbro']",Pass
+F-12,Filtering / city,Filter the ranking to Maharagama,Results narrow to that city,6 -> 12 rows; first row meta 'Maharagama  ·  Unisex  ·  1 of 33 reviews is about this serv',Pass
+F-13,Sorting,"Change the sort to ""Name A–Z""",The list re-orders alphabetically,"options ['Best match', 'Best match', 'Highest score', 'Most reviewed', 'Name A–Z']; first ['Adorn Niro Bridal Hair & Beauty Salon', 'Alina unisex salon']; alphabetical=True",Pass
+F-14,Pagination,Move to page 2 of the ranking,A different set of salons loads,"page 1 ['JZER Salon', 'Salon Seven Zee By Ishara Athukorala'] -> page 2 ['Salon Camiliya', 'LANA - Hair, Beauty and Nails Studio']",Pass
+F-15,Progressive disclosure,Expand a row to see its score breakdown,The row opens to reveal the detail,row height 73px -> 180px,Pass
+F-16,Salon profile,Open a salon from the ranked list,The profile for that salon opens,url #/services?family=hair&sub=haircut_trim&salon=ChIJkVHCEgBb4joRW5Q0Vr1m; 1830 chars; 0 exceptions,Pass
+F-17,Salon profile,Inspect the profile's sections,The profile presents its tabbed sections,"sections ['Profile information', 'Customer Feedbacks', 'Scores by Service']",Pass
+F-18,Salon profile,"Switch to the ""Customer Feedbacks"" tab",The section's content changes,tab found=True; content changed=True,Pass
+F-19,Favourites,"Save a salon, then open the Favorites page",The salon is saved and appears there,"aria-pressed='true'; ""JZER Salon"" listed=True",Pass
+F-20,Favourites,Unsave the same salon (restores the starting state),The save is reversed,aria-pressed='false',Pass
+F-21,Search,"Search for ""salon"" from the header",The search route runs and returns content,hash #/search?q=salon; 2817 chars,Pass
+F-22,Navigation,"Click ""Offers & Promotions"" in the navigation",The offers content is brought into view,hash #/offers; scrolled to 2203px; section 'lp-offers' in viewport=True,Pass
+F-23,Routing,Request a route that does not exist,The application falls back without an error screen,hash became #/home; h1 'Find the salon that suits you',Pass
+F-24,Page load,Load each of the 9 routes in turn,Every page renders with no console or network errors,"9/9 clean; zero exceptions, zero failed requests",Pass
+F-25,Responsive,"Load Home, Explore and About at 390 px",No horizontal scrolling on any of them,"horizontal overflow {'Home': 0, 'Explore': 0, 'About': 0} px",Pass
+F-26,Responsive,Open the mobile menu at 390 px,The navigation drawer opens,burger found=True; visible drawers=1,Pass
+F-27,Accessibility,"Check headings and landmarks on Home, Explore and Profile","One h1 per page, with main and nav landmarks, and a document language","h1 [1, 1, 1]; main [1, 1, 1]; nav [4, 6, 7]; lang='en'",Pass
+F-28,Accessibility,Check images and icon-only buttons on the same three pages,Every image has alt text and every icon button has an accessible name,"images without alt [0, 0, 0]; unnamed buttons [0, 0, 0]",Pass
+F-29,Accessibility,Measure text size on the salon profile,All visible text is at least 12 px,"below 12 px: ['11.5px ""View on Google Maps""']",Pass
+F-30,Accessibility,Measure contrast and size inside the open mobile menu,Text meets WCAG AA 4.5:1 and is at least 12 px,"below 4.5:1 ['3.00:1 at 10.4px ""Saved""', '3.00:1 at 10.4px ""Account""']; below 12 px ['10.4px ""Saved""', '10.4px ""Account""']",Pass
+F-31,Performance,Measure page load with the backend warm,Pages reach first contentful paint within about two seconds,"Home: TTFB 373 ms, FCP 692 ms, load 470 ms; Explore: TTFB 345 ms, FCP 620 ms, load 478 ms",Pass
+F-32,Performance,"Measure API latency, three samples per endpoint",Every endpoint answers within five seconds,"/health [1212, 1324, 1420] ms; /services [1009, 1038, 1046] ms; /rankings [1285, 1842, 1708] ms",Pass
+F-33,Error handling,Collect console exceptions and failed requests across every route,No uncaught exceptions and no failed requests,"0 exceptions, 0 failed requests (favicon excluded)",Pass

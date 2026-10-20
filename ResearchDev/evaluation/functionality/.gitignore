@@ -1,0 +1,4 @@
+# Scratch left by a local run of functionality_tests.py
+.edge-profile/
+__pycache__/
+*.png
